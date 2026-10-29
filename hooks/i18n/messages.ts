@@ -33,6 +33,16 @@ export type Messages = {
     explaining: string
     explainFailed: (why: string) => string
     statusHint: string
+    signIn: string
+    signInTitle: string
+    openLichess: string
+    starting: string
+    orPaste: string
+    createToken: string
+    cancel: string
+    signInFailed: (why: string) => string
+    tokenStays: string
+    signOut: string
   }
   command: {
     description: string
@@ -53,6 +63,12 @@ export type Messages = {
     sourceSet: (name: string) => string
     noThemesOnChesscom: string
     claudeDoneFinish: string
+    loginStarted: (url: string) => string
+    loginNoListener: string
+    noTokenInCommand: string
+    signedIn: (name: string, rating?: number) => string
+    notSignedIn: string
+    loggedOut: string
   }
 }
 

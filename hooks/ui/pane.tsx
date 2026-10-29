@@ -2,11 +2,13 @@ import { atom, read, update } from 'claude-code'
 import type { Elements, Register } from 'claude-code'
 
 import type { Feedback, View } from '../../types'
+import { cancelSignIn, signIn, signOut, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
 import { INITIAL_VIEW, PANE, messagesOf } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
 import type { Messages } from '../i18n'
+import { TOKEN_PAGE } from '../lichess/auth'
 import { analysisUrl } from '../lichess/client'
 import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
 import { learnLinks, readExplanation } from '../training/explain'
@@ -37,11 +39,20 @@ const bar = (percent: number, cells = 6) => {
 }
 
 /** The training column beside the board: this session, the streak, reviews, the themes tried most. */
-function sidebar(els: Elements[keyof Elements], v: View, t: Messages) {
-  const { Box, Text } = els
+function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
+  const { Box, Text, Button } = els
   const marks = v.session.slice(-8).map(r => (r === 'clean' ? '🟩' : '🟥')).join('')
+  const diff = v.ratingDiff === undefined ? '' : ` (${v.ratingDiff >= 0 ? '+' : ''}${v.ratingDiff})`
   return (
     <Box flexDirection="column">
+      {v.account ? (
+        <Box flexDirection="row" gap={1}>
+          <Text>{`👤 ${v.account.username}${v.account.rating ? ` · ⭐ ${v.account.rating}${diff}` : ''}`}</Text>
+          <Button key="logout" plain dimColor onPress={() => void signOut($)}>{t.pane.signOut}</Button>
+        </Box>
+      ) : (
+        <Button key="login" plain hotkey="l" onPress={() => void signIn($)}>{`🔑 ${t.pane.signIn}`}</Button>
+      )}
       <Text bold>{`📈 ${t.pane.session}`}</Text>
       <Text>{marks || '·'}</Text>
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
@@ -70,6 +81,25 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     const t = messagesOf(v)
     const a = v.attempt
 
+    if (v.signIn) {
+      return (
+        <Box flexDirection="column" gap={1}>
+          <Text bold>{`🔑 ${t.pane.signInTitle}`}</Text>
+          {v.signIn.url ? <Link href={v.signIn.url} label={t.pane.openLichess} /> : <Text dimColor>{t.pane.starting}</Text>}
+          {Input && (
+            <Box flexDirection="column">
+              <Text>{t.pane.orPaste}</Text>
+              <Input key="token" placeholder="lip_…" autoFocus onSubmit={value => void useToken($, value)} />
+              <Link href={TOKEN_PAGE} label={t.pane.createToken} />
+            </Box>
+          )}
+          {v.signIn.failed && <Text color="error">{t.pane.signInFailed(v.signIn.failed)}</Text>}
+          <Text dimColor>{t.pane.tokenStays}</Text>
+          <Button key="cancel-login" plain onPress={() => void cancelSignIn($)}>{`✖ ${t.pane.cancel}`}</Button>
+        </Box>
+      )
+    }
+
     if (!a) {
       return (
         <Box flexDirection="row" gap={2}>
@@ -77,7 +107,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
             <Text>{v.isLoading ? `⏳ ${t.pane.loading}` : '♞'}</Text>
             {!v.isLoading && <Button key="retry" plain hotkey="r" onPress={() => void loadNext($)}>{`🔄 ${t.pane.retry}`}</Button>}
           </Box>
-          {sidebar(els, v, t)}
+          {sidebar($, els, v, t)}
         </Box>
       )
     }
@@ -104,7 +134,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
           <Box borderStyle="round" borderDimColor paddingX={1}>
             {board(els, shown, square => void change($, x => click(x, square)))}
           </Box>
-          {sidebar(els, v, t)}
+          {sidebar($, els, v, t)}
         </Box>
         <Text color={a.status === 'solved' ? 'success' : a.feedback.kind === 'wrong' ? 'error' : undefined}>
           {`${emojiOf(a.feedback)} ${t.feedback(a.feedback, solverOf(a))}`}

@@ -1,6 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
+import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
 import { completions } from './chess/position'
@@ -95,6 +96,20 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const { attempt } = await read($, view)
         if (!attempt || (attempt.played.length === 0 && !attempt.hadMistake && !attempt.usedHelp)) await loadNext($)
         return { text: t.command.sourceSet(t.source(source)) }
+      }
+      case 'login': {
+        if (arg) return { text: t.command.noTokenInCommand }
+        await openPane($, true)
+        const url = await signIn($)
+        return { text: url ? t.command.loginStarted(url) : t.command.loginNoListener }
+      }
+      case 'logout':
+        await cancelSignIn($)
+        await signOut($)
+        return { text: t.command.loggedOut }
+      case 'account': {
+        const { account } = await read($, view)
+        return { text: account ? t.command.signedIn(account.username, account.rating) : t.command.notSignedIn }
       }
       case 'lang': {
         const lang = arg?.toLowerCase()

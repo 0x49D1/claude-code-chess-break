@@ -4,6 +4,7 @@ import type { Attempt, Puzzle, Source } from '../../types'
 import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
 import { nextPuzzleUrl, readAnswer } from '../lichess/client'
 import { offlinePuzzle } from '../offline'
+import { sendResult, storedToken } from './account'
 import { explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
 import { recordProgress } from '../training/progress'
@@ -22,8 +23,10 @@ async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle>
     const res = await $.http.fetch(RANDOM_DAILY_URL, { method: 'GET', headers: { Accept: 'application/json', 'User-Agent': USER_AGENT } })
     return readDaily(res)
   }
-  const res = await $.http.fetch(nextPuzzleUrl(theme, settings.difficulty), { method: 'GET', headers: { Accept: 'application/json' } })
-  return readAnswer(res)
+  // Signed in, puzzles come from the account: ones not yet seen, at its rating.
+  const token = await storedToken($)
+  const headers: Record<string, string> = token ? { Accept: 'application/json', Authorization: `Bearer ${token}` } : { Accept: 'application/json' }
+  return readAnswer(await $.http.fetch(nextPuzzleUrl(theme, settings.difficulty), { method: 'GET', headers }))
 }
 
 /**
@@ -71,6 +74,7 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
     dueCount: dueIds(review, now).length,
     attempt: v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v.attempt, isRecorded: true } : v.attempt,
   }))
+  await sendResult($, attempt, isWin, (await read($, view)).theme)
 }
 
 /** Applies a change to the attempt, then plays the opponent's reply or records the end. */

@@ -26,6 +26,15 @@ Pick one with `/chess-break source …` or in `/config`. When Lichess or Chess.c
 
 `scripts/pick_offline.py` rebuilds the offline set from the database.
 
+## Lichess account (optional)
+
+`/chess-break login` (or 🔑 in the pane) signs in to Lichess for **rated puzzles**: new puzzles come from your account, results count toward your puzzle rating, and the sidebar shows it (`👤 you · ⭐ 1650 (+8)`).
+
+- **In the browser:** approve on Lichess; a one-shot listener on `127.0.0.1` (needs `python3`) catches the answer and exits. Only puzzle permissions are asked for (`puzzle:read`, `puzzle:write`).
+- **Or paste a personal token** in the pane, if the browser runs on another machine.
+- The token is kept in the mod's local storage and never goes into the conversation: `/chess-break login <token>` is refused for that reason.
+- `/chess-break logout` signs out and revokes the token on Lichess. Reviews and puzzles from Chess.com or the offline set stay local.
+
 ## Install
 
 From a clone of this repository:
@@ -48,6 +57,7 @@ claude --plugin-dir /path/to/chess-break
 | `/chess-break source lichess` / `chesscom` / `offline` | where puzzles come from |
 | `/chess-break stats` | progress per theme |
 | `/chess-break review` | play the puzzles due for review |
+| `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
 In the pane: `h` hint, `s` solution, `n` next, `e` explain, `j` / `k` replay (outside the move field). Esc returns to the prompt.
@@ -71,7 +81,7 @@ claude --plugin-dir .
 | Folder | What's in it |
 | --- | --- |
 | `hooks/chess/` | a thin layer over chess.js: reading typed moves, completions |
-| `hooks/lichess/` | Lichess addresses and answers |
+| `hooks/lichess/` | Lichess addresses and answers, and sign-in (PKCE, the redirect listener) |
 | `hooks/chesscom/` | Chess.com's daily puzzle answers |
 | `hooks/offline/` | the shipped puzzle set (generated, CC0) |
 | `hooks/training/` | an attempt at a puzzle, the review queue, progress, themes (no `$`, all tested directly) |

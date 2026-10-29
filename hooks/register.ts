@@ -1,6 +1,7 @@
 import { atom, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
+import { restoreAccount } from './app/account'
 import { openPane, refreshDue } from './app/actions'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
@@ -30,6 +31,7 @@ export const register: Register = (on, options) => {
     const source = await storedSource($)
     await update($, view, v => ({ ...v, locale, progress, theme, source }))
     await refreshDue($)
+    await restoreAccount($)
     return next(e)
   })
 

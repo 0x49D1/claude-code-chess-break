@@ -83,6 +83,12 @@ export type View = {
   replayPly?: number
   /** Claude's explanation of a finished puzzle: asked, given, or failed. */
   explanation?: { puzzleId: string; text?: string; failed?: string }
+  /** The Lichess account signed in, its puzzle rating as last known. */
+  account?: { username: string; rating?: number }
+  /** The last rated result's change to that rating. */
+  ratingDiff?: number
+  /** A sign-in under way: the address to approve it at once the listener is up, or why it failed. */
+  signIn?: { url?: string; failed?: string }
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
