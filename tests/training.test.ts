@@ -195,6 +195,7 @@ describe('languages', () => {
     for (const locale of LOCALES) {
       for (const f of kinds) expect(messagesFor(locale).feedback(f, 'w').length).toBeGreaterThan(3)
     }
+    for (const locale of LOCALES) expect(messagesFor(locale).feedback({ kind: 'revealed', line: [] }, 'w')).not.toMatch(/^\./)
     expect(messagesFor('ka').theme('fork')).toBe('ჩანგალი')
     expect(messagesFor('ka').theme('skewer')).toBe('Skewer')
     expect(messagesFor('ru').theme('someNewTheme')).toBe('Some new theme')

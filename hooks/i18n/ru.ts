@@ -57,7 +57,7 @@ export const ru: Messages = {
       case 'solved':
         return f.isClean ? 'Решено!' : 'Решено с подсказкой: задача вернётся на повторение.'
       case 'revealed':
-        return `${f.line.join(' ')}. Задача вернётся на повторение.`
+        return `${f.line.length ? `${f.line.join(' ')}. ` : ''}Задача вернётся на повторение.`
     }
   },
   pane: {
@@ -78,12 +78,14 @@ export const ru: Messages = {
     offlineFallback: (source, why) => `${source} недоступен (${why}): пока задачи из офлайн-набора.`,
     dailyPuzzle: 'Задача дня',
     retry: 'Повторить',
+    statusHint: '/chess-break <ход> или открыть',
   },
   command: {
     description: 'Тренировка шахматной тактики: открыть панель, выбрать тему, посмотреть прогресс',
-    usage: '[next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<ход>|hint|solution|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Панель тренировки открыта.',
     next: 'Новая задача.',
+    noPuzzle: 'Задачи нет. Открой: /chess-break.',
     themeSet: name => `Тренировка: ${name}. Следующая задача — на эту тему.`,
     unknownTheme: typed => `Темы «${typed}» нет. Список: /chess-break themes.`,
     themesTitle: 'Темы для /chess-break theme <тема> (или mix):',

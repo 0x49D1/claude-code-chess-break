@@ -1,7 +1,7 @@
 import { atom, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import { openPane, refreshDue } from './app/actions'
+import { openPane, refreshDue, refreshStatus } from './app/actions'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
@@ -45,6 +45,7 @@ export const register: Register = (on, options) => {
     if (!(await $.ui.panes()).some(p => p.id === PANE)) return result
     if (isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
     else await $.ui.close({ id: PANE })
+    await refreshStatus($)
     return result
   })
 

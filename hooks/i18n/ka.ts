@@ -42,7 +42,7 @@ export const ka: Messages = {
       case 'solved':
         return f.isClean ? 'ამოხსნილია!' : 'ამოხსნილია დახმარებით: ამოცანა გასამეორებლად დაბრუნდება.'
       case 'revealed':
-        return `${f.line.join(' ')}. ამოცანა გასამეორებლად დაბრუნდება.`
+        return `${f.line.length ? `${f.line.join(' ')}. ` : ''}ამოცანა გასამეორებლად დაბრუნდება.`
     }
   },
   pane: {
@@ -63,12 +63,14 @@ export const ka: Messages = {
     offlineFallback: (source, why) => `${source} მიუწვდომელია (${why}): ჯერჯერობით ოფლაინ ამოცანები.`,
     dailyPuzzle: 'დღის ამოცანა',
     retry: 'ხელახლა',
+    statusHint: '/chess-break <სვლა> ან გახსნა',
   },
   command: {
     description: 'ჭადრაკის ტაქტიკის ვარჯიში: პანელის გახსნა, თემის არჩევა, პროგრესის ნახვა',
-    usage: '[next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<სვლა>|hint|solution|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'სავარჯიშო პანელი გაიხსნა.',
     next: 'ახალი ამოცანა.',
+    noPuzzle: 'ამოცანა არ არის. გახსენი: /chess-break.',
     themeSet: name => `ვარჯიში: ${name}. შემდეგი ამოცანა ამ თემაზე იქნება.`,
     unknownTheme: typed => `თემა „${typed}“ არ არსებობს. სია: /chess-break themes.`,
     themesTitle: 'თემები /chess-break theme <თემა> ბრძანებისთვის (ან mix):',

@@ -28,12 +28,14 @@ export type Messages = {
     offlineFallback: (source: string, why: string) => string
     dailyPuzzle: string
     retry: string
+    statusHint: string
   }
   command: {
     description: string
     usage: string
     opened: string
     next: string
+    noPuzzle: string
     themeSet: (name: string) => string
     unknownTheme: (typed: string) => string
     themesTitle: string

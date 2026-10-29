@@ -194,3 +194,36 @@ test('puzzles from Chess.com, the offline set, or offline when the network fails
   expect((await $.command.run(command('source nonsense'))).text).toBe('/chess-break source lichess|chesscom|offline')
   await ui.unmount()
 })
+
+test('solved from the prompt, the status line keeping track while the pane is hidden', async ($, on) => {
+  mock.store(on)
+  const clock = mock.clock(on)
+  on('http.fetch', async () => ({
+    value: { status: 200, ok: true, headers: {}, text: JSON.stringify({
+      game: { pgn: 'e4 e5 Nf3 Nc6 Bc4 Nd4' },
+      puzzle: { id: 'deflect', themes: ['fork'], solution: ['f3e5', 'd8g5', 'e5f7'], initialPly: 5 },
+    }) },
+  }))
+  let isOpen = true
+  on('ui.panes', async () => ({ value: [{ id: 'chess-break', isShown: isOpen, isPlaced: true }] as never }))
+  on('ui.open', async () => ({ value: { isPlaced: true } as never }))
+  const status: (string | undefined)[] = []
+  on('ui.status', async (_$, e) => {
+    status.push(e.text)
+    return { value: undefined }
+  })
+
+  await $.command.run(command(''))
+  // The pane shows the puzzle: no status line.
+  expect(status.at(-1)).toBeUndefined()
+
+  isOpen = false
+  expect((await $.command.run(command('nxe5'))).text).toBe('Nxe5, keep going.')
+  await clock.advance(400)
+  expect(status.at(-1)).toBe('♞ Mix  ·  White to play  ·  ⏮ Qg5  ·  /chess-break <move> or open')
+  expect((await $.command.run(command('hint'))).text).toBe('Move the knight on e5.')
+  expect((await $.command.run(command('zz'))).text).toBe('“zz” can\'t be played here.')
+  expect((await $.command.run(command('solution'))).text).toBe('Nxf7. It will come back for review.')
+  expect(status.at(-1)).toBeUndefined()
+  expect((await $.command.run(command('skip'))).text).toBe('New puzzle.')
+})

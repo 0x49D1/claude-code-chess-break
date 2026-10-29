@@ -48,7 +48,7 @@ export const fr: Messages = {
       case 'solved':
         return f.isClean ? 'Résolu !' : 'Résolu avec de l’aide : il reviendra en révision.'
       case 'revealed':
-        return `${f.line.join(' ')}. Il reviendra en révision.`
+        return `${f.line.length ? `${f.line.join(' ')}. ` : ''}Il reviendra en révision.`
     }
   },
   pane: {
@@ -69,12 +69,14 @@ export const fr: Messages = {
     offlineFallback: (source, why) => `${source} injoignable (${why}) : puzzles hors ligne en attendant.`,
     dailyPuzzle: 'Puzzle du jour',
     retry: 'Réessayer',
+    statusHint: '/chess-break <coup> ou ouvrir',
   },
   command: {
     description: 'Entraînement tactique aux échecs : ouvrir le panneau, choisir un thème, voir ses progrès',
-    usage: '[next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<coup>|hint|solution|next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Panneau d’entraînement ouvert.',
     next: 'Nouveau puzzle.',
+    noPuzzle: 'Aucun puzzle en cours. Ouvre-en un avec /chess-break.',
     themeSet: name => `Entraînement : ${name}. Le prochain puzzle porte dessus.`,
     unknownTheme: typed => `Pas de thème « ${typed} ». /chess-break themes les liste.`,
     themesTitle: 'Thèmes pour /chess-break theme <nom> (ou mix) :',

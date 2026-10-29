@@ -4,10 +4,10 @@ import type { Attempt, Puzzle, Source } from '../../types'
 import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
 import { nextPuzzleUrl, readAnswer } from '../lichess/client'
 import { offlinePuzzle } from '../offline'
-import { awaitsReply, isClean, reply, start } from '../training/attempt'
+import { awaitsReply, isClean, reply, solverOf, start } from '../training/attempt'
 import { recordProgress } from '../training/progress'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, PANE, TITLE, settings, storedProgress, storedReview } from './state'
+import { INITIAL_VIEW, PANE, TITLE, messagesOf, settings, storedProgress, storedReview } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -39,11 +39,13 @@ export async function loadNext($: $) {
   const card = dueId ? review[dueId] : undefined
   if (card) {
     await update($, view, v => ({ ...v, isLoading: false, attempt: start(card.puzzle, true) }))
+    await refreshStatus($)
     return
   }
   const skip = current ? [current] : []
   if (before.source === 'offline') {
     await update($, view, v => ({ ...v, isLoading: false, fallback: undefined, attempt: start(offlinePuzzle(v.theme, skip), false) }))
+    await refreshStatus($)
     return
   }
   try {
@@ -53,6 +55,7 @@ export async function loadNext($: $) {
     const why = err instanceof Error ? err.message : String(err)
     await update($, view, v => ({ ...v, isLoading: false, fallback: why, attempt: start(offlinePuzzle(v.theme, skip), false) }))
   }
+  await refreshStatus($)
 }
 
 /** Counts a finished or abandoned attempt once: progress, and the review queue. */
@@ -73,16 +76,46 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
 }
 
 /** Applies a change to the attempt, then plays the opponent's reply or records the end. */
-export async function change($: $, fn: (a: Attempt) => Attempt) {
+export async function change($: $, fn: (a: Attempt) => Attempt): Promise<Attempt | undefined> {
   const { attempt } = await update($, view, v => (v.attempt ? { ...v, attempt: fn(v.attempt) } : v))
-  if (!attempt) return
+  if (!attempt) return undefined
   if (awaitsReply(attempt)) {
-    $.clock.after(400, () => {
-      void update($, view, v => (v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v, attempt: reply(v.attempt) } : v))
+    $.clock.after(400, async () => {
+      await update($, view, v => (v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v, attempt: reply(v.attempt) } : v))
+      await refreshStatus($)
     })
   } else if (attempt.status !== 'playing') {
     await record($, attempt, isClean(attempt))
   }
+  await refreshStatus($)
+  return attempt
+}
+
+/**
+ * The line under the prompt while the pane is hidden: the puzzle at a glance, and how to answer
+ * it from the prompt. Nothing while the pane shows it all, or with no puzzle under way.
+ */
+export async function refreshStatus($: $) {
+  const v = await read($, view)
+  const a = v.attempt
+  // A host with no surface for panes has none shown.
+  const panes = await $.ui.panes().catch(() => [])
+  const isShown = panes.some(p => p.id === PANE && p.isShown !== false && p.isPlaced !== false)
+  if (isShown || !a || a.status !== 'playing') {
+    $.ui.status(undefined)
+    return
+  }
+  const t = messagesOf(v)
+  const last = a.played.at(-1) ?? a.puzzle.lastMove?.san
+  $.ui.status(
+    [
+      `♞ ${a.puzzle.source === 'chesscom' ? a.puzzle.title ?? t.pane.dailyPuzzle : t.theme(v.theme)}`,
+      t.pane.toPlay(solverOf(a)),
+      ...(last ? [`⏮ ${last}`] : []),
+      ...(v.progress.streak ? [`🔥 ${v.progress.streak}`] : []),
+      t.pane.statusHint,
+    ].join('  ·  '),
+  )
 }
 
 /** Leaving a puzzle after a mistake or some help counts it as missed, as on Lichess. */
@@ -96,6 +129,7 @@ export async function openPane($: $, focus = false) {
   await $.ui.open({ id: PANE, title: TITLE, rows: PANE_ROWS, ...(focus ? { focus: true as const } : {}) })
   const v = await read($, view)
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
+  await refreshStatus($)
 }
 
 export async function refreshDue($: $) {

@@ -49,7 +49,7 @@ export const en: Messages = {
       case 'solved':
         return f.isClean ? 'Solved!' : 'Solved with help: it will come back for review.'
       case 'revealed':
-        return `${f.line.join(' ')}. It will come back for review.`
+        return `${f.line.length ? `${f.line.join(' ')}. ` : ''}It will come back for review.`
     }
   },
   pane: {
@@ -70,12 +70,14 @@ export const en: Messages = {
     offlineFallback: (source, why) => `${source} can't be reached (${why}): puzzles from the offline set for now.`,
     dailyPuzzle: 'Daily puzzle',
     retry: 'Retry',
+    statusHint: '/chess-break <move> or open',
   },
   command: {
     description: 'Chess tactics training: open the pane, pick a theme, see your progress',
-    usage: '[next|theme <name>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<move>|hint|solution|next|theme <name>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Training pane opened.',
     next: 'New puzzle.',
+    noPuzzle: 'No puzzle under way. Open one with /chess-break.',
     themeSet: name => `Training: ${name}. The next puzzle is on it.`,
     unknownTheme: typed => `No theme “${typed}”. /chess-break themes lists them.`,
     themesTitle: 'Themes for /chess-break theme <name> (or mix):',

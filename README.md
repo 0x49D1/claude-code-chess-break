@@ -11,7 +11,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
-The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle.
+The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle. While it's hidden, a line under the prompt keeps the puzzle in view, and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
 
 ## Puzzle sources
 
@@ -38,7 +38,9 @@ claude --plugin-dir /path/to/chess-break
 | Command | Effect |
 | --- | --- |
 | `/chess-break` | open the pane |
-| `/chess-break next` | next puzzle (a puzzle left after a mistake or help counts as missed) |
+| `/chess-break <move>` | play a move: `Qxf7`, `qxf`, `e2e4`, `Cf3` |
+| `/chess-break hint` / `solution` | a hint, or the rest of the solution |
+| `/chess-break next` (or `skip`) | next puzzle (a puzzle left after a mistake or help counts as missed) |
 | `/chess-break theme <name>` | train a theme: `fork`, `back-rank-mate`, `mix`… |
 | `/chess-break themes` | list the themes |
 | `/chess-break source lichess` / `chesscom` / `offline` | where puzzles come from |
