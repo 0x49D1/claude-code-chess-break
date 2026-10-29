@@ -1,0 +1,5 @@
+{
+  "name": "chess-break",
+  "owner": { "name": "Dima Pursanov" },
+  "plugins": [{ "name": "chess-break", "source": "./" }]
+}
