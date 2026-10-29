@@ -1,7 +1,9 @@
 import { atom, read, update } from 'claude-code'
 
-import type { Attempt } from '../../types'
-import { nextPuzzleUrl, puzzleByIdUrl, readAnswer } from '../lichess/client'
+import type { Attempt, Puzzle, Source } from '../../types'
+import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
+import { nextPuzzleUrl, readAnswer } from '../lichess/client'
+import { offlinePuzzle } from '../offline'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
 import { recordProgress } from '../training/progress'
 import { dueIds, recordReview } from '../training/review'
@@ -13,18 +15,43 @@ const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 // Title, framed board, feedback, moves, themes, field, suggestions, buttons.
 const PANE_ROWS = 20
 
-/** The next puzzle: one due for review first, else a new one on the theme trained. */
+/** A new puzzle from Lichess or Chess.com. */
+async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle> {
+  if (source === 'chesscom') {
+    const res = await $.http.fetch(RANDOM_DAILY_URL, { method: 'GET', headers: { Accept: 'application/json', 'User-Agent': USER_AGENT } })
+    return readDaily(res)
+  }
+  const res = await $.http.fetch(nextPuzzleUrl(theme, settings.difficulty), { method: 'GET', headers: { Accept: 'application/json' } })
+  return readAnswer(res)
+}
+
+/**
+ * The next puzzle: one due for review first, kept whole; else a new one from the chosen source.
+ * When Lichess or Chess.com cannot be reached, the offline set keeps the training going.
+ */
 export async function loadNext($: $) {
   const before = await read($, view)
   if (before.isLoading) return
-  await update($, view, v => ({ ...v, isLoading: true, error: undefined, typed: undefined }))
-  const due = dueIds(await storedReview($), await $.clock.now()).filter(id => id !== before.attempt?.puzzle.id)
+  await update($, view, v => ({ ...v, isLoading: true, typed: undefined }))
+  const review = await storedReview($)
+  const current = before.attempt?.puzzle.id
+  const dueId = dueIds(review, await $.clock.now()).find(id => id !== current && review[id]?.puzzle)
+  const card = dueId ? review[dueId] : undefined
+  if (card) {
+    await update($, view, v => ({ ...v, isLoading: false, attempt: start(card.puzzle, true) }))
+    return
+  }
+  const skip = current ? [current] : []
+  if (before.source === 'offline') {
+    await update($, view, v => ({ ...v, isLoading: false, fallback: undefined, attempt: start(offlinePuzzle(v.theme, skip), false) }))
+    return
+  }
   try {
-    const url = due[0] ? puzzleByIdUrl(due[0]) : nextPuzzleUrl(before.theme, settings.difficulty)
-    const puzzle = readAnswer(await $.http.fetch(url, { method: 'GET', headers: { Accept: 'application/json' } }))
-    await update($, view, v => ({ ...v, isLoading: false, attempt: start(puzzle, !!due[0]) }))
+    const puzzle = await fetchPuzzle($, before.source, before.theme)
+    await update($, view, v => ({ ...v, isLoading: false, fallback: undefined, attempt: start(puzzle, false) }))
   } catch (err) {
-    await update($, view, v => ({ ...v, isLoading: false, error: err instanceof Error ? err.message : String(err) }))
+    const why = err instanceof Error ? err.message : String(err)
+    await update($, view, v => ({ ...v, isLoading: false, fallback: why, attempt: start(offlinePuzzle(v.theme, skip), false) }))
   }
 }
 
@@ -32,7 +59,7 @@ export async function loadNext($: $) {
 async function record($: $, attempt: Attempt, isWin: boolean) {
   if (attempt.isRecorded) return
   const now = await $.clock.now()
-  const review = recordReview(await storedReview($), attempt.puzzle.id, isWin, now)
+  const review = recordReview(await storedReview($), attempt.puzzle, isWin, now)
   const progress = recordProgress(await storedProgress($), attempt.puzzle.themes, isWin)
   await $.store.set('review', review)
   await $.store.set('progress', progress)

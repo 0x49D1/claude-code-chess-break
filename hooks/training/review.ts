@@ -1,4 +1,4 @@
-import type { Review } from '../../types'
+import type { Puzzle, Review } from '../../types'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -9,14 +9,15 @@ const WAIT_DAYS = [1, 3, 7]
  * Records how a puzzle went. A miss puts it in the first box, due tomorrow; a clean solve of a
  * puzzle under review moves it up a box, and out of the queue past the last one.
  */
-export function recordReview(review: Review, id: string, isClean: boolean, now: number): Review {
+export function recordReview(review: Review, puzzle: Puzzle, isClean: boolean, now: number): Review {
+  const id = puzzle.id
   const card = review[id]
-  if (!isClean) return { ...review, [id]: { box: 0, due: now + WAIT_DAYS[0]! * DAY } }
+  if (!isClean) return { ...review, [id]: { box: 0, due: now + WAIT_DAYS[0]! * DAY, puzzle } }
   if (!card) return review
   const box = card.box + 1
   const { [id]: _learned, ...rest } = review
   const wait = WAIT_DAYS[box]
-  return wait === undefined ? rest : { ...rest, [id]: { box, due: now + wait * DAY } }
+  return wait === undefined ? rest : { ...rest, [id]: { box, due: now + wait * DAY, puzzle } }
 }
 
 /** The puzzles due again, the longest waiting first. */

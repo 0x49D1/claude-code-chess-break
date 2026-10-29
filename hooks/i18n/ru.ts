@@ -34,6 +34,7 @@ function plural(n: number, one: string, few: string, many: string) {
 
 export const ru: Messages = {
   side: s => (s === 'w' ? 'Белые' : 'Чёрные'),
+  source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'офлайн-набор'),
   piece: p => PIECES[p] ?? 'фигурой',
   theme: key => THEMES[key] ?? humanize(key),
   group: key => GROUPS[key] ?? humanize(key),
@@ -74,12 +75,13 @@ export const ru: Messages = {
     moveField: 'твой ход: e2e4, Nf3…',
     noMove: 'Нет легальных ходов, начинающихся так',
     loading: 'Загрузка задачи…',
-    loadFailed: why => `Lichess недоступен (${why}).`,
+    offlineFallback: (source, why) => `${source} недоступен (${why}): пока задачи из офлайн-набора.`,
+    dailyPuzzle: 'Задача дня',
     retry: 'Повторить',
   },
   command: {
     description: 'Тренировка шахматной тактики: открыть панель, выбрать тему, посмотреть прогресс',
-    usage: '[next|theme <тема>|themes|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Панель тренировки открыта.',
     next: 'Новая задача.',
     themeSet: name => `Тренировка: ${name}. Следующая задача — на эту тему.`,
@@ -91,6 +93,8 @@ export const ru: Messages = {
     reviewDue: due => `${due}: следующими будут они.`,
     reviewNone: 'Повторять нечего. Нерешённые задачи возвращаются сюда на следующий день.',
     langSet: lang => `Язык: ${lang}.`,
+    sourceSet: name => `Задачи: ${name}.`,
+    noThemesOnChesscom: 'У задач Chess.com нет тем: тема работает с Lichess и офлайн-набором.',
     claudeDoneFinish: 'Claude закончил. Дореши задачу.',
   },
 }

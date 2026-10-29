@@ -85,6 +85,31 @@ function frenchToEnglish(s: string): string {
   }).replace(/=([cftd])$/i, (_, c: string) => '=' + (FRENCH[c.toLowerCase()] ?? c).toUpperCase())
 }
 
+/** The moves of a PGN's move text, as tokens: numbers, results, comments and variations left out. */
+export function sanTokens(pgn: string): string[] {
+  return pgn
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\{[^}]*\}/g, ' ')
+    .replace(/\([^)]*\)/g, ' ')
+    .split(/\s+/)
+    .map(t => t.replace(/^\d+\.+/, ''))
+    .filter(t => t && !/^(1-0|0-1|1\/2-1\/2|\*)$/.test(t))
+}
+
+/** Every move of a line from a position, read from SAN tokens; undefined when one does not read. */
+export function line(fen: string, tokens: string[]): Move[] | undefined {
+  const chess = new Chess(fen)
+  const moves: Move[] = []
+  for (const token of tokens) {
+    try {
+      moves.push(chess.move(token, { strict: false }))
+    } catch {
+      return undefined
+    }
+  }
+  return moves
+}
+
 /** Replays a game given as SAN tokens; undefined when one does not read. */
 export function replay(tokens: string[], from = START): { fen: string; last?: Move } | undefined {
   const chess = new Chess(from)

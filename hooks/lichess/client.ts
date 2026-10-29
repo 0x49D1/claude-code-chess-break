@@ -43,6 +43,8 @@ export function parsePuzzle(json: unknown): Puzzle {
     if (!game || !legal(game.fen).some(m => uciOf(m) === puzzle.solution![0])) continue
     return {
       id: puzzle.id,
+      source: 'lichess',
+      url: puzzleUrl(puzzle.id),
       fen: game.fen,
       solution: puzzle.solution,
       themes: puzzle.themes ?? [],

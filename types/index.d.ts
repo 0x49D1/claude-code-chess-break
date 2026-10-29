@@ -1,7 +1,15 @@
 export type Locale = 'en' | 'fr' | 'ru' | 'ka'
 
+/** Where puzzles come from: Lichess, Chess.com's daily puzzles, or the set shipped with the mod. */
+export type Source = 'lichess' | 'chesscom' | 'offline'
+
 export type Puzzle = {
   id: string
+  source: Source
+  /** Its page, for a puzzle that has one. */
+  url?: string
+  /** Chess.com names its daily puzzles. */
+  title?: string
   /** The position the solver plays from. */
   fen: string
   /** The line as UCI: the solver's move, the reply, the solver's move... */
@@ -47,8 +55,8 @@ export type Attempt = {
   isRecorded: boolean
 }
 
-/** A missed puzzle: its box (0, 1, 2) and when it is due again, in epoch ms. */
-export type ReviewCard = { box: number; due: number }
+/** A missed puzzle, kept whole so it comes back without the network: its box (0, 1, 2) and when it is due, in epoch ms. */
+export type ReviewCard = { box: number; due: number; puzzle: Puzzle }
 export type Review = Record<string, ReviewCard>
 
 export type Tally = { solved: number; failed: number }
@@ -57,11 +65,12 @@ export type Progress = { themes: Record<string, Tally>; streak: number; best: nu
 export type View = {
   attempt?: Attempt
   isLoading: boolean
-  /** Why the last puzzle did not load. */
-  error?: string
   locale: Locale
   /** The theme trained: a Lichess theme key, or `mix`. */
   theme: string
+  source: Source
+  /** Why puzzles come from the offline set for now, when the chosen source failed. */
+  fallback?: string
   /** What is typed in the move field, for the suggestions. */
   typed?: string
   dueCount: number

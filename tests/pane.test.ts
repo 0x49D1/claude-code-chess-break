@@ -83,8 +83,11 @@ test('a missed puzzle comes back for review the next day', async ($, on) => {
   expect((await $.command.run(command('review'))).text).toMatch(/Nothing to review/)
 
   await clock.advance(DAY)
+  const fetched = asked.length
   expect((await $.command.run(command('review'))).text).toBe('1 puzzle to review: the next puzzles are those.')
-  expect(asked.at(-1)).toBe('https://lichess.org/api/puzzle/abc12')
+  // The missed puzzle was kept whole: it comes back without the network.
+  expect(asked.length).toBe(fetched)
+  expect(await ui.find({ key: 'move-abc12' })).toBeDefined()
   expect(await ui.find({ text: /🔁 Review/ })).toBeDefined()
   expect(await ui.find({ text: /🔁 1 puzzle to review/ })).toBeDefined()
   await ui.unmount()
@@ -149,5 +152,45 @@ test('a promotion is chosen with buttons', async ($, on) => {
   expect(await ui.find({ key: 'promote-n' })).toBeDefined()
   await ui.press({ key: 'promote-q' })
   expect(await ui.find({ text: /Solved!/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('puzzles from Chess.com, the offline set, or offline when the network fails', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  let isDown = false
+  const asked: { url: string; agent?: string }[] = []
+  on('http.fetch', async (_$, e) => {
+    asked.push({ url: e.url, agent: e.init?.headers?.['User-Agent'] })
+    if (isDown) return { value: { status: 503, ok: false, headers: {}, text: '' } }
+    const daily = {
+      title: 'Back Rank Blues',
+      url: 'https://www.chess.com/daily-chess-puzzle/2026-10-01',
+      publish_time: 1790000000,
+      fen: 'r5k1/5ppp/8/8/8/8/4QPPP/4R1K1 w - - 0 23',
+      pgn: '23. Qe8+ Rxe8 24. Rxe8# 1-0',
+    }
+    return { value: { status: 200, ok: true, headers: {}, text: e.url.includes('chess.com') ? JSON.stringify(daily) : SCHOLAR } }
+  })
+  on('ui.panes', async () => ({ value: [] }))
+  on('ui.open', async () => ({ value: { isPlaced: true } as never }))
+
+  expect((await $.command.run(command('source chesscom'))).text).toBe('Puzzles from Chess.com.')
+  expect(asked.at(-1)).toEqual({ url: 'https://api.chess.com/pub/puzzle/random', agent: expect.stringContaining('chess-break') })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ text: /🧩 Back Rank Blues/ })).toBeDefined()
+  expect(JSON.stringify(await ui.drawn())).toContain('https://www.chess.com/daily-chess-puzzle/2026-10-01')
+  expect((await $.command.run(command('theme fork'))).text).toMatch(/Chess\.com’s puzzles have no themes/)
+
+  const fetched = asked.length
+  expect((await $.command.run(command('source offline'))).text).toBe('Puzzles from the offline set.')
+  expect(asked.length).toBe(fetched)
+  expect(await ui.find({ text: /🧩 Fork/ })).toBeDefined()
+
+  isDown = true
+  await $.command.run(command('source lichess'))
+  expect(await ui.find({ text: /📡 Lichess can't be reached \(HTTP 503\): puzzles from the offline set for now\./ })).toBeDefined()
+  expect(await ui.find({ key: 'hint' })).toBeDefined()
+  expect((await $.command.run(command('source nonsense'))).text).toBe('/chess-break source lichess|chesscom|offline')
   await ui.unmount()
 })

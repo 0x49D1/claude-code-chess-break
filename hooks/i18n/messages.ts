@@ -1,10 +1,11 @@
-import type { Feedback } from '../../types'
+import type { Feedback, Source } from '../../types'
 
 export type Side = 'w' | 'b'
 
 /** Every text the mod shows, in one language. Emojis are the pane's, not the language's. */
 export type Messages = {
   side: (side: Side) => string
+  source: (source: Source) => string
   piece: (letter: string) => string
   theme: (key: string) => string
   group: (key: string) => string
@@ -24,7 +25,8 @@ export type Messages = {
     moveField: string
     noMove: string
     loading: string
-    loadFailed: (why: string) => string
+    offlineFallback: (source: string, why: string) => string
+    dailyPuzzle: string
     retry: string
   }
   command: {
@@ -41,6 +43,8 @@ export type Messages = {
     reviewDue: (due: string) => string
     reviewNone: string
     langSet: (lang: string) => string
+    sourceSet: (name: string) => string
+    noThemesOnChesscom: string
     claudeDoneFinish: string
   }
 }

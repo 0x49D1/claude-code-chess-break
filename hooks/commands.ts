@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
 import { loadNext, next, openPane, refreshDue } from './app/actions'
-import { INITIAL_VIEW, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
+import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
 import { LOCALES, asLocale, messagesFor } from './i18n'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
@@ -32,7 +32,9 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         // A puzzle not yet started makes way for one on the new theme.
         const { attempt } = await read($, view)
         if (!attempt || (attempt.played.length === 0 && !attempt.hadMistake && !attempt.usedHelp)) await loadNext($)
-        return { text: t.command.themeSet(t.theme(theme)) }
+        const { source } = await read($, view)
+        const note = source === 'chesscom' ? `\n${t.command.noThemesOnChesscom}` : ''
+        return { text: t.command.themeSet(t.theme(theme)) + note }
       }
       case 'themes':
         return {
@@ -60,6 +62,15 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const { attempt } = await read($, view)
         if (!attempt?.isReview) await next($)
         return { text: t.command.reviewDue(t.pane.dueCount(dueCount)) }
+      }
+      case 'source': {
+        const source = asSource(arg?.toLowerCase())
+        if (!source) return { text: `/${COMMAND} source ${SOURCES.join('|')}` }
+        await $.store.set('source', source)
+        await update($, view, v => ({ ...v, source, fallback: undefined }))
+        const { attempt } = await read($, view)
+        if (!attempt || (attempt.played.length === 0 && !attempt.hadMistake && !attempt.usedHelp)) await loadNext($)
+        return { text: t.command.sourceSet(t.source(source)) }
       }
       case 'lang': {
         const lang = arg?.toLowerCase()

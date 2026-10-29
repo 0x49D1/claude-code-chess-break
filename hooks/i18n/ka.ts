@@ -19,6 +19,7 @@ const GROUPS: Record<string, string> = { tactics: 'ტაქტიკა', mates
 
 export const ka: Messages = {
   side: s => (s === 'w' ? 'თეთრები' : 'შავები'),
+  source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'ოფლაინ ნაკრები'),
   piece: p => PIECES[p] ?? 'ფიგურით',
   theme: key => THEMES[key] ?? EN_THEMES[key] ?? humanize(key),
   group: key => GROUPS[key] ?? humanize(key),
@@ -59,12 +60,13 @@ export const ka: Messages = {
     moveField: 'შენი სვლა: e2e4, Nf3…',
     noMove: 'ასე დაწყებული წესიერი სვლა არ არსებობს',
     loading: 'ამოცანა იტვირთება…',
-    loadFailed: why => `Lichess მიუწვდომელია (${why}).`,
+    offlineFallback: (source, why) => `${source} მიუწვდომელია (${why}): ჯერჯერობით ოფლაინ ამოცანები.`,
+    dailyPuzzle: 'დღის ამოცანა',
     retry: 'ხელახლა',
   },
   command: {
     description: 'ჭადრაკის ტაქტიკის ვარჯიში: პანელის გახსნა, თემის არჩევა, პროგრესის ნახვა',
-    usage: '[next|theme <თემა>|themes|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'სავარჯიშო პანელი გაიხსნა.',
     next: 'ახალი ამოცანა.',
     themeSet: name => `ვარჯიში: ${name}. შემდეგი ამოცანა ამ თემაზე იქნება.`,
@@ -76,6 +78,8 @@ export const ka: Messages = {
     reviewDue: due => `${due}: შემდეგი ამოცანები ესენი იქნება.`,
     reviewNone: 'გასამეორებელი არაფერია. გამოტოვებული ამოცანები აქ მეორე დღეს ბრუნდება.',
     langSet: lang => `ენა: ${lang}.`,
+    sourceSet: name => `ამოცანები: ${name}.`,
+    noThemesOnChesscom: 'Chess.com-ის ამოცანებს თემები არ აქვს: თემა მოქმედებს Lichess-ით ან ოფლაინ ნაკრებით.',
     claudeDoneFinish: 'Claude-მა დაასრულა. დაამთავრე ამოცანა.',
   },
 }

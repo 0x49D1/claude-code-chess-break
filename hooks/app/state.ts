@@ -1,6 +1,6 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Progress, Review, View } from '../../types'
+import type { Progress, Review, Source, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_PROGRESS } from '../training/progress'
@@ -16,6 +16,7 @@ export const INITIAL_VIEW: View = {
   isLoading: false,
   locale: 'en',
   theme: MIX,
+  source: 'lichess',
   dueCount: 0,
   progress: NO_PROGRESS,
   session: [],
@@ -27,7 +28,11 @@ export const settings = {
   autoOpen: true,
   difficulty: 'normal' as Difficulty,
   language: 'auto',
+  source: 'lichess' as Source,
 }
+
+export const SOURCES: Source[] = ['lichess', 'chesscom', 'offline']
+export const asSource = (x: unknown): Source | undefined => (SOURCES.includes(x as Source) ? (x as Source) : undefined)
 
 // What is kept across sessions.
 export async function storedReview($: $): Promise<Review> {
@@ -36,6 +41,11 @@ export async function storedReview($: $): Promise<Review> {
 
 export async function storedProgress($: $): Promise<Progress> {
   return ((await $.store.get('progress')) as Progress | undefined) ?? NO_PROGRESS
+}
+
+/** /chess-break source, else the setting. */
+export async function storedSource($: $): Promise<Source> {
+  return asSource(await $.store.get('source')) ?? settings.source
 }
 
 export async function storedTheme($: $): Promise<string> {

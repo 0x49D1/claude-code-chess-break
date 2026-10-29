@@ -2,7 +2,7 @@ import { atom, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
 import { openPane, refreshDue } from './app/actions'
-import { INITIAL_VIEW, PANE, messagesOf, resolveLocale, settings, storedProgress, storedTheme } from './app/state'
+import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
@@ -17,6 +17,7 @@ export const register: Register = (on, options) => {
   settings.autoOpen = options.autoOpen !== false
   settings.difficulty = DIFFICULTIES.find(d => d === options.difficulty) ?? 'normal'
   settings.language = String(options.language ?? 'auto')
+  settings.source = asSource(options.source) ?? 'lichess'
 
   on('session.start', async ($, e, next) => {
     const locale = await resolveLocale($)
@@ -24,7 +25,8 @@ export const register: Register = (on, options) => {
     await $.command.register({ name: COMMAND, description: t.command.description, argumentHint: t.command.usage })
     const progress = await storedProgress($)
     const theme = await storedTheme($)
-    await update($, view, v => ({ ...v, locale, progress, theme }))
+    const source = await storedSource($)
+    await update($, view, v => ({ ...v, locale, progress, theme, source }))
     await refreshDue($)
     return next(e)
   })

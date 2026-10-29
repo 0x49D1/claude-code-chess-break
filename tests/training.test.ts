@@ -2,16 +2,20 @@ import { describe, expect, test } from 'claude-code/testing'
 
 import type { Feedback, Puzzle } from '../types'
 import { LOCALES, messagesFor, pickLocale } from '../hooks/i18n'
+import { parseDaily } from '../hooks/chesscom/client'
 import { analysisUrl, parsePuzzle } from '../hooks/lichess/client'
+import { OFFLINE_COUNT, offlinePuzzle } from '../hooks/offline'
 import { click, hint, isClean, isStarted, moveLine, play, promote, reply, reveal, start } from '../hooks/training/attempt'
 import { NO_PROGRESS, recordProgress, themeLines, weakest } from '../hooks/training/progress'
 import { dueIds, recordReview } from '../hooks/training/review'
+import { MIX } from '../hooks/training/themes'
 
 const DAY = 24 * 60 * 60 * 1000
 
 /** Mate in 2 by deflection: Qe8+ Rxe8 Rxe8#. */
 const DEFLECT: Puzzle = {
   id: 'deflect',
+  source: 'offline',
   fen: 'r5k1/5ppp/8/8/8/8/4QPPP/4R1K1 w - - 0 23',
   solution: ['e2e8', 'a8e8', 'e1e8'],
   themes: ['mateIn2', 'deflection', 'short'],
@@ -62,7 +66,7 @@ describe('an attempt', () => {
   })
 
   test('a promotion waits for its piece', () => {
-    const p: Puzzle = { id: 'promo', fen: '8/5P1k/8/8/8/8/8/K7 w - - 0 1', solution: ['f7f8n'], themes: ['underPromotion'] }
+    const p: Puzzle = { id: 'promo', source: 'offline', fen: '8/5P1k/8/8/8/8/8/K7 w - - 0 1', solution: ['f7f8n'], themes: ['underPromotion'] }
     let a = click(click(start(p, false), 'f7'), 'f8')
     expect(a.promoting).toBe('f7f8')
     a = promote(a, 'n')
@@ -80,26 +84,76 @@ describe('an attempt', () => {
 })
 
 describe('the review queue', () => {
+  const p1 = { ...DEFLECT, id: 'p1' }
+
   test('a miss comes back tomorrow, then after 3 and 7 days, then it is learned', () => {
-    let review = recordReview({}, 'p1', false, 0)
+    let review = recordReview({}, p1, false, 0)
     expect(dueIds(review, DAY - 1)).toEqual([])
     expect(dueIds(review, DAY)).toEqual(['p1'])
-    review = recordReview(review, 'p1', true, DAY)
-    expect(review.p1).toEqual({ box: 1, due: 4 * DAY })
-    review = recordReview(review, 'p1', true, 4 * DAY)
-    expect(review.p1).toEqual({ box: 2, due: 11 * DAY })
-    review = recordReview(review, 'p1', true, 11 * DAY)
+    review = recordReview(review, p1, true, DAY)
+    expect(review.p1).toEqual({ box: 1, due: 4 * DAY, puzzle: p1 })
+    review = recordReview(review, p1, true, 4 * DAY)
+    expect(review.p1).toMatchObject({ box: 2, due: 11 * DAY })
+    review = recordReview(review, p1, true, 11 * DAY)
     expect(review).toEqual({})
   })
 
   test('a miss under review starts over; a clean first try is not queued', () => {
-    const review = recordReview({ p1: { box: 2, due: 0 } }, 'p1', false, 5)
-    expect(review.p1).toEqual({ box: 0, due: 5 + DAY })
-    expect(recordReview({}, 'p2', true, 0)).toEqual({})
+    const review = recordReview({ p1: { box: 2, due: 0, puzzle: p1 } }, p1, false, 5)
+    expect(review.p1).toEqual({ box: 0, due: 5 + DAY, puzzle: p1 })
+    expect(recordReview({}, { ...p1, id: 'p2' }, true, 0)).toEqual({})
   })
 
   test('the longest waiting comes first', () => {
-    expect(dueIds({ a: { box: 0, due: 5 }, b: { box: 1, due: 2 }, c: { box: 0, due: 99 } }, 10)).toEqual(['b', 'a'])
+    const card = (due: number) => ({ box: 0, due, puzzle: p1 })
+    expect(dueIds({ a: card(5), b: card(2), c: card(99) }, 10)).toEqual(['b', 'a'])
+  })
+})
+
+describe('other sources', () => {
+  test('a Chess.com daily puzzle: its FEN, its whole line, no themes', () => {
+    const p = parseDaily({
+      title: 'Back Rank Blues',
+      url: 'https://www.chess.com/daily-chess-puzzle/2026-10-01',
+      publish_time: 1790000000,
+      fen: 'r5k1/5ppp/8/8/8/8/4QPPP/4R1K1 w - - 0 23',
+      pgn: '[Event "Daily"]\n[FEN "r5k1/5ppp/8/8/8/8/4QPPP/4R1K1 w - - 0 23"]\n\n23. Qe8+ Rxe8 24. Rxe8# 1-0',
+    })
+    expect(p).toMatchObject({ id: 'chesscom-1790000000', source: 'chesscom', title: 'Back Rank Blues', themes: [] })
+    expect(p.solution).toEqual(['e2e8', 'a8e8', 'e1e8'])
+    expect(() => parseDaily({ fen: 'x' })).toThrow()
+    // A real answer: Black to move, `1...` numbering, Windows line ends.
+    const real = parseDaily({
+      title: 'Endgame Resources',
+      url: 'https://www.chess.com/daily/2010-07-22',
+      publish_time: 1279782000,
+      fen: '8/8/3R4/5p2/3b2p1/8/7K/5k2 b - - 0 1',
+      pgn: '[Date "????.??.??"]\r\n[Result "*"]\r\n[FEN "8/8/3R4/5p2/3b2p1/8/7K/5k2 b - - 0 1"]\r\n\r\n1...g3+ 2. Kxg3 Be5+ 3. Kf3 Bxd6\r\n*',
+    })
+    expect(real.solution).toEqual(['g4g3', 'h2g3', 'd4e5', 'g3f3', 'e5d6'])
+  })
+
+  test('the offline set: on the theme asked, from the opponent\'s move on, linked to Lichess', () => {
+    expect(OFFLINE_COUNT).toBeGreaterThan(1000)
+    for (const theme of ['fork', 'backRankMate', 'rookEndgame', MIX]) {
+      const p = offlinePuzzle(theme, [])
+      if (theme !== MIX) expect(p.themes).toContain(theme)
+      expect(p.source).toBe('offline')
+      expect(p.url).toBe(`https://lichess.org/training/${p.id}`)
+      // The solution's first move is the solver's, legal where the puzzle starts.
+      expect(start(p, false).fen).toBe(p.fen)
+      expect(play(start(p, false), p.solution[0]!).feedback.kind).not.toBe('illegal')
+    }
+    const first = offlinePuzzle('fork', [], () => 0)
+    expect(offlinePuzzle('fork', [first.id], () => 0).id).not.toBe(first.id)
+  })
+
+  test('every offline puzzle reads and plays through', { timeoutMs: 120_000 }, () => {
+    for (let i = 0; i < OFFLINE_COUNT; i++) {
+      let a = start(offlinePuzzle(MIX, [], () => i / OFFLINE_COUNT), false)
+      while (a.status === 'playing') a = reply(play(a, a.puzzle.solution[a.ply]!))
+      expect(a.status).toBe('solved')
+    }
   })
 })
 

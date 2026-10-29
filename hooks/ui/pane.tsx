@@ -7,7 +7,7 @@ import { INITIAL_VIEW, PANE, messagesOf } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
 import type { Messages } from '../i18n'
-import { analysisUrl, puzzleUrl } from '../lichess/client'
+import { analysisUrl } from '../lichess/client'
 import { click, hint, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
@@ -72,7 +72,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       return (
         <Box flexDirection="row" gap={2}>
           <Box flexDirection="column">
-            <Text>{v.isLoading ? `⏳ ${t.pane.loading}` : v.error ? `📡 ${t.pane.loadFailed(v.error)}` : '♞'}</Text>
+            <Text>{v.isLoading ? `⏳ ${t.pane.loading}` : '♞'}</Text>
             {!v.isLoading && <Button key="retry" plain hotkey="r" onPress={() => void loadNext($)}>{`🔄 ${t.pane.retry}`}</Button>}
           </Box>
           {sidebar(els, v, t)}
@@ -83,7 +83,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     const isPlaying = a.status === 'playing'
     const suggestions = isPlaying && v.typed ? completions(a.fen, v.typed) : []
     const title = [
-      `🧩 ${t.theme(v.theme)}`,
+      a.puzzle.source === 'chesscom' ? `🧩 ${a.puzzle.title ?? t.pane.dailyPuzzle}` : `🧩 ${t.theme(v.theme)}`,
       ...(a.isReview ? [`🔁 ${t.pane.review}`] : []),
       ...(a.puzzle.rating ? [`⭐ ${a.puzzle.rating}`] : []),
       t.pane.toPlay(solverOf(a)),
@@ -104,7 +104,9 @@ export const registerPane = (on: Parameters<Register>[0]) => {
         {a.played.length > 0 && <Text dimColor>{`📜 ${moveLine(a)}`}</Text>}
         {!isPlaying && a.puzzle.themes.length > 0 && <Text dimColor>{`🔖 ${a.puzzle.themes.map(t.theme).join(' · ')}`}</Text>}
         {v.isLoading && <Text dimColor>{`⏳ ${t.pane.loading}`}</Text>}
-        {v.error && !v.isLoading && <Text color="error">{`📡 ${t.pane.loadFailed(v.error)}`}</Text>}
+        {v.fallback && !a.isReview && a.puzzle.source === 'offline' && (
+          <Text dimColor>{`📡 ${t.pane.offlineFallback(t.source(v.source), v.fallback)}`}</Text>
+        )}
         {Input && isPlaying && (
           <Input
             key={`move-${a.puzzle.id}`}
@@ -136,7 +138,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
           {isPlaying && <Button key="hint" plain hotkey="h" onPress={() => void change($, hint)}>{`💡 ${t.pane.hint}`}</Button>}
           {isPlaying && <Button key="reveal" plain hotkey="s" onPress={() => void change($, reveal)}>{`👀 ${t.pane.show}`}</Button>}
           <Button key="next" plain hotkey="n" onPress={() => void next($)}>{`⏩ ${t.pane.skip}`}</Button>
-          <Link href={puzzleUrl(a.puzzle.id)} label="Lichess ↗" />
+          {a.puzzle.url && <Link href={a.puzzle.url} label={a.puzzle.source === 'chesscom' ? 'Chess.com ↗' : 'Lichess ↗'} />}
           {!isPlaying && <Link href={analysisUrl(a.puzzle.fen, solverOf(a))} label={`🔍 ${t.pane.analyse} ↗`} />}
         </Box>
       </Box>

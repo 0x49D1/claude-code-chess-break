@@ -14,6 +14,17 @@
       "description": "Opens the training pane when Claude starts a turn",
       "default": true
     },
+    "source": {
+      "type": "string",
+      "title": "Puzzles from",
+      "description": "lichess (by theme, needs the network), chesscom (Chess.com's daily puzzles, no themes) or offline (1,469 puzzles shipped with the mod)",
+      "options": [
+        "lichess",
+        "chesscom",
+        "offline"
+      ],
+      "default": "lichess"
+    },
     "difficulty": {
       "type": "string",
       "title": "Difficulty",
