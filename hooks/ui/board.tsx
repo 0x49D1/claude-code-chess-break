@@ -1,7 +1,10 @@
 import type { Elements } from 'claude-code'
 
-import type { Attempt } from '../../types'
 import { checkedKing, legal, pieceAt } from '../chess/position'
+import type { Color } from '../chess/position'
+
+/** What the board draws: a position from a side, the marks on it, and whether its moves can be picked. */
+export type BoardView = { fen: string; side: Color; lastMove?: string; selected?: string; hint?: string; isActive: boolean }
 
 /**
  * A printed diagram: one ink for every piece, white ones outlined and black ones solid, on cream
@@ -29,24 +32,24 @@ export const glyphOf = (piece: string) => (piece === piece.toUpperCase() ? OUTLI
 
 export const BOARD_COLUMNS = 2 + 8 * 2
 
-/** The diagram, the solver's side down, two columns a square, each square a button. */
-export function board(els: Elements[keyof Elements], attempt: Attempt, onSquare: (square: string) => void) {
+/** The diagram, the player's side down, two columns a square, each square a button. */
+export function board(els: Elements[keyof Elements], shown: BoardView, onSquare: (square: string) => void) {
   const { Box, Text, Button } = els
-  const isWhiteDown = attempt.puzzle.fen.split(' ')[1] !== 'b'
+  const isWhiteDown = shown.side === 'w'
   const ranks = isWhiteDown ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8]
   const files = isWhiteDown ? 'abcdefgh'.split('') : 'hgfedcba'.split('')
-  const last = attempt.lastMove ? [attempt.lastMove.slice(0, 2), attempt.lastMove.slice(2, 4)] : []
-  const targets = attempt.selected && attempt.status === 'playing' ? legal(attempt.fen).filter(m => m.from === attempt.selected) : []
-  const checked = checkedKing(attempt.fen)
+  const last = shown.lastMove ? [shown.lastMove.slice(0, 2), shown.lastMove.slice(2, 4)] : []
+  const targets = shown.selected && shown.isActive ? legal(shown.fen).filter(m => m.from === shown.selected) : []
+  const checked = checkedKing(shown.fen)
 
   const square = (file: string, rank: number) => {
     const name = `${file}${rank}`
     const isCream = ('abcdefgh'.indexOf(file) + rank) % 2 === 0
-    const piece = pieceAt(attempt.fen, name)
+    const piece = pieceAt(shown.fen, name)
     const isTarget = targets.some(m => m.to === name)
     const bg =
-      attempt.selected === name ? DIAGRAM.selected
-        : attempt.hint === name ? DIAGRAM.hint
+      shown.selected === name ? DIAGRAM.selected
+        : shown.hint === name ? DIAGRAM.hint
         : checked === name ? DIAGRAM.check
         : isTarget && piece ? DIAGRAM.capture
         : last.includes(name) ? (isCream ? DIAGRAM.lastCream : DIAGRAM.lastSage)

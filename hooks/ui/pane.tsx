@@ -4,6 +4,7 @@ import type { Elements, Register } from 'claude-code'
 import type { Feedback, View } from '../../types'
 import { cancelSignIn, signIn, signOut, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
+import { startGame } from '../app/game'
 import { INITIAL_VIEW, PANE, messagesOf } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
@@ -14,6 +15,7 @@ import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solver
 import { learnLinks, readExplanation } from '../training/explain'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
+import { gamePane } from './game'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
@@ -53,6 +55,12 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
       ) : (
         <Button key="login" plain hotkey="l" onPress={() => void signIn($)}>{`🔑 ${t.pane.signIn}`}</Button>
       )}
+      <Text bold>{`⚔ ${t.game.newGame}`}</Text>
+      <Box flexDirection="row" gap={1}>
+        <Button key="play-stockfish" plain onPress={() => void startGame($, { kind: 'ai', level: 3, clock: '10+0', color: 'random' })}>{`🤖 ${t.game.stockfish(3)}`}</Button>
+        <Button key="play-human" plain onPress={() => void startGame($, { kind: 'seek', clock: '10+0', rated: false })}>{`👤 ${t.game.person}`}</Button>
+      </Box>
+      {v.gameNote && <Text color="error">{t.game.note(v.gameNote)}</Text>}
       <Text bold>{`📈 ${t.pane.session}`}</Text>
       <Text>{marks || '·'}</Text>
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
@@ -100,6 +108,8 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       )
     }
 
+    if (v.game || v.seeking) return gamePane($, els, v, t)
+
     if (!a) {
       return (
         <Box flexDirection="row" gap={2}>
@@ -132,7 +142,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
         <Text bold>{title}</Text>
         <Box flexDirection="row" gap={2}>
           <Box borderStyle="round" borderDimColor paddingX={1}>
-            {board(els, shown, square => void change($, x => click(x, square)))}
+            {board(els, { ...shown, side: solverOf(a), isActive: shown.status === 'playing' }, square => void change($, x => click(x, square)))}
           </Box>
           {sidebar($, els, v, t)}
         </Box>

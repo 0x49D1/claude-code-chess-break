@@ -3,11 +3,13 @@ import type { Register } from 'claude-code'
 
 import { restoreAccount } from './app/account'
 import { openPane, refreshDue } from './app/actions'
+import { resumeGame } from './app/game'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
 import { isStarted } from './training/attempt'
+import { isOn } from './training/game'
 import { registerHint } from './ui/hint'
 import { registerPane } from './ui/pane'
 
@@ -32,6 +34,8 @@ export const register: Register = (on, options) => {
     await update($, view, v => ({ ...v, locale, progress, theme, source }))
     await refreshDue($)
     await restoreAccount($)
+    // A game left on at Lichess comes back; the session does not wait for it.
+    void resumeGame($).catch(() => undefined)
     return next(e)
   })
 
@@ -47,7 +51,8 @@ export const register: Register = (on, options) => {
     if (e.agentId) return result
     const v = await update($, view, x => ({ ...x, isClaudeWorking: false }))
     if (!(await $.ui.panes()).some(p => p.id === PANE)) return result
-    if (isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
+    if ((v.game && isOn(v.game)) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
+    else if (isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
     else await $.ui.close({ id: PANE })
     return result
   })

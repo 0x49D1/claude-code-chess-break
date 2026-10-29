@@ -68,7 +68,7 @@ describe('the sign-in pieces', () => {
     expect(url.origin + url.pathname).toBe('https://lichess.org/oauth')
     expect(fields(url.searchParams)).toEqual({
       response_type: 'code', client_id: 'chess-break', redirect_uri: 'http://127.0.0.1:54321/',
-      code_challenge_method: 'S256', code_challenge: 'chal', scope: 'puzzle:read puzzle:write', state: 'st8',
+      code_challenge_method: 'S256', code_challenge: 'chal', scope: 'puzzle:read puzzle:write board:play', state: 'st8',
     })
     expect(fields(new URLSearchParams(tokenForm('c0de', 'ver', 54321)))).toEqual({
       grant_type: 'authorization_code', code: 'c0de', code_verifier: 'ver', redirect_uri: 'http://127.0.0.1:54321/', client_id: 'chess-break',

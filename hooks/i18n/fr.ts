@@ -1,5 +1,6 @@
 import { humanize } from './messages'
 import type { Messages } from './messages'
+import type { Ending } from '../training/game'
 
 // Les noms des thèmes tels que Lichess les donne en français.
 const THEMES: Record<string, string> = {
@@ -22,6 +23,8 @@ const THEMES: Record<string, string> = {
 const PIECES: Record<string, string> = { p: 'le pion', n: 'le cavalier', b: 'le fou', r: 'la tour', q: 'la dame', k: 'le roi' }
 
 const GROUPS: Record<string, string> = { tactics: 'Tactique', mates: 'Mats', phases: 'Phases de jeu', ideas: 'Idées' }
+
+const ENDINGS: Record<Ending, string> = { mate: ' par mat', resign: ' par abandon', time: ' au temps', left: ' : ton adversaire est parti', stalemate: ' par pat', draw: '', aborted: '', other: '' }
 
 export const fr: Messages = {
   side: s => (s === 'w' ? 'Blancs' : 'Noirs'),
@@ -77,19 +80,55 @@ export const fr: Messages = {
     explainFailed: why => `Pas d’explication (${why}).`,
     statusHint: '/chess-break <coup> ou ouvrir',
     signIn: 'Se connecter',
-    signInTitle: 'Se connecter à Lichess pour des puzzles classés',
+    signInTitle: 'Se connecter à Lichess pour des puzzles et parties classés',
     openLichess: 'Autoriser sur Lichess ↗',
     starting: 'Démarrage…',
-    orPaste: 'ou colle un token personnel (droits puzzle seulement), puis Entrée :',
+    orPaste: 'ou colle un token personnel (droits puzzle et partie), puis Entrée :',
     createToken: 'créer un token ↗',
     cancel: 'Annuler',
     signInFailed: why => `Connexion impossible (${why}).`,
     tokenStays: 'Le token reste sur cette machine, jamais dans la conversation.',
     signOut: 'Se déconnecter',
   },
+  game: {
+    newGame: 'Nouvelle partie',
+    stockfish: level => `Stockfish niveau ${level}`,
+    person: 'Une personne',
+    anonymous: 'Anonyme',
+    rated: 'classée',
+    casual: 'amicale',
+    searching: (clock, rated) => `Recherche d’un adversaire (${clock}, ${rated ? 'classée' : 'amicale'})…`,
+    yourMove: 'À toi de jouer',
+    theirMove: 'Au tour de ton adversaire',
+    over: (outcome, ending) => (ending === 'aborted' ? 'Partie annulée.' : `${outcome === 'win' ? 'Gagné' : outcome === 'loss' ? 'Perdu' : 'Nulle'}${ENDINGS[ending]}.`),
+    drawOffered: 'Ton adversaire propose la nulle.',
+    drawYours: 'Ta proposition de nulle attend une réponse.',
+    accept: 'Accepter',
+    decline: 'Refuser',
+    resign: 'Abandonner',
+    offerDraw: 'Proposer la nulle',
+    abort: 'Annuler la partie',
+    playAgain: 'Rejouer',
+    puzzles: 'Puzzles',
+    note(n) {
+      switch (n.kind) {
+        case 'signIn': return 'Les parties demandent un compte Lichess : /chess-break login.'
+        case 'renewSignIn': return 'Lichess a refusé : reconnecte-toi pour que la connexion couvre les parties (🔑).'
+        case 'needsCurl': return 'Les parties demandent curl, introuvable ici. Les puzzles marchent sans.'
+        case 'limited': return 'Lichess demande de ralentir : attends une minute.'
+        case 'notYourTurn': return 'C’est au tour de ton adversaire.'
+        case 'cannotAbort': return 'Les deux camps ont joué : la partie ne peut plus qu’être abandonnée.'
+        case 'confirmResign': return 'Appuie encore sur abandonner pour abandonner.'
+        case 'reconnecting': return 'Connexion perdue, reconnexion…'
+        case 'illegal': return `« ${n.text} » ne peut pas être joué ici.`
+        case 'refused': return `Lichess a refusé : ${n.text}.`
+        case 'failed': return `Lichess est injoignable (${n.text}).`
+      }
+    },
+  },
   command: {
     description: 'Entraînement tactique aux échecs : ouvrir le panneau, choisir un thème, voir ses progrès',
-    usage: '[<coup>|hint|solution|explain|next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<coup>|hint|solution|explain|next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'Panneau d’entraînement ouvert.',
     next: 'Nouveau puzzle.',
     noPuzzle: 'Aucun puzzle en cours. Ouvre-en un avec /chess-break.',
@@ -112,5 +151,18 @@ export const fr: Messages = {
     signedIn: (name, rating) => `Connecté en tant que ${name}${rating ? `, classement puzzle ${rating}` : ''}.`,
     notSignedIn: 'Non connecté. /chess-break login pour des puzzles classés.',
     loggedOut: 'Déconnecté ; le token est révoqué sur Lichess.',
+    playUsage: '/chess-break play stockfish [1-8] [cadence] [white|black|random], ou play human [cadence] [rated]',
+    badLevel: 'Les niveaux de Stockfish vont de 1 à 8.',
+    badClock: clocks => `Cadences contre Stockfish : ${clocks}.`,
+    badSeekClock: clocks => `Lichess n’apparie les applis comme celle-ci qu’en rapide et en classique : ${clocks}.`,
+    aiStarted: (level, clock) => `Partie contre Stockfish niveau ${level} (${clock}) dans le panneau.`,
+    seekStarted: (clock, rated) => `Recherche d’un adversaire (${clock}, ${rated ? 'classée' : 'amicale'}) : la partie s’ouvre dans le panneau.`,
+    noGame: 'Pas de partie en cours. /chess-break play stockfish, ou play human.',
+    resigned: 'Abandon.',
+    drawOffered: 'Nulle proposée.',
+    drawAccepted: 'Nulle acceptée.',
+    drawDeclined: 'Nulle refusée.',
+    aborted: 'Partie annulée.',
+    gameGoesOn: 'Claude a fini. Ta partie continue.',
   },
 }

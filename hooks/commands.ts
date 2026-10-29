@@ -1,12 +1,16 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
+import type { GameNote } from '../types'
 import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
+import { abort, draw, gameMove, resign, startGame } from './app/game'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
 import { completions } from './chess/position'
 import { LOCALES, asLocale, messagesFor } from './i18n'
+import { AI_CLOCKS, SEEK_CLOCKS } from './lichess/game'
 import { hint, play, reveal, solverOf } from './training/attempt'
+import { isOn, playTyped, readSettings } from './training/game'
 import { learnLinks, readExplanation } from './training/explain'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
@@ -18,8 +22,15 @@ export const COMMAND = 'chess-break'
 
 export const registerCommands = (on: Parameters<Register>[0]) => {
   on('command.run', { command: COMMAND }, async ($, e) => {
-    const [verb, arg] = e.args.trim().split(/\s+/).filter(Boolean)
+    const [verb, arg, ...rest] = e.args.trim().split(/\s+/).filter(Boolean)
     const t = messagesOf(await read($, view))
+    /** What a game action answers: why it failed, else what it did. */
+    const gameAction = async (act: () => Promise<GameNote | undefined>, done: string) => {
+      const { game } = await read($, view)
+      if (!game || !isOn(game)) return { text: t.command.noGame }
+      const note = await act()
+      return { text: note ? t.game.note(note) : done }
+    }
     /** What the attempt says after a change made from the prompt. */
     const said = async (fn: Parameters<typeof change>[1]) => {
       const a = await change($, fn)
@@ -97,6 +108,27 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         if (!attempt || (attempt.played.length === 0 && !attempt.hadMistake && !attempt.usedHelp)) await loadNext($)
         return { text: t.command.sourceSet(t.source(source)) }
       }
+      case 'play': {
+        const settings = readSettings([arg ?? '', ...rest].filter(Boolean))
+        if (settings === 'usage') return { text: t.command.playUsage }
+        if (settings === 'level') return { text: t.command.badLevel }
+        if (settings === 'aiClock') return { text: t.command.badClock(AI_CLOCKS.join(', ')) }
+        if (settings === 'seekClock') return { text: t.command.badSeekClock(SEEK_CLOCKS.join(', ')) }
+        const note = await startGame($, settings)
+        if (note) return { text: t.game.note(note) }
+        await openPane($, true)
+        return { text: settings.kind === 'ai' ? t.command.aiStarted(settings.level, settings.clock) : t.command.seekStarted(settings.clock, settings.rated) }
+      }
+      case 'resign':
+        return gameAction(() => resign($), t.command.resigned)
+      case 'draw': {
+        const no = arg?.toLowerCase() === 'no'
+        const { game: g } = await read($, view)
+        const isOffered = !!g?.drawOffer && g.drawOffer !== g.side
+        return gameAction(() => draw($, !no), no ? t.command.drawDeclined : isOffered ? t.command.drawAccepted : t.command.drawOffered)
+      }
+      case 'abort':
+        return gameAction(() => abort($), t.command.aborted)
       case 'login': {
         if (arg) return { text: t.command.noTokenInCommand }
         await openPane($, true)
@@ -123,7 +155,11 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       default: {
         // Anything else is a move: `/chess-break Qxf7`, `/chess-break e2e4`, `/chess-break cf3`.
         const typed = e.args.trim()
-        const { attempt } = await read($, view)
+        const { attempt, game: g } = await read($, view)
+        if (g && isOn(g)) {
+          const note = await gameMove($, x => playTyped(x, typed))
+          return { text: note ? t.game.note(note) : t.game.theirMove }
+        }
         if (!attempt || attempt.status !== 'playing') return { text: `/${COMMAND} ${t.command.usage}` }
         return said(a => {
           const options = completions(a.fen, typed)

@@ -66,8 +66,57 @@ export type Review = Record<string, ReviewCard>
 export type Tally = { solved: number; failed: number }
 export type Progress = { themes: Record<string, Tally>; streak: number; best: number }
 
+/** A game to start: Lichess's Stockfish at a level, or a seek for a person; the clock as `minutes+increment`. */
+export type GameSettings =
+  | { kind: 'ai'; level: number; clock: string; color: 'white' | 'black' | 'random' }
+  | { kind: 'seek'; clock: string; rated: boolean }
+
+/** A player as Lichess names them; Stockfish has a level and no name. */
+export type Player = { name?: string; rating?: number; aiLevel?: number }
+
+/** What the pane says about a game, put into words when drawn. */
+export type GameNote =
+  | { kind: 'signIn' | 'renewSignIn' | 'needsCurl' | 'limited' | 'notYourTurn' | 'cannotAbort' | 'confirmResign' | 'reconnecting' }
+  | { kind: 'illegal' | 'refused' | 'failed'; text: string }
+
+/** A live Lichess game, as its stream last told it, with the person's move not yet confirmed. */
+export type Game = {
+  id: string
+  /** How it was started, to play another; absent for a game resumed from Lichess. */
+  settings?: GameSettings
+  side: 'w' | 'b'
+  white: Player
+  black: Player
+  isRated: boolean
+  /** Every move as UCI, as Lichess holds them. */
+  moves: string[]
+  /** The position shown: Lichess's, or after the person's pending move. */
+  fen: string
+  lastMove?: string
+  /** Each side's time left in ms when `at` (epoch ms) came; the side to move's runs from then. */
+  clock: { white: number; black: number; at: number }
+  /** The time the clocks were last drawn at, moved on every second. */
+  now: number
+  /** Lichess's status: `started`, `mate`, `resign`, `outoftime`, `draw`, `aborted`… */
+  status: string
+  winner?: 'w' | 'b'
+  drawOffer?: 'w' | 'b'
+  selected?: string
+  promoting?: string
+  /** The person's move sent and not yet in Lichess's moves, as UCI. */
+  pending?: string
+  /** When resign was first pressed, for the second press. */
+  resignAsked?: number
+}
+
 export type View = {
   attempt?: Attempt
+  /** The Lichess game under way or just ended; puzzles wait behind it. */
+  game?: Game
+  /** A seek for a person waiting for Lichess to pair it. */
+  seeking?: Extract<GameSettings, { kind: 'seek' }>
+  /** Why a game did not start, or what the game says now. */
+  gameNote?: GameNote
   isLoading: boolean
   locale: Locale
   /** The theme trained: a Lichess theme key, or `mix`. */

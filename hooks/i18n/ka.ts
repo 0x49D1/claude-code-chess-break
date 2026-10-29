@@ -1,6 +1,7 @@
 import { EN_THEMES } from './en'
 import { humanize } from './messages'
 import type { Messages } from './messages'
+import type { Ending } from '../training/game'
 
 // Themes with a settled Georgian name; the others keep Lichess's English one until a speaker checks them.
 const THEMES: Record<string, string> = {
@@ -16,6 +17,8 @@ const THEMES: Record<string, string> = {
 const PIECES: Record<string, string> = { p: 'პაიკით', n: 'მხედრით', b: 'კუთი', r: 'ეტლით', q: 'ლაზიერით', k: 'მეფით' }
 
 const GROUPS: Record<string, string> = { tactics: 'ტაქტიკა', mates: 'მატები', phases: 'თამაშის ეტაპები', ideas: 'იდეები' }
+
+const ENDINGS: Record<Ending, string> = { mate: ': მატი', resign: ': დანებება', time: ': დრო ამოიწურა', left: ': მოწინააღმდეგე წავიდა', stalemate: ': პატი', draw: '', aborted: '', other: '' }
 
 export const ka: Messages = {
   side: s => (s === 'w' ? 'თეთრები' : 'შავები'),
@@ -71,19 +74,55 @@ export const ka: Messages = {
     explainFailed: why => `ახსნა ვერ მივიღე (${why}).`,
     statusHint: '/chess-break <სვლა> ან გახსნა',
     signIn: 'შესვლა',
-    signInTitle: 'შესვლა Lichess-ზე რეიტინგული ამოცანებისთვის',
+    signInTitle: 'შესვლა Lichess-ზე რეიტინგული ამოცანებისა და პარტიებისთვის',
     openLichess: 'დაადასტურე Lichess-ზე ↗',
     starting: 'იწყება…',
-    orPaste: 'ან ჩასვი პირადი ტოკენი (მხოლოდ ამოცანების უფლებით) და დააჭირე Enter-ს:',
+    orPaste: 'ან ჩასვი პირადი ტოკენი (ამოცანებისა და პარტიების უფლებით) და დააჭირე Enter-ს:',
     createToken: 'ტოკენის შექმნა ↗',
     cancel: 'გაუქმება',
     signInFailed: why => `შესვლა ვერ მოხერხდა (${why}).`,
     tokenStays: 'ტოკენი ამ კომპიუტერზე რჩება და საუბარში არ ხვდება.',
     signOut: 'გასვლა',
   },
+  game: {
+    newGame: 'ახალი პარტია',
+    stockfish: level => `Stockfish, დონე ${level}`,
+    person: 'ადამიანთან',
+    anonymous: 'ანონიმი',
+    rated: 'სარეიტინგო',
+    casual: 'ამხანაგური',
+    searching: (clock, rated) => `ვეძებთ მოწინააღმდეგეს (${clock}, ${rated ? 'სარეიტინგო' : 'ამხანაგური'})…`,
+    yourMove: 'შენი სვლაა',
+    theirMove: 'მოწინააღმდეგის სვლაა',
+    over: (outcome, ending) => (ending === 'aborted' ? 'პარტია შეწყდა.' : `${outcome === 'win' ? 'მოიგე' : outcome === 'loss' ? 'წააგე' : 'ფრე'}${ENDINGS[ending]}.`),
+    drawOffered: 'მოწინააღმდეგე ფრეს გთავაზობს.',
+    drawYours: 'შენი ფრეს შეთავაზება პასუხს ელოდება.',
+    accept: 'მიღება',
+    decline: 'უარი',
+    resign: 'დანებება',
+    offerDraw: 'ფრეს შეთავაზება',
+    abort: 'შეწყვეტა',
+    playAgain: 'კიდევ ერთი',
+    puzzles: 'ამოცანები',
+    note(n) {
+      switch (n.kind) {
+        case 'signIn': return 'პარტიებისთვის Lichess-ის ანგარიშია საჭირო: /chess-break login.'
+        case 'renewSignIn': return 'Lichess-მა უარი თქვა: ხელახლა შედი, რომ შესვლა პარტიებსაც მოიცავდეს (🔑).'
+        case 'needsCurl': return 'პარტიებისთვის curl არის საჭირო და ის ვერ მოიძებნა. ამოცანები მის გარეშეც მუშაობს.'
+        case 'limited': return 'Lichess გთხოვს შენელებას: მოიცადე ერთი წუთი.'
+        case 'notYourTurn': return 'ახლა მოწინააღმდეგის სვლაა.'
+        case 'cannotAbort': return 'ორივე მხარემ უკვე იარა: ახლა მხოლოდ დანებება შეიძლება.'
+        case 'confirmResign': return 'დასანებებლად კიდევ ერთხელ დააჭირე „დანებებას“.'
+        case 'reconnecting': return 'კავშირი გაწყდა, ხელახლა ვუკავშირდებით…'
+        case 'illegal': return `„${n.text}“ აქ ვერ ითამაშება.`
+        case 'refused': return `Lichess-მა უარი თქვა: ${n.text}.`
+        case 'failed': return `Lichess მიუწვდომელია (${n.text}).`
+      }
+    },
+  },
   command: {
     description: 'ჭადრაკის ტაქტიკის ვარჯიში: პანელის გახსნა, თემის არჩევა, პროგრესის ნახვა',
-    usage: '[<სვლა>|hint|solution|explain|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<სვლა>|hint|solution|explain|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'სავარჯიშო პანელი გაიხსნა.',
     next: 'ახალი ამოცანა.',
     noPuzzle: 'ამოცანა არ არის. გახსენი: /chess-break.',
@@ -106,5 +145,18 @@ export const ka: Messages = {
     signedIn: (name, rating) => `შესული ხარ როგორც ${name}${rating ? `, ამოცანების რეიტინგი ${rating}` : ''}.`,
     notSignedIn: 'არ ხარ შესული. /chess-break login — რეიტინგული ამოცანებისთვის.',
     loggedOut: 'გამოხვედი; ტოკენი Lichess-ზე გაუქმდა.',
+    playUsage: '/chess-break play stockfish [1-8] [კონტროლი] [white|black|random] ან play human [კონტროლი] [rated]',
+    badLevel: 'Stockfish-ის დონეები 1-დან 8-მდეა.',
+    badClock: clocks => `დროის კონტროლი Stockfish-თან: ${clocks}.`,
+    badSeekClock: clocks => `Lichess ასეთ აპებს მოწინააღმდეგეს მხოლოდ რაპიდსა და კლასიკაში უძებნის: ${clocks}.`,
+    aiStarted: (level, clock) => `პარტია Stockfish-თან, დონე ${level} (${clock}), პანელშია.`,
+    seekStarted: (clock, rated) => `ვეძებთ მოწინააღმდეგეს (${clock}, ${rated ? 'სარეიტინგო' : 'ამხანაგური'}): პარტია პანელში გაიხსნება.`,
+    noGame: 'პარტია არ მიმდინარეობს. /chess-break play stockfish ან play human.',
+    resigned: 'დანებდი.',
+    drawOffered: 'ფრე შეთავაზებულია.',
+    drawAccepted: 'ფრე მიღებულია.',
+    drawDeclined: 'ფრეზე უარი ითქვა.',
+    aborted: 'პარტია შეწყდა.',
+    gameGoesOn: 'Claude-მა დაასრულა. შენი პარტია გრძელდება.',
   },
 }

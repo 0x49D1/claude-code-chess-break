@@ -5,6 +5,7 @@ import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
 import { nextPuzzleUrl, readAnswer } from '../lichess/client'
 import { offlinePuzzle } from '../offline'
 import { sendResult, storedToken } from './account'
+import { leaveGame } from './game'
 import { explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
 import { recordProgress } from '../training/progress'
@@ -119,7 +120,15 @@ export async function next($: $) {
 export async function openPane($: $, focus = false) {
   await $.ui.open({ id: PANE, title: TITLE, rows: PANE_ROWS, ...(focus ? { focus: true as const } : {}) })
   const v = await read($, view)
+  // A game or a seek holds the pane: puzzles wait behind it.
+  if (v.game || v.seeking) return
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
+}
+
+/** From a game back to the puzzle left behind, or a new one. */
+export async function backToPuzzles($: $) {
+  await leaveGame($)
+  if (!(await read($, view)).attempt) await loadNext($)
 }
 
 export async function refreshDue($: $) {

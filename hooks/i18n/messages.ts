@@ -1,4 +1,5 @@
-import type { Feedback, Source } from '../../types'
+import type { Feedback, GameNote, Source } from '../../types'
+import type { Ending } from '../training/game'
 
 export type Side = 'w' | 'b'
 
@@ -44,6 +45,28 @@ export type Messages = {
     tokenStays: string
     signOut: string
   }
+  game: {
+    newGame: string
+    stockfish: (level: number) => string
+    person: string
+    anonymous: string
+    rated: string
+    casual: string
+    searching: (clock: string, rated: boolean) => string
+    yourMove: string
+    theirMove: string
+    over: (outcome: 'win' | 'loss' | 'draw', ending: Ending) => string
+    drawOffered: string
+    drawYours: string
+    accept: string
+    decline: string
+    resign: string
+    offerDraw: string
+    abort: string
+    playAgain: string
+    puzzles: string
+    note: (n: GameNote) => string
+  }
   command: {
     description: string
     usage: string
@@ -69,6 +92,19 @@ export type Messages = {
     signedIn: (name: string, rating?: number) => string
     notSignedIn: string
     loggedOut: string
+    playUsage: string
+    badLevel: string
+    badClock: (clocks: string) => string
+    badSeekClock: (clocks: string) => string
+    aiStarted: (level: number, clock: string) => string
+    seekStarted: (clock: string, rated: boolean) => string
+    noGame: string
+    resigned: string
+    drawOffered: string
+    drawAccepted: string
+    drawDeclined: string
+    aborted: string
+    gameGoesOn: string
   }
 }
 

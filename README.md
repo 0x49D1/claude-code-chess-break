@@ -1,6 +1,6 @@
 # chess-break
 
-A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess by theme, from Chess.com's daily puzzles, or from a set of 1,469 shipped with the mod for offline use. The ones you miss come back for review until you've learned them, and your progress is tracked per theme.
+A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess by theme, from Chess.com's daily puzzles, or from a set of 1,469 shipped with the mod for offline use. The ones you miss come back for review until you've learned them, and your progress is tracked per theme. For longer waits, play a live game on Lichess against Stockfish or a person.
 
 ## What it does
 
@@ -10,6 +10,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **See your progress:** `/chess-break stats` shows accuracy per theme, your streak and your weakest theme.
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
+- **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
 The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
@@ -28,12 +29,29 @@ Pick one with `/chess-break source …` or in `/config`. When Lichess or Chess.c
 
 ## Lichess account (optional)
 
-`/chess-break login` (or 🔑 in the pane) signs in to Lichess for **rated puzzles**: new puzzles come from your account, results count toward your puzzle rating, and the sidebar shows it (`👤 you · ⭐ 1650 (+8)`).
+`/chess-break login` (or 🔑 in the pane) signs in to Lichess for **rated puzzles** and for [games](#games): new puzzles come from your account, results count toward your puzzle rating, and the sidebar shows it (`👤 you · ⭐ 1650 (+8)`).
 
-- **In the browser:** approve on Lichess; a one-shot listener on `127.0.0.1` (needs `python3`) catches the answer and exits. Only puzzle permissions are asked for (`puzzle:read`, `puzzle:write`).
+- **In the browser:** approve on Lichess; a one-shot listener on `127.0.0.1` (needs `python3`) catches the answer and exits. Only puzzle and board permissions are asked for (`puzzle:read`, `puzzle:write`, `board:play`).
 - **Or paste a personal token** in the pane, if the browser runs on another machine.
 - The token is kept in the mod's local storage and never goes into the conversation: `/chess-break login <token>` is refused for that reason.
 - `/chess-break logout` signs out and revokes the token on Lichess. Reviews and puzzles from Chess.com or the offline set stay local.
+
+## Games
+
+Live games on Lichess, through its Board API. They need the sign-in, and `curl` (already on macOS, Windows 10 and later, and most Linux desktops) for the game's live stream. Puzzles don't need `curl`.
+
+| Command | Game |
+| --- | --- |
+| `/chess-break play stockfish [1-8] [clock] [white\|black\|random]` | against Stockfish, always casual. Clocks: `3+2`, `5+3`, `10+0`, `10+5`, `15+10`, `30+0`. Default: level 3, `10+0`, random |
+| `/chess-break play human [clock] [rated]` | against a person Lichess pairs you with, casual unless `rated`. Clocks: `10+0`, `10+5`, `15+10`, `30+0`, `30+20` (Lichess pairs apps like this one at rapid and classical only) |
+
+Or press 🤖 or 👤 in the pane for the defaults.
+
+- **Moves:** click, or type in the pane, or from the prompt (`/chess-break Nf3`), the same way as in puzzles.
+- **During the game:** `/chess-break resign` (twice within three seconds), `draw` (offer, or accept the opponent's), `draw no` (decline), `abort` (before both sides have moved). The same actions are buttons in the pane.
+- **The game outlives Claude's turn:** the pane stays open, the line under the prompt shows the opponent, both clocks and whose move it is, and puzzles wait. A game still on when a new session starts comes back.
+- **At the end:** the result, a link to the game on Lichess, 🔄 another game with the same settings, or 🧩 back to puzzles. Games don't count in puzzle progress.
+- A sign-in made before games existed has no `board:play`: the first game asks you to sign in again.
 
 ## Install
 
@@ -57,7 +75,9 @@ claude --plugin-dir /path/to/chess-break
 | `/chess-break source lichess` / `chesscom` / `offline` | where puzzles come from |
 | `/chess-break stats` | progress per theme |
 | `/chess-break review` | play the puzzles due for review |
-| `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles |
+| `/chess-break play stockfish …` / `play human …` | a Lichess game, see [Games](#games) |
+| `/chess-break resign` / `draw` / `draw no` / `abort` | during a game |
+| `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles and games |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
 In the pane: `h` hint, `s` solution, `n` next, `e` explain, `j` / `k` replay (outside the move field). Esc returns to the prompt.
@@ -74,6 +94,7 @@ In the pane: `h` hint, `s` solution, `n` next, `e` explain, `j` / `k` replay (ou
 
 ```
 claude plugin validate .
+npx -p typescript tsc --noEmit -p .
 claude plugin test .
 claude --plugin-dir .
 ```
@@ -81,18 +102,20 @@ claude --plugin-dir .
 | Folder | What's in it |
 | --- | --- |
 | `hooks/chess/` | a thin layer over chess.js: reading typed moves, completions |
-| `hooks/lichess/` | Lichess addresses and answers, and sign-in (PKCE, the redirect listener) |
+| `hooks/lichess/` | Lichess addresses and answers, sign-in (PKCE, the redirect listener), the Board API's game events |
 | `hooks/chesscom/` | Chess.com's daily puzzle answers |
 | `hooks/offline/` | the shipped puzzle set (generated, CC0) |
-| `hooks/training/` | an attempt at a puzzle, the review queue, progress, themes (no `$`, all tested directly) |
+| `hooks/training/` | an attempt at a puzzle, a game's moves and clocks, the review queue, progress, themes (no `$`, all tested directly) |
 | `hooks/i18n/` | every text, one file per language, typed by `Messages` |
-| `hooks/app/` | state and the actions that use `$` |
+| `hooks/app/` | state and the actions that use `$`, the game streams through `curl` |
 | `hooks/ui/` | the board and the pane |
 | `hooks/vendor/` | chess.js 1.4.0 (BSD-2-Clause, see `chess.js.LICENSE`), copied because a mod can only import its own files |
 
 A few rules the mod engine enforces: a file that reads or updates the pane's state declares the atom itself; `$` goes only into `function` declarations across files, never arrow functions or object methods.
 
 The idea of puzzles in a pane while Claude works comes from [cclichess](https://github.com/MrtnsK/cclichess) by MrtnsK. This project is a separate implementation.
+
+Live Lichess games in the pane follow the idea of [vibe-gambit](https://github.com/PopFlamingo/vibe-gambit) by PopFlamingo: playing through Lichess's Board API while Claude works. Only the idea and Lichess's public API are shared, no code.
 
 ## Not affiliated
 

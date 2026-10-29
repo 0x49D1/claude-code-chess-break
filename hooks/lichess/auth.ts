@@ -3,8 +3,8 @@ const LICHESS = 'https://lichess.org'
 /** What chess-break calls itself on Lichess's sign-in page; Lichess needs no registration with PKCE. */
 export const CLIENT_ID = 'chess-break'
 
-/** Only puzzles: reading the next one, and sending results. */
-export const SCOPES = ['puzzle:read', 'puzzle:write']
+/** Puzzles (reading the next one, sending results) and games (`board:play`). */
+export const SCOPES = ['puzzle:read', 'puzzle:write', 'board:play']
 
 export const TOKEN_PAGE = `${LICHESS}/account/oauth/token/create?${SCOPES.map(s => `scopes[]=${s}`).join('&')}&description=chess-break`
 

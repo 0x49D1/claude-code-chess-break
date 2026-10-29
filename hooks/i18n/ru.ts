@@ -1,5 +1,6 @@
 import { humanize } from './messages'
 import type { Messages } from './messages'
+import type { Ending } from '../training/game'
 
 // Названия тем, как их даёт Lichess по-русски.
 const THEMES: Record<string, string> = {
@@ -31,6 +32,8 @@ function plural(n: number, one: string, few: string, many: string) {
   const word = ten === 1 && hundred !== 11 ? one : ten >= 2 && ten <= 4 && (hundred < 12 || hundred > 14) ? few : many
   return `${n} ${word}`
 }
+
+const ENDINGS: Record<Ending, string> = { mate: ' матом', resign: ': соперник сдался', time: ' по времени', left: ': соперник ушёл', stalemate: ': пат', draw: '', aborted: '', other: '' }
 
 export const ru: Messages = {
   side: s => (s === 'w' ? 'Белые' : 'Чёрные'),
@@ -86,19 +89,55 @@ export const ru: Messages = {
     explainFailed: why => `Объяснения нет (${why}).`,
     statusHint: '/chess-break <ход> или открыть',
     signIn: 'Войти',
-    signInTitle: 'Вход в Lichess для рейтинговых задач',
+    signInTitle: 'Вход в Lichess для рейтинговых задач и партий',
     openLichess: 'Подтвердить на Lichess ↗',
     starting: 'Запуск…',
-    orPaste: 'или вставь личный токен (только права на задачи) и нажми Enter:',
+    orPaste: 'или вставь личный токен (права на задачи и партии) и нажми Enter:',
     createToken: 'создать токен ↗',
     cancel: 'Отмена',
     signInFailed: why => `Не удалось войти (${why}).`,
     tokenStays: 'Токен остаётся на этом компьютере и не попадает в разговор.',
     signOut: 'Выйти',
   },
+  game: {
+    newGame: 'Новая партия',
+    stockfish: level => `Stockfish, уровень ${level}`,
+    person: 'С человеком',
+    anonymous: 'Аноним',
+    rated: 'рейтинговая',
+    casual: 'товарищеская',
+    searching: (clock, rated) => `Ищем соперника (${clock}, ${rated ? 'рейтинговая' : 'товарищеская'})…`,
+    yourMove: 'Твой ход',
+    theirMove: 'Ход соперника',
+    over: (outcome, ending) => (ending === 'aborted' ? 'Партия прервана.' : `${outcome === 'win' ? 'Победа' : outcome === 'loss' ? 'Поражение' : 'Ничья'}${outcome === 'loss' && ending === 'resign' ? ': ты сдался' : ENDINGS[ending]}.`),
+    drawOffered: 'Соперник предлагает ничью.',
+    drawYours: 'Твоё предложение ничьей ждёт ответа.',
+    accept: 'Принять',
+    decline: 'Отклонить',
+    resign: 'Сдаться',
+    offerDraw: 'Предложить ничью',
+    abort: 'Прервать',
+    playAgain: 'Ещё партию',
+    puzzles: 'Задачи',
+    note(n) {
+      switch (n.kind) {
+        case 'signIn': return 'Для партий нужен аккаунт Lichess: /chess-break login.'
+        case 'renewSignIn': return 'Lichess отказал: войди заново, чтобы вход покрывал партии (🔑).'
+        case 'needsCurl': return 'Для партий нужен curl, он не найден. Задачи работают и без него.'
+        case 'limited': return 'Lichess просит не спешить: подожди минуту.'
+        case 'notYourTurn': return 'Сейчас ход соперника.'
+        case 'cannotAbort': return 'Обе стороны уже сходили: партию можно только сдать.'
+        case 'confirmResign': return 'Нажми «Сдаться» ещё раз, чтобы сдаться.'
+        case 'reconnecting': return 'Связь потеряна, переподключаемся…'
+        case 'illegal': return `«${n.text}» здесь сыграть нельзя.`
+        case 'refused': return `Lichess отказал: ${n.text}.`
+        case 'failed': return `Lichess недоступен (${n.text}).`
+      }
+    },
+  },
   command: {
     description: 'Тренировка шахматной тактики: открыть панель, выбрать тему, посмотреть прогресс',
-    usage: '[<ход>|hint|solution|explain|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<ход>|hint|solution|explain|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'Панель тренировки открыта.',
     next: 'Новая задача.',
     noPuzzle: 'Задачи нет. Открой: /chess-break.',
@@ -121,5 +160,18 @@ export const ru: Messages = {
     signedIn: (name, rating) => `Вход выполнен: ${name}${rating ? `, рейтинг в задачах ${rating}` : ''}.`,
     notSignedIn: 'Вход не выполнен. /chess-break login — для рейтинговых задач.',
     loggedOut: 'Выход выполнен; токен отозван на Lichess.',
+    playUsage: '/chess-break play stockfish [1-8] [контроль] [white|black|random] или play human [контроль] [rated]',
+    badLevel: 'Уровни Stockfish — от 1 до 8.',
+    badClock: clocks => `Контроль против Stockfish: ${clocks}.`,
+    badSeekClock: clocks => `Lichess подбирает соперников таким приложениям только в рапиде и классике: ${clocks}.`,
+    aiStarted: (level, clock) => `Партия против Stockfish, уровень ${level} (${clock}), — в панели.`,
+    seekStarted: (clock, rated) => `Ищем соперника (${clock}, ${rated ? 'рейтинговая' : 'товарищеская'}): партия откроется в панели.`,
+    noGame: 'Партии нет. /chess-break play stockfish или play human.',
+    resigned: 'Ты сдался.',
+    drawOffered: 'Ничья предложена.',
+    drawAccepted: 'Ничья принята.',
+    drawDeclined: 'Ничья отклонена.',
+    aborted: 'Партия прервана.',
+    gameGoesOn: 'Claude закончил. Партия продолжается.',
   },
 }
