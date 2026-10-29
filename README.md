@@ -12,7 +12,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
-The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle. While it's hidden, a line under the prompt keeps the puzzle in view, and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
+The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
 
 ## Puzzle sources
 
@@ -55,6 +55,7 @@ In the pane: `h` hint, `s` solution, `n` next, `e` explain, `j` / `k` replay (ou
 ## Settings (`/config`)
 
 - **Open while Claude works** (on by default)
+- **Puzzle line under the prompt** (on by default)
 - **Puzzles from**: lichess, chesscom, offline
 - **Difficulty**: easiest → hardest, for new Lichess puzzles
 - **Language**: auto, en, fr, ru, ka

@@ -1,12 +1,13 @@
 import { atom, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import { openPane, refreshDue, refreshStatus } from './app/actions'
+import { openPane, refreshDue } from './app/actions'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
 import { isStarted } from './training/attempt'
+import { registerHint } from './ui/hint'
 import { registerPane } from './ui/pane'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -18,6 +19,7 @@ export const register: Register = (on, options) => {
   settings.difficulty = DIFFICULTIES.find(d => d === options.difficulty) ?? 'normal'
   settings.language = String(options.language ?? 'auto')
   settings.source = asSource(options.source) ?? 'lichess'
+  settings.promptLine = options.promptLine !== false
 
   on('session.start', async ($, e, next) => {
     const locale = await resolveLocale($)
@@ -45,10 +47,10 @@ export const register: Register = (on, options) => {
     if (!(await $.ui.panes()).some(p => p.id === PANE)) return result
     if (isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
     else await $.ui.close({ id: PANE })
-    await refreshStatus($)
     return result
   })
 
   registerCommands(on)
   registerPane(on)
+  registerHint(on)
 }

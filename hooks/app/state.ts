@@ -29,6 +29,7 @@ export const settings = {
   difficulty: 'normal' as Difficulty,
   language: 'auto',
   source: 'lichess' as Source,
+  promptLine: true,
 }
 
 export const SOURCES: Source[] = ['lichess', 'chesscom', 'offline']

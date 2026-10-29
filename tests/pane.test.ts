@@ -1,5 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
-import type { On } from 'claude-code'
+import type { On, RenderElement } from 'claude-code'
+import type { Engine } from 'claude-code/testing'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -22,6 +23,25 @@ const SCHOLAR = JSON.stringify({
   game: { pgn: 'e4 e5 Bc4 Nc6 Qf3 d6' },
   puzzle: { id: 'abc12', rating: 900, themes: ['mateIn1', 'short'], solution: ['f3f7'], initialPly: 5 },
 })
+
+/**
+ * The hint row under the prompt as the mod leaves it: the test draws it in the engine's place,
+ * and reads the tail the mod added.
+ */
+function hintRow($: Engine, on: On) {
+  let tail = ''
+  on('ui.render', { component: 'PromptHint' }, async (engine, e) => {
+    tail = String(e.props.tail ?? '')
+    const { Text } = engine.ui.resolve(e)
+    return h(Text, null, `${e.props.hint} ${tail}`) as RenderElement
+  })
+  return async () => {
+    tail = ''
+    const ui = await $.ui.mount({ plugin: 'chess-break', component: 'PromptHint', surface: 'terminal', props: { isDraft: false, isWorking: false, hint: '? for shortcuts' } })
+    await ui.unmount()
+    return tail
+  }
+}
 
 /** Takes the status line under the prompt and drops it. */
 function quietStatus(on: On) {
@@ -203,7 +223,7 @@ test('puzzles from Chess.com, the offline set, or offline when the network fails
   await ui.unmount()
 })
 
-test('solved from the prompt, the status line keeping track while the pane is hidden', async ($, on) => {
+test('solved from the prompt, the line under it keeping track while the pane is hidden', async ($, on) => {
   mock.store(on)
   const clock = mock.clock(on)
   on('http.fetch', async () => ({
@@ -215,25 +235,31 @@ test('solved from the prompt, the status line keeping track while the pane is hi
   let isOpen = true
   on('ui.panes', async () => ({ value: [{ id: 'chess-break', isShown: isOpen, isPlaced: true }] as never }))
   on('ui.open', async () => ({ value: { isPlaced: true } as never }))
-  const status: (string | undefined)[] = []
-  on('ui.status', async (_$, e) => {
-    status.push(e.text)
-    return { value: undefined }
-  })
+  const tail = hintRow($, on)
 
   await $.command.run(command(''))
-  // The pane shows the puzzle: no status line.
-  expect(status.at(-1)).toBeUndefined()
+  // The pane shows the puzzle: the line stays as it was.
+  expect(await tail()).not.toContain('♞')
 
   isOpen = false
   expect((await $.command.run(command('nxe5'))).text).toBe('Nxe5, keep going.')
   await clock.advance(400)
-  expect(status.at(-1)).toBe('♞ Mix  ·  White to play  ·  ⏮ Qg5  ·  /chess-break <move> or open')
+  expect(await tail()).toContain('♞ Mix · White to play · ⏮ Qg5 · /chess-break <move> or open')
   expect((await $.command.run(command('hint'))).text).toBe('Move the knight on e5.')
   expect((await $.command.run(command('zz'))).text).toBe('“zz” can\'t be played here.')
   expect((await $.command.run(command('solution'))).text).toBe('Nxf7. It will come back for review.')
-  expect(status.at(-1)).toBeUndefined()
+  expect(await tail()).not.toContain('♞')
   expect((await $.command.run(command('skip'))).text).toBe('New puzzle.')
+})
+
+test('the line under the prompt can be turned off', { options: { promptLine: false } }, async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  lichess(on)
+  on('ui.panes', async () => ({ value: [] }))
+  const tail = hintRow($, on)
+  await $.command.run(command('next'))
+  expect(await tail()).not.toContain('♞')
 })
 
 test('a finished puzzle replays move by move, and Claude explains it on request', async ($, on) => {

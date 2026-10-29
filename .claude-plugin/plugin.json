@@ -14,6 +14,12 @@
       "description": "Opens the training pane when Claude starts a turn",
       "default": true
     },
+    "promptLine": {
+      "type": "boolean",
+      "title": "Puzzle line under the prompt",
+      "description": "While the pane is hidden, the end of the line under the prompt shows the puzzle: theme, whose move, the last move, the streak",
+      "default": true
+    },
     "source": {
       "type": "string",
       "title": "Puzzles from",
