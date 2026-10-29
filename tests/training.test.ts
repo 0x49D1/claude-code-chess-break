@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import type { Puzzle } from '../types'
+import type { Feedback, Puzzle } from '../types'
+import { LOCALES, messagesFor, pickLocale } from '../hooks/i18n'
 import { analysisUrl, parsePuzzle } from '../hooks/lichess/client'
 import { click, hint, isClean, isStarted, moveLine, play, promote, reply, reveal, start } from '../hooks/training/attempt'
 import { NO_PROGRESS, recordProgress, themeLines, weakest } from '../hooks/training/progress'
@@ -113,3 +114,36 @@ test('progress by theme, the streak, the weakest theme', () => {
   expect(p.streak).toBe(0)
   expect(p.best).toBe(2)
 })
+
+describe('languages', () => {
+  test('picked from the choice, the settings, then the locale', () => {
+    expect(pickLocale([undefined, 'auto', undefined, 'ru_RU.UTF-8'])).toBe('ru')
+    expect(pickLocale([undefined, 'auto', 'Русский'])).toBe('ru')
+    expect(pickLocale([undefined, 'auto', 'georgian', 'fr_FR.UTF-8'])).toBe('ka')
+    expect(pickLocale([undefined, undefined, undefined, 'ka_GE.UTF-8'])).toBe('ka')
+    expect(pickLocale(['fr', 'ru'])).toBe('fr')
+    expect(pickLocale([undefined, 'de_DE.UTF-8'])).toBe('en')
+  })
+
+  test('Russian counts in its three forms', () => {
+    expect([1, 2, 5, 11, 21, 22, 25].map(n => messagesFor('ru').pane.dueCount(n))).toEqual([
+      '1 задача на повторение', '2 задачи на повторение', '5 задач на повторение', '11 задач на повторение',
+      '21 задача на повторение', '22 задачи на повторение', '25 задач на повторение',
+    ])
+  })
+
+  test('every language says every feedback, and themes fall back to English, then to the key', () => {
+    const kinds = [
+      { kind: 'start', lastSan: 'd6' }, { kind: 'start' }, { kind: 'right', san: 'Qe8+' }, { kind: 'reply', san: 'Rxe8' },
+      { kind: 'wrong', san: 'Qe7' }, { kind: 'illegal', text: 'zz' }, { kind: 'hint', piece: 'n', square: 'g1' },
+      { kind: 'solved', isClean: true }, { kind: 'solved', isClean: false }, { kind: 'revealed', line: ['Qe8+'] },
+    ] satisfies Feedback[]
+    for (const locale of LOCALES) {
+      for (const f of kinds) expect(messagesFor(locale).feedback(f, 'w').length).toBeGreaterThan(3)
+    }
+    expect(messagesFor('ka').theme('fork')).toBe('ჩანგალი')
+    expect(messagesFor('ka').theme('skewer')).toBe('Skewer')
+    expect(messagesFor('ru').theme('someNewTheme')).toBe('Some new theme')
+  })
+})
+

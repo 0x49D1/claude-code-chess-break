@@ -1,8 +1,11 @@
 {
   "name": "chess-break",
   "version": "0.1.0",
-  "description": "Chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
-  "author": { "name": "Dima Pursanov" },
+  "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
+  "author": {
+    "name": "Dima Pursanov"
+  },
+  "license": "MIT",
   "types": "./types/index.d.ts",
   "userConfig": {
     "autoOpen": {
@@ -15,14 +18,26 @@
       "type": "string",
       "title": "Difficulty",
       "description": "New puzzles' difficulty on Lichess",
-      "options": ["easiest", "easier", "normal", "harder", "hardest"],
+      "options": [
+        "easiest",
+        "easier",
+        "normal",
+        "harder",
+        "hardest"
+      ],
       "default": "normal"
     },
     "language": {
       "type": "string",
       "title": "Language",
       "description": "auto follows Claude Code's language setting, then the system locale; English otherwise",
-      "options": ["auto", "en", "fr"],
+      "options": [
+        "auto",
+        "en",
+        "fr",
+        "ru",
+        "ka"
+      ],
       "default": "auto"
     }
   }

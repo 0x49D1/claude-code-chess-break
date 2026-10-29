@@ -1,6 +1,6 @@
 # chess-break
 
-A Claude Code mod for **chess tactics training while Claude works**. Puzzles come from Lichess, by theme. The ones you miss come back for review until you've learned them, and your progress is tracked per theme.
+A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess, by theme. The ones you miss come back for review until you've learned them, and your progress is tracked per theme.
 
 ## What it does
 
@@ -8,7 +8,8 @@ A Claude Code mod for **chess tactics training while Claude works**. Puzzles com
 - **Review what you miss:** a puzzle failed, or solved with a hint or the solution, comes back after 1 day. Solve it cleanly and it returns after 3 days, then 7, then it's learned. Due reviews come before new puzzles.
 - **See your progress:** `/chess-break stats` shows accuracy per theme, your streak and your weakest theme.
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
-- **English and French**, following Claude Code's language setting, then your system locale.
+- **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
+- **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
 The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle.
 
@@ -30,7 +31,7 @@ claude --plugin-dir /path/to/chess-break
 | `/chess-break themes` | list the themes |
 | `/chess-break stats` | progress per theme |
 | `/chess-break review` | play the puzzles due for review |
-| `/chess-break lang auto` / `en` / `fr` | language |
+| `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
 In the pane: `h` hint, `s` solution, `n` next (outside the move field).
 
@@ -38,7 +39,7 @@ In the pane: `h` hint, `s` solution, `n` next (outside the move field).
 
 - **Open while Claude works** (on by default)
 - **Difficulty**: easiest → hardest, for new puzzles
-- **Language**: auto, en, fr
+- **Language**: auto, en, fr, ru, ka
 
 ## Development
 
@@ -61,3 +62,7 @@ claude --plugin-dir .
 A few rules the mod engine enforces: a file that reads or updates the pane's state declares the atom itself; `$` goes only into `function` declarations across files, never arrow functions or object methods.
 
 The idea of puzzles in a pane while Claude works comes from [cclichess](https://github.com/MrtnsK/cclichess) by MrtnsK. This project is a separate implementation.
+
+## License
+
+MIT, see `LICENSE`. chess.js, in `hooks/vendor/`, is BSD-2-Clause.

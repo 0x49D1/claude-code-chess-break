@@ -2,7 +2,7 @@ import { humanize } from './messages'
 import type { Messages } from './messages'
 
 // Lichess's own English names for its themes.
-const THEMES: Record<string, string> = {
+export const EN_THEMES: Record<string, string> = {
   mix: 'Mix', fork: 'Fork', pin: 'Pin', skewer: 'Skewer', discoveredAttack: 'Discovered attack', doubleCheck: 'Double check',
   sacrifice: 'Sacrifice', deflection: 'Deflection', attraction: 'Attraction', clearance: 'Clearance', interference: 'Interference',
   intermezzo: 'Intermezzo', xRayAttack: 'X-Ray attack', capturingDefender: 'Capture the defender', hangingPiece: 'Hanging piece',
@@ -22,10 +22,12 @@ const PIECES: Record<string, string> = { p: 'the pawn', n: 'the knight', b: 'the
 
 const GROUPS: Record<string, string> = { tactics: 'Tactics', mates: 'Mates', phases: 'Game phases', ideas: 'Ideas' }
 
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
 export const en: Messages = {
   side: s => (s === 'w' ? 'White' : 'Black'),
   piece: p => PIECES[p] ?? 'the piece',
-  theme: key => THEMES[key] ?? humanize(key),
+  theme: key => EN_THEMES[key] ?? humanize(key),
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = en.side(solver)
@@ -34,31 +36,34 @@ export const en: Messages = {
       case 'start':
         return f.lastSan ? `${them} played ${f.lastSan}. Find the best move for ${me}.` : `Find the best move for ${me}.`
       case 'right':
-        return `✓ ${f.san}, keep going.`
+        return `${f.san}, keep going.`
       case 'reply':
         return `${them} answers ${f.san}. Your move.`
       case 'wrong':
-        return `✗ ${f.san} isn't it. Try again.`
+        return `${f.san} isn't it. Try again.`
       case 'illegal':
         return `“${f.text}” can't be played here.`
       case 'hint':
-        return `Hint: move ${en.piece(f.piece)} on ${f.square}.`
+        return `Move ${en.piece(f.piece)} on ${f.square}.`
       case 'solved':
-        return f.isClean ? '🎉 Solved!' : 'Solved with help: it will come back for review.'
+        return f.isClean ? 'Solved!' : 'Solved with help: it will come back for review.'
       case 'revealed':
-        return `Solution: ${f.line.join(' ')}. It will come back for review.`
+        return `${f.line.join(' ')}. It will come back for review.`
     }
   },
   pane: {
-    review: 'review',
-    dueCount: n => (n === 1 ? '1 to review' : `${n} to review`),
-    streak: (streak, best) => `streak ${streak} (best ${best})`,
+    toPlay: s => `${en.side(s)} to play`,
+    review: 'Review',
+    session: 'Session',
+    streak: (streak, best) => `Streak ${streak} · best ${best}`,
+    dueCount: n => `${plural(n, 'puzzle', 'puzzles')} to review`,
+    noneDue: 'Nothing to review',
     hint: 'Hint',
-    solution: 'Solution',
-    next: 'Next',
-    analyse: 'Analyse ↗',
-    promoteTo: 'Promote to:',
-    moveField: 'Move: e2e4 or Nf3',
+    show: 'Show',
+    skip: 'Skip',
+    analyse: 'Analyse',
+    promoteTo: 'Promote to',
+    moveField: 'your move: e2e4, Nf3…',
     noMove: 'No legal move starts like this',
     loading: 'Loading a puzzle…',
     loadFailed: why => `Lichess can't be reached (${why}).`,
@@ -66,24 +71,18 @@ export const en: Messages = {
   },
   command: {
     description: 'Chess tactics training: open the pane, pick a theme, see your progress',
-    usage: '[next|theme <name>|themes|stats|review|lang auto|en|fr]',
+    usage: '[next|theme <name>|themes|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Training pane opened.',
     next: 'New puzzle.',
     themeSet: name => `Training: ${name}. The next puzzle is on it.`,
     unknownTheme: typed => `No theme “${typed}”. /chess-break themes lists them.`,
-    themes: groups =>
-      ['Themes for /chess-break theme <name> (or mix):', ...groups.map(([group, names]) => `${group}: ${names.join(', ')}`)].join('\n'),
-    stats: (lines, streak, best, due, weakest) =>
-      [
-        `Streak ${streak}, best ${best}. ${en.pane.dueCount(due)}.`,
-        ...lines.map(l => `${l.name}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)`),
-        ...(weakest ? [`Weakest: ${weakest}. Try /chess-break theme ${weakest}.`] : []),
-      ].join('\n'),
+    themesTitle: 'Themes for /chess-break theme <name> (or mix):',
+    statsHead: (streak, best, due) => `Streak ${streak}, best ${best}. ${due}.`,
+    weakest: (name, key) => `Weakest: ${name}. Try /chess-break theme ${key}.`,
     noStats: 'No puzzles yet. Open the pane with /chess-break.',
-    reviewDue: n => `${en.pane.dueCount(n)}: the next puzzles are those.`,
+    reviewDue: due => `${due}: the next puzzles are those.`,
     reviewNone: 'Nothing to review. Missed puzzles come back here a day later.',
     langSet: lang => `Language: ${lang}.`,
-    claudeDone: 'Claude is done ✓',
-    claudeDoneFinish: 'Claude is done ✓ Finish your puzzle.',
+    claudeDoneFinish: 'Claude is done. Finish your puzzle.',
   },
 }

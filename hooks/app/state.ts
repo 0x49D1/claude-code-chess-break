@@ -18,6 +18,7 @@ export const INITIAL_VIEW: View = {
   theme: MIX,
   dueCount: 0,
   progress: NO_PROGRESS,
+  session: [],
   isClaudeWorking: false,
 }
 

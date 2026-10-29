@@ -2,20 +2,23 @@ import type { Feedback } from '../../types'
 
 export type Side = 'w' | 'b'
 
-/** Every text the mod shows, in one language. */
+/** Every text the mod shows, in one language. Emojis are the pane's, not the language's. */
 export type Messages = {
   side: (side: Side) => string
   piece: (letter: string) => string
   theme: (key: string) => string
-  feedback: (f: Feedback, solver: Side) => string
   group: (key: string) => string
+  feedback: (f: Feedback, solver: Side) => string
   pane: {
+    toPlay: (side: Side) => string
     review: string
-    dueCount: (n: number) => string
+    session: string
     streak: (streak: number, best: number) => string
+    dueCount: (n: number) => string
+    noneDue: string
     hint: string
-    solution: string
-    next: string
+    show: string
+    skip: string
     analyse: string
     promoteTo: string
     moveField: string
@@ -31,18 +34,18 @@ export type Messages = {
     next: string
     themeSet: (name: string) => string
     unknownTheme: (typed: string) => string
-    themes: (groups: [string, string[]][]) => string
-    stats: (lines: { name: string; solved: number; failed: number; accuracy: number }[], streak: number, best: number, due: number, weakest?: string) => string
+    themesTitle: string
+    statsHead: (streak: number, best: number, due: string) => string
+    weakest: (name: string, key: string) => string
     noStats: string
-    reviewDue: (n: number) => string
+    reviewDue: (due: string) => string
     reviewNone: string
     langSet: (lang: string) => string
-    claudeDone: string
     claudeDoneFinish: string
   }
 }
 
-/** A Lichess theme key Lichess gives no name for here: `queenRookEndgame` → `Queen rook endgame`. */
+/** A Lichess theme key with no name here: `queenRookEndgame` → `Queen rook endgame`. */
 export function humanize(key: string): string {
   const words = key.replace(/([a-z])([A-Z0-9])/g, '$1 $2').toLowerCase()
   return words.charAt(0).toUpperCase() + words.slice(1)

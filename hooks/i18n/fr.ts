@@ -35,31 +35,34 @@ export const fr: Messages = {
       case 'start':
         return f.lastSan ? `Les ${them} ont joué ${f.lastSan}. Trouve le meilleur coup pour les ${me}.` : `Trouve le meilleur coup pour les ${me}.`
       case 'right':
-        return `✓ ${f.san}, continue.`
+        return `${f.san}, continue.`
       case 'reply':
         return `Les ${them} répondent ${f.san}. À toi.`
       case 'wrong':
-        return `✗ ${f.san} n’est pas le bon coup. Réessaie.`
+        return `${f.san} n’est pas le bon coup. Réessaie.`
       case 'illegal':
         return `« ${f.text} » ne peut pas être joué ici.`
       case 'hint':
-        return `Indice : joue ${fr.piece(f.piece)} en ${f.square}.`
+        return `Joue ${fr.piece(f.piece)} en ${f.square}.`
       case 'solved':
-        return f.isClean ? '🎉 Résolu !' : 'Résolu avec de l’aide : il reviendra en révision.'
+        return f.isClean ? 'Résolu !' : 'Résolu avec de l’aide : il reviendra en révision.'
       case 'revealed':
-        return `Solution : ${f.line.join(' ')}. Il reviendra en révision.`
+        return `${f.line.join(' ')}. Il reviendra en révision.`
     }
   },
   pane: {
-    review: 'révision',
+    toPlay: s => `Aux ${fr.side(s)} de jouer`,
+    review: 'Révision',
+    session: 'Séance',
+    streak: (streak, best) => `Série ${streak} · record ${best}`,
     dueCount: n => `${n} à réviser`,
-    streak: (streak, best) => `série ${streak} (record ${best})`,
+    noneDue: 'Rien à réviser',
     hint: 'Indice',
-    solution: 'Solution',
-    next: 'Suivant',
-    analyse: 'Analyser ↗',
-    promoteTo: 'Promotion en :',
-    moveField: 'Coup : e2e4 ou Cf3',
+    show: 'Voir',
+    skip: 'Passer',
+    analyse: 'Analyser',
+    promoteTo: 'Promotion en',
+    moveField: 'ton coup : e2e4, Cf3…',
     noMove: 'Aucun coup légal ne commence ainsi',
     loading: 'Chargement d’un puzzle…',
     loadFailed: why => `Lichess injoignable (${why}).`,
@@ -67,24 +70,18 @@ export const fr: Messages = {
   },
   command: {
     description: 'Entraînement tactique aux échecs : ouvrir le panneau, choisir un thème, voir ses progrès',
-    usage: '[next|theme <nom>|themes|stats|review|lang auto|en|fr]',
+    usage: '[next|theme <nom>|themes|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Panneau d’entraînement ouvert.',
     next: 'Nouveau puzzle.',
     themeSet: name => `Entraînement : ${name}. Le prochain puzzle porte dessus.`,
     unknownTheme: typed => `Pas de thème « ${typed} ». /chess-break themes les liste.`,
-    themes: groups =>
-      ['Thèmes pour /chess-break theme <nom> (ou mix) :', ...groups.map(([group, names]) => `${group} : ${names.join(', ')}`)].join('\n'),
-    stats: (lines, streak, best, due, weakest) =>
-      [
-        `Série ${streak}, record ${best}. ${fr.pane.dueCount(due)}.`,
-        ...lines.map(l => `${l.name} : ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy} %)`),
-        ...(weakest ? [`Point faible : ${weakest}. Essaie /chess-break theme ${weakest}.`] : []),
-      ].join('\n'),
+    themesTitle: 'Thèmes pour /chess-break theme <nom> (ou mix) :',
+    statsHead: (streak, best, due) => `Série ${streak}, record ${best}. ${due}.`,
+    weakest: (name, key) => `Point faible : ${name}. Essaie /chess-break theme ${key}.`,
     noStats: 'Aucun puzzle pour l’instant. Ouvre le panneau avec /chess-break.',
-    reviewDue: n => `${fr.pane.dueCount(n)} : les prochains puzzles seront ceux-là.`,
+    reviewDue: due => `${due} : les prochains puzzles seront ceux-là.`,
     reviewNone: 'Rien à réviser. Les puzzles manqués reviennent ici le lendemain.',
     langSet: lang => `Langue : ${lang}.`,
-    claudeDone: 'Claude a terminé ✓',
-    claudeDoneFinish: 'Claude a terminé ✓ Finis ton puzzle.',
+    claudeDoneFinish: 'Claude a terminé. Finis ton puzzle.',
   },
 }

@@ -1,13 +1,15 @@
 import type { Locale } from '../../types'
 import { en } from './en'
 import { fr } from './fr'
+import { ka } from './ka'
 import type { Messages } from './messages'
+import { ru } from './ru'
 
 export type { Messages }
 
-export const LOCALES: Locale[] = ['en', 'fr']
+export const LOCALES: Locale[] = ['en', 'fr', 'ru', 'ka']
 
-const MESSAGES: Record<Locale, Messages> = { en, fr }
+const MESSAGES: Record<Locale, Messages> = { en, fr, ru, ka }
 
 export const messagesFor = (locale: Locale): Messages => MESSAGES[locale]
 
@@ -21,7 +23,10 @@ export function pickLocale(hints: (string | undefined)[]): Locale {
   for (const hint of hints) {
     const value = hint?.trim().toLowerCase()
     if (!value || value === 'auto' || value === 'c' || value === 'posix') continue
-    return /^(fr|fran[cç])/.test(value) ? 'fr' : 'en'
+    if (/^(fr|fran[cç])/.test(value)) return 'fr'
+    if (/^(ru|рус|russ)/.test(value)) return 'ru'
+    if (/^(ka|ქართ|georg)/.test(value)) return 'ka'
+    return 'en'
   }
   return 'en'
 }

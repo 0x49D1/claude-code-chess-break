@@ -48,17 +48,21 @@ test('a puzzle on the chosen theme, solved by typing', async ($, on) => {
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    expect(await ui.find({ text: /Black played d6\. Find the best move for White\./ })).toBeDefined()
-    expect(await ui.find({ text: /Mate in 1/ })).toBeDefined()
+    expect(await ui.find({ text: /🎯 Black played d6\. Find the best move for White\./ })).toBeDefined()
+    expect(await ui.find({ text: /🧩 Back rank mate .*White to play/ })).toBeDefined()
+    // The puzzle's own themes would give the answer away: they show once it ends.
+    expect(await ui.find({ text: /Mate in 1/ })).toBeUndefined()
     await ui.unmount()
   }
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.input({ key: 'move-abc12', text: 'qxf', kind: 'change' })
-  expect(await ui.find({ text: /→ Qxf7#/ })).toBeDefined()
+  expect(await ui.find({ text: /^  Qxf7#$/ })).toBeDefined()
   await ui.input({ key: 'move-abc12', text: 'qxf' })
-  expect(await ui.find({ text: /Solved!/ })).toBeDefined()
-  expect(await ui.find({ text: /^4\. Qxf7#$/ })).toBeDefined()
-  expect(await ui.find({ text: /streak 1 \(best 1\)/ })).toBeDefined()
+  expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
+  expect(await ui.find({ text: /^📜 4\. Qxf7#$/ })).toBeDefined()
+  expect(await ui.find({ text: /🔖 Mate in 1 · Short puzzle/ })).toBeDefined()
+  expect(await ui.find({ text: /🔥 Streak 1 · best 1/ })).toBeDefined()
+  expect(await ui.find({ text: /^🟩$/ })).toBeDefined()
   await ui.unmount()
 })
 
@@ -71,7 +75,7 @@ test('a missed puzzle comes back for review the next day', async ($, on) => {
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'retry' })
   await ui.press({ key: 'reveal' })
-  expect(await ui.find({ text: /Solution: Qxf7#\. It will come back for review\./ })).toBeDefined()
+  expect(await ui.find({ text: /👀 Qxf7#\. It will come back for review\./ })).toBeDefined()
 
   // Not due yet: the next one is new.
   await ui.press({ key: 'next' })
@@ -79,9 +83,10 @@ test('a missed puzzle comes back for review the next day', async ($, on) => {
   expect((await $.command.run(command('review'))).text).toMatch(/Nothing to review/)
 
   await clock.advance(DAY)
-  expect((await $.command.run(command('review'))).text).toBe('1 to review: the next puzzles are those.')
+  expect((await $.command.run(command('review'))).text).toBe('1 puzzle to review: the next puzzles are those.')
   expect(asked.at(-1)).toBe('https://lichess.org/api/puzzle/abc12')
-  expect(await ui.find({ text: /↻ review/ })).toBeDefined()
+  expect(await ui.find({ text: /🔁 Review/ })).toBeDefined()
+  expect(await ui.find({ text: /🔁 1 puzzle to review/ })).toBeDefined()
   await ui.unmount()
 })
 
@@ -99,7 +104,8 @@ test('stats by theme, with the weakest one', async ($, on) => {
   const stats = (await $.command.run(command('stats'))).text
   expect(stats).toContain('Mate in 1: 0 ✓ 3 ✗ (0%)')
   expect(stats).not.toContain('Short puzzle')
-  expect(stats).toContain('Weakest: mateIn1')
+  expect(stats).toContain('Weakest: Mate in 1. Try /chess-break theme mateIn1.')
+  expect(await ui.find({ text: /^🟥🟥🟥$/ })).toBeDefined()
   expect((await $.command.run(command('theme nonsense'))).text).toMatch(/No theme “nonsense”/)
   expect((await $.command.run(command('themes'))).text).toMatch(/^Themes for/)
   await ui.unmount()
@@ -116,9 +122,14 @@ test('French from the locale, English on request', async ($, on) => {
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'retry' })
   expect(await ui.find({ text: /Les Noirs ont joué d6\./ })).toBeDefined()
-  expect(await ui.find({ text: /Mat en 1/ })).toBeDefined()
+  expect(await ui.find({ text: /Aux Blancs de jouer/ })).toBeDefined()
   expect((await $.command.run(command('lang en'))).text).toBe('Language: en.')
   expect(await ui.find({ text: /Black played d6\./ })).toBeDefined()
+  expect((await $.command.run(command('lang ru'))).text).toBe('Язык: ru.')
+  expect(await ui.find({ text: /Чёрные сыграли d6\. Найди лучший ход за белых\./ })).toBeDefined()
+  expect(await ui.find({ text: /Ход белых/ })).toBeDefined()
+  expect((await $.command.run(command('lang ka'))).text).toBe('ენა: ka.')
+  expect(await ui.find({ text: /შავები ითამაშეს d6\./ })).toBeDefined()
   await ui.unmount()
 })
 

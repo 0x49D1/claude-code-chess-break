@@ -3,40 +3,34 @@ import type { Elements } from 'claude-code'
 import type { Attempt } from '../../types'
 import { checkedKing, legal, pieceAt } from '../chess/position'
 
-export type Palette = {
-  light: string
-  dark: string
-  lastLight: string
-  lastDark: string
-  selected: string
-  hint: string
-  capture: string
-  dot: string
-  check: string
-  /** White pieces as dark outlines, where white would fade into the squares. */
-  isWhiteOutlined: boolean
+/**
+ * A printed diagram: one ink for every piece, white ones outlined and black ones solid, on cream
+ * and sage squares. The same on dark and light terminals, as a page is.
+ */
+const DIAGRAM = {
+  ink: '#1d1d1d',
+  cream: '#efece4',
+  sage: '#b9c2b0',
+  /** The last move, a wash of straw over either square. */
+  lastCream: '#e6dcaa',
+  lastSage: '#c5bd86',
+  selected: '#9cc3d5',
+  hint: '#c9b6e4',
+  capture: '#d9a99f',
+  dot: '#2b6f8a',
+  check: '#e05a4f',
 }
 
-export const PALETTES: Record<'dark' | 'light', Palette> = {
-  // Slate squares that sit quietly on a dark terminal.
-  dark: {
-    light: '#7b8794', dark: '#55606d', lastLight: '#8f915a', lastDark: '#6f7243', selected: '#5e8a62',
-    hint: '#4d7d8c', capture: '#6f8a5f', dot: '#a8e0a0', check: '#b04848', isWhiteOutlined: false,
-  },
-  // Lichess's brown board with its overlays blended in.
-  light: {
-    light: '#f0d9b5', dark: '#b58863', lastLight: '#cdd26b', lastDark: '#aaa23a', selected: '#829769',
-    hint: '#6ea3b0', capture: '#aeb17f', dot: '#208530', check: '#e70000', isWhiteOutlined: true,
-  },
-}
+const SOLID: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+const OUTLINE: Record<string, string> = { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' }
 
-const FILLED: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
-const OUTLINED: Record<string, string> = { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' }
+/** A piece as the diagram draws it: `N` an outlined knight, `n` a solid one. */
+export const glyphOf = (piece: string) => (piece === piece.toUpperCase() ? OUTLINE : SOLID)[piece.toLowerCase()] ?? piece
 
-export const glyphOf = (letter: string) => FILLED[letter] ?? letter
+export const BOARD_COLUMNS = 2 + 8 * 2
 
-/** The board, the solver's side down, each square a button. */
-export function board(els: Elements[keyof Elements], attempt: Attempt, colors: Palette, onSquare: (square: string) => void) {
+/** The diagram, the solver's side down, two columns a square, each square a button. */
+export function board(els: Elements[keyof Elements], attempt: Attempt, onSquare: (square: string) => void) {
   const { Box, Text, Button } = els
   const isWhiteDown = attempt.puzzle.fen.split(' ')[1] !== 'b'
   const ranks = isWhiteDown ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8]
@@ -47,23 +41,20 @@ export function board(els: Elements[keyof Elements], attempt: Attempt, colors: P
 
   const square = (file: string, rank: number) => {
     const name = `${file}${rank}`
-    const isLight = ('abcdefgh'.indexOf(file) + rank) % 2 === 0
+    const isCream = ('abcdefgh'.indexOf(file) + rank) % 2 === 0
     const piece = pieceAt(attempt.fen, name)
     const isTarget = targets.some(m => m.to === name)
     const bg =
-      attempt.selected === name ? colors.selected
-        : attempt.hint === name ? colors.hint
-        : checked === name ? colors.check
-        : isTarget && piece ? colors.capture
-        : last.includes(name) ? (isLight ? colors.lastLight : colors.lastDark)
-        : isLight ? colors.light : colors.dark
-    const isWhite = !!piece && piece === piece.toUpperCase()
-    const isOutlined = isWhite && colors.isWhiteOutlined
-    const glyph = isTarget && !piece ? '•' : piece ? (isOutlined ? OUTLINED : FILLED)[piece.toLowerCase()] : ' '
-    const color = isTarget && !piece ? colors.dot : isWhite && !isOutlined ? '#ffffff' : '#000000'
+      attempt.selected === name ? DIAGRAM.selected
+        : attempt.hint === name ? DIAGRAM.hint
+        : checked === name ? DIAGRAM.check
+        : isTarget && piece ? DIAGRAM.capture
+        : last.includes(name) ? (isCream ? DIAGRAM.lastCream : DIAGRAM.lastSage)
+        : isCream ? DIAGRAM.cream : DIAGRAM.sage
+    const mark = piece ? glyphOf(piece) : isTarget ? '·' : ' '
     return (
       <Button key={`sq-${name}`} plain onPress={() => onSquare(name)}>
-        <Text backgroundColor={bg} color={color} bold>{` ${glyph} `}</Text>
+        <Text backgroundColor={bg} color={!piece && isTarget ? DIAGRAM.dot : DIAGRAM.ink} bold={!piece}>{`${mark} `}</Text>
       </Button>
     )
   }
@@ -76,7 +67,7 @@ export function board(els: Elements[keyof Elements], attempt: Attempt, colors: P
           {files.map(file => square(file, rank))}
         </Box>
       ))}
-      <Text dimColor>{`  ${files.map(f => ` ${f} `).join('')}`}</Text>
+      <Text dimColor>{`  ${files.map(f => `${f} `).join('')}`}</Text>
     </Box>
   )
 }

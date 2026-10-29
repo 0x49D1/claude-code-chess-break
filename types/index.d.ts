@@ -1,4 +1,4 @@
-export type Locale = 'en' | 'fr'
+export type Locale = 'en' | 'fr' | 'ru' | 'ka'
 
 export type Puzzle = {
   id: string
@@ -66,6 +66,8 @@ export type View = {
   typed?: string
   dueCount: number
   progress: Progress
+  /** How each puzzle of this session went, in order. */
+  session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
 }
 

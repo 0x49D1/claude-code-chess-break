@@ -10,7 +10,8 @@ import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
-const PANE_ROWS = 19
+// Title, framed board, feedback, moves, themes, field, suggestions, buttons.
+const PANE_ROWS = 20
 
 /** The next puzzle: one due for review first, else a new one on the theme trained. */
 export async function loadNext($: $) {
@@ -38,6 +39,7 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
   await update($, view, v => ({
     ...v,
     progress,
+    session: [...v.session, isWin ? ('clean' as const) : ('missed' as const)],
     dueCount: dueIds(review, now).length,
     attempt: v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v.attempt, isRecorded: true } : v.attempt,
   }))

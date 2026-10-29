@@ -35,7 +35,9 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         return { text: t.command.themeSet(t.theme(theme)) }
       }
       case 'themes':
-        return { text: t.command.themes(Object.entries(THEME_GROUPS).map(([group, keys]) => [t.group(group), keys])) }
+        return {
+          text: [t.command.themesTitle, ...Object.entries(THEME_GROUPS).map(([group, keys]) => `${t.group(group)}: ${keys.join(', ')}`)].join('\n'),
+        }
       case 'stats': {
         const progress = await storedProgress($)
         const lines = themeLines(progress)
@@ -43,13 +45,11 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const due = dueIds(await storedReview($), await $.clock.now()).length
         const weak = weakest(progress)
         return {
-          text: t.command.stats(
-            lines.map(l => ({ ...l, name: t.theme(l.theme) })),
-            progress.streak,
-            progress.best,
-            due,
-            weak?.theme,
-          ),
+          text: [
+            t.command.statsHead(progress.streak, progress.best, due ? t.pane.dueCount(due) : t.pane.noneDue),
+            ...lines.map(l => `${t.theme(l.theme)}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)`),
+            ...(weak ? [t.command.weakest(t.theme(weak.theme), weak.theme)] : []),
+          ].join('\n'),
         }
       }
       case 'review': {
@@ -59,11 +59,11 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         await openPane($, true)
         const { attempt } = await read($, view)
         if (!attempt?.isReview) await next($)
-        return { text: t.command.reviewDue(dueCount) }
+        return { text: t.command.reviewDue(t.pane.dueCount(dueCount)) }
       }
       case 'lang': {
         const lang = arg?.toLowerCase()
-        if (lang !== 'auto' && !asLocale(lang)) return { text: `${t.command.usage.replace(/^\[.*$/, '')}/${COMMAND} lang auto|${LOCALES.join('|')}` }
+        if (lang !== 'auto' && !asLocale(lang)) return { text: `/${COMMAND} lang auto|${LOCALES.join('|')}` }
         if (lang === 'auto') await $.store.delete('lang')
         else await $.store.set('lang', lang)
         const locale = await resolveLocale($)
