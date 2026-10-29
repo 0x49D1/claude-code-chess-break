@@ -1,11 +1,12 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import { change, loadNext, next, openPane, refreshDue } from './app/actions'
+import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
 import { completions } from './chess/position'
 import { LOCALES, asLocale, messagesFor } from './i18n'
 import { hint, play, reveal, solverOf } from './training/attempt'
+import { learnLinks, readExplanation } from './training/explain'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
 import { THEME_GROUPS, findTheme } from './training/themes'
@@ -33,6 +34,18 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         return { text: t.command.next }
       case 'hint':
         return said(hint)
+      case 'explain': {
+        const { attempt } = await read($, view)
+        if (!attempt || attempt.status === 'playing') return { text: t.command.explainLater }
+        const text = await explain($)
+        if (!text) {
+          const { explanation } = await read($, view)
+          return { text: t.pane.explainFailed(explanation?.failed ?? '?') }
+        }
+        const { why, tip, fact } = readExplanation(text)
+        const links = learnLinks(attempt.puzzle.themes).map(l => l.url)
+        return { text: [`💭 ${why}`, ...(tip ? [`📌 ${tip}`] : []), ...(fact ? [`✨ ${fact}`] : []), ...links.map(u => `🔗 ${u}`)].join('\n') }
+      }
       case 'solution':
         return said(reveal)
       case 'theme': {

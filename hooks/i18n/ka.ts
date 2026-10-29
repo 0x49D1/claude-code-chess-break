@@ -37,6 +37,8 @@ export const ka: Messages = {
         return `${f.san} სწორი სვლა არ არის. სცადე კიდევ.`
       case 'illegal':
         return `„${f.text}“ აქ ვერ ითამაშება.`
+      case 'command':
+        return `„${f.text}“ ბრძანებაა: Esc აბრუნებს ბრძანების ველში.`
       case 'hint':
         return `გაიარე ${ka.piece(f.piece)} ${f.square}-დან.`
       case 'solved':
@@ -63,14 +65,19 @@ export const ka: Messages = {
     offlineFallback: (source, why) => `${source} მიუწვდომელია (${why}): ჯერჯერობით ოფლაინ ამოცანები.`,
     dailyPuzzle: 'დღის ამოცანა',
     retry: 'ხელახლა',
+    explain: 'ახსნა',
+    practise: name => `ივარჯიშე: ${name} ↗`,
+    explaining: 'Claude ათვალიერებს…',
+    explainFailed: why => `ახსნა ვერ მივიღე (${why}).`,
     statusHint: '/chess-break <სვლა> ან გახსნა',
   },
   command: {
     description: 'ჭადრაკის ტაქტიკის ვარჯიში: პანელის გახსნა, თემის არჩევა, პროგრესის ნახვა',
-    usage: '[<სვლა>|hint|solution|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<სვლა>|hint|solution|explain|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'სავარჯიშო პანელი გაიხსნა.',
     next: 'ახალი ამოცანა.',
     noPuzzle: 'ამოცანა არ არის. გახსენი: /chess-break.',
+    explainLater: 'ახსნა ამოცანის დასრულების შემდეგ იქნება.',
     themeSet: name => `ვარჯიში: ${name}. შემდეგი ამოცანა ამ თემაზე იქნება.`,
     unknownTheme: typed => `თემა „${typed}“ არ არსებობს. სია: /chess-break themes.`,
     themesTitle: 'თემები /chess-break theme <თემა> ბრძანებისთვის (ან mix):',

@@ -23,8 +23,14 @@ const SCHOLAR = JSON.stringify({
   puzzle: { id: 'abc12', rating: 900, themes: ['mateIn1', 'short'], solution: ['f3f7'], initialPly: 5 },
 })
 
+/** Takes the status line under the prompt and drops it. */
+function quietStatus(on: On) {
+  on('ui.status', async () => ({ value: undefined }))
+}
+
 /** Answers Lichess from memory, the first new puzzle abc12, the next ones new2, new3…, and keeps the addresses asked. */
 function lichess(on: On) {
+  quietStatus(on)
   const asked: string[] = []
   on('http.fetch', async (_$, e) => {
     asked.push(e.url)
@@ -59,7 +65,7 @@ test('a puzzle on the chosen theme, solved by typing', async ($, on) => {
   expect(await ui.find({ text: /^  Qxf7#$/ })).toBeDefined()
   await ui.input({ key: 'move-abc12', text: 'qxf' })
   expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
-  expect(await ui.find({ text: /^📜 4\. Qxf7#$/ })).toBeDefined()
+  expect(JSON.stringify(await ui.find({ key: 'ply-1' }))).toContain('4. Qxf7#')
   expect(await ui.find({ text: /🔖 Mate in 1 · Short puzzle/ })).toBeDefined()
   expect(await ui.find({ text: /🔥 Streak 1 · best 1/ })).toBeDefined()
   expect(await ui.find({ text: /^🟩$/ })).toBeDefined()
@@ -137,6 +143,7 @@ test('French from the locale, English on request', async ($, on) => {
 })
 
 test('a promotion is chosen with buttons', async ($, on) => {
+  quietStatus(on)
   mock.store(on)
   mock.clock(on)
   on('http.fetch', async () => ({
@@ -156,6 +163,7 @@ test('a promotion is chosen with buttons', async ($, on) => {
 })
 
 test('puzzles from Chess.com, the offline set, or offline when the network fails', async ($, on) => {
+  quietStatus(on)
   mock.store(on)
   mock.clock(on)
   let isDown = false
@@ -226,4 +234,61 @@ test('solved from the prompt, the status line keeping track while the pane is hi
   expect((await $.command.run(command('solution'))).text).toBe('Nxf7. It will come back for review.')
   expect(status.at(-1)).toBeUndefined()
   expect((await $.command.run(command('skip'))).text).toBe('New puzzle.')
+})
+
+test('a finished puzzle replays move by move, and Claude explains it on request', async ($, on) => {
+  quietStatus(on)
+  mock.store(on)
+  mock.clock(on)
+  on('http.fetch', async () => ({
+    value: { status: 200, ok: true, headers: {}, text: JSON.stringify({
+      game: { pgn: 'e4 e5 Nf3 Nc6 Bc4 Nd4' },
+      puzzle: { id: 'replay', themes: ['fork'], solution: ['f3e5', 'd8g5', 'e5f7'], initialPly: 5 },
+    }) },
+  }))
+  const asked: { model: string; prompt: string }[] = []
+  on('model.complete', async (_$, e) => {
+    asked.push({ model: e.model, prompt: String(e.prompt) })
+    const usage = { input_tokens: 1, output_tokens: 1 } as never
+    return { value: { isAnswered: true, text: 'WHY: Nxe5 grabs a pawn and eyes f7.\nTIP: Look for knight forks on f7.\nFACT: The f7 square is the weakest at the start.', usage } }
+  })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  await ui.input({ key: 'move-replay', text: 'Nxd4' })
+  await ui.press({ key: 'reveal' })
+  const square = async (name: string) => JSON.stringify(await ui.find({ key: `sq-${name}` }))
+
+  // The end: the knight on f7. The start: on f3.
+  expect(await square('f7')).toContain('♘')
+  await ui.press({ key: 'ply-0' })
+  expect(await square('f3')).toContain('♘')
+  expect(await square('f7')).not.toContain('♘')
+  await ui.press({ key: 'forward' })
+  expect(await square('e5')).toContain('♘')
+  await ui.press({ key: 'ply-2' })
+  expect(await square('g5')).toContain('♛')
+  await ui.press({ key: 'back' })
+  await ui.press({ key: 'back' })
+  await ui.press({ key: 'back' })
+  expect(await square('f3')).toContain('♘')
+
+  await ui.press({ key: 'explain' })
+  expect(asked).toHaveLength(1)
+  expect(asked[0]!.prompt).toContain('The solution, both sides\' moves: Nxe5 Qg5 Nxf7')
+  expect(asked[0]!.prompt).toContain('Moves the player tried that were wrong:')
+  expect(await ui.find({ text: /^💭 Nxe5 grabs a pawn and eyes f7\.$/ })).toBeDefined()
+  expect(await ui.find({ text: /^📌 Look for knight forks on f7\.$/ })).toBeDefined()
+  expect(await ui.find({ text: /^✨ The f7 square/ })).toBeDefined()
+  expect(await ui.find({ key: 'explain' })).toBeUndefined()
+  const drawn = JSON.stringify(await ui.drawn())
+  expect(drawn).toContain('https://lichess.org/training/fork')
+  expect(drawn).toContain('https://en.wikipedia.org/wiki/Fork_(chess)')
+  expect(drawn).toContain('Practise Fork ↗')
+  // Asked once per puzzle: the command reuses it.
+  expect((await $.command.run(command('explain'))).text).toBe(
+    '💭 Nxe5 grabs a pawn and eyes f7.\n📌 Look for knight forks on f7.\n✨ The f7 square is the weakest at the start.\n' +
+      '🔗 https://lichess.org/training/fork\n🔗 https://en.wikipedia.org/wiki/Fork_(chess)',
+  )
+  expect(asked).toHaveLength(1)
+  await ui.unmount()
 })

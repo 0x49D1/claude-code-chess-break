@@ -4,6 +4,7 @@ import type { Attempt, Puzzle, Source } from '../../types'
 import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
 import { nextPuzzleUrl, readAnswer } from '../lichess/client'
 import { offlinePuzzle } from '../offline'
+import { explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, solverOf, start } from '../training/attempt'
 import { recordProgress } from '../training/progress'
 import { dueIds, recordReview } from '../training/review'
@@ -12,8 +13,8 @@ import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
-// Title, framed board, feedback, moves, themes, field, suggestions, buttons.
-const PANE_ROWS = 20
+// Title, framed board, feedback, moves, themes, an explanation, field, suggestions, buttons.
+const PANE_ROWS = 24
 
 /** A new puzzle from Lichess or Chess.com. */
 async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle> {
@@ -32,7 +33,7 @@ async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle>
 export async function loadNext($: $) {
   const before = await read($, view)
   if (before.isLoading) return
-  await update($, view, v => ({ ...v, isLoading: true, typed: undefined }))
+  await update($, view, v => ({ ...v, isLoading: true, typed: undefined, replayPly: undefined }))
   const review = await storedReview($)
   const current = before.attempt?.puzzle.id
   const dueId = dueIds(review, await $.clock.now()).find(id => id !== current && review[id]?.puzzle)
@@ -116,6 +117,24 @@ export async function refreshStatus($: $) {
       t.pane.statusHint,
     ].join('  ·  '),
   )
+}
+
+/**
+ * Asks Claude why a finished puzzle's solution works, once per puzzle, in the person's language.
+ * Resolves the explanation, or undefined with no finished puzzle or no answer.
+ */
+export async function explain($: $): Promise<string | undefined> {
+  const v = await read($, view)
+  const a = v.attempt
+  if (!a || a.status === 'playing') return undefined
+  if (v.explanation?.puzzleId === a.puzzle.id && (v.explanation.text || !v.explanation.failed)) return v.explanation.text
+  const puzzleId = a.puzzle.id
+  await update($, view, x => ({ ...x, explanation: { puzzleId } }))
+  const ask = explainRequest(a, v.locale)
+  const r = await $.model.complete({ model: 'sonnet', system: ask.system, prompt: ask.prompt, maxTokens: 600, effort: 'low' })
+  const explanation = r.isAnswered ? { puzzleId, text: r.text.trim() } : { puzzleId, failed: r.reason }
+  await update($, view, x => ({ ...x, explanation }))
+  return explanation.text
 }
 
 /** Leaving a puzzle after a mistake or some help counts it as missed, as on Lichess. */

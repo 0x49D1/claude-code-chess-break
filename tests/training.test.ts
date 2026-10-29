@@ -5,7 +5,8 @@ import { LOCALES, messagesFor, pickLocale } from '../hooks/i18n'
 import { parseDaily } from '../hooks/chesscom/client'
 import { analysisUrl, parsePuzzle } from '../hooks/lichess/client'
 import { OFFLINE_COUNT, offlinePuzzle } from '../hooks/offline'
-import { click, hint, isClean, isStarted, moveLine, play, promote, reply, reveal, start } from '../hooks/training/attempt'
+import { atPly, click, hint, isClean, isStarted, moveLabels, moveLine, play, promote, reply, reveal, start } from '../hooks/training/attempt'
+import { explainRequest, learnLinks, readExplanation } from '../hooks/training/explain'
 import { NO_PROGRESS, recordProgress, themeLines, weakest } from '../hooks/training/progress'
 import { dueIds, recordReview } from '../hooks/training/review'
 import { MIX } from '../hooks/training/themes'
@@ -48,6 +49,7 @@ describe('an attempt', () => {
     a = play(a, 'Qe7')
     expect(a.feedback).toEqual({ kind: 'wrong', san: 'Qe7' })
     expect(isStarted(a)).toBe(true)
+    expect(play(a, '/chess-break hint').feedback).toEqual({ kind: 'command', text: '/chess-break hint' })
     a = reply(play(a, 'Qe8+'))
     expect(a.feedback).toEqual({ kind: 'reply', san: 'Rxe8' })
     a = play(a, 're8')
@@ -72,6 +74,35 @@ describe('an attempt', () => {
     a = promote(a, 'n')
     expect(a.status).toBe('solved')
     expect(isClean(a)).toBe(true)
+  })
+
+  test('replayed at any move, labelled with its number', () => {
+    const r = reveal(start(DEFLECT, false))
+    expect(moveLabels(r)).toEqual(['23. Qe8+', 'Rxe8', '24. Rxe8#'])
+    expect(atPly(r, 0).fen).toBe(DEFLECT.fen)
+    expect(atPly(r, 1).lastMove).toBe('e2e8')
+    expect(atPly(r, 99).fen).toBe(r.fen)
+  })
+
+  test('the explanation is handed the line and the wrong moves, in the language asked', () => {
+    const a = reveal(play(start(DEFLECT, false), 'Qe7'))
+    const ask = explainRequest(a, 'ru')
+    expect(ask.prompt).toContain('The solution, both sides\' moves: Qe8+ Rxe8 Rxe8#')
+    expect(ask.prompt).toContain('Moves the player tried that were wrong: Qe7')
+    expect(ask.prompt).toContain('Answer in Russian')
+    expect(ask.system).toContain('no links')
+  })
+
+  test('the answer read in its parts; links chosen by the mod', () => {
+    expect(readExplanation('WHY: a\nTIP: b\nFACT: c')).toEqual({ why: 'a', tip: 'b', fact: 'c' })
+    expect(readExplanation('  WHY: a\n\nTIP: b')).toEqual({ why: 'a', tip: 'b', fact: undefined })
+    expect(readExplanation('Just prose.')).toEqual({ why: 'Just prose.' })
+    expect(learnLinks(['short', 'crushing', 'deflection', 'backRankMate']).map(l => l.url)).toEqual([
+      'https://lichess.org/training/deflection',
+      'https://en.wikipedia.org/wiki/Deflection_(chess)',
+    ])
+    expect(learnLinks(['short', 'quietMove']).map(l => l.kind)).toEqual(['practise'])
+    expect(learnLinks(['oneMove'])).toEqual([])
   })
 
   test('hint and reveal count as help', () => {
@@ -189,7 +220,7 @@ describe('languages', () => {
   test('every language says every feedback, and themes fall back to English, then to the key', () => {
     const kinds = [
       { kind: 'start', lastSan: 'd6' }, { kind: 'start' }, { kind: 'right', san: 'Qe8+' }, { kind: 'reply', san: 'Rxe8' },
-      { kind: 'wrong', san: 'Qe7' }, { kind: 'illegal', text: 'zz' }, { kind: 'hint', piece: 'n', square: 'g1' },
+      { kind: 'wrong', san: 'Qe7' }, { kind: 'illegal', text: 'zz' }, { kind: 'command', text: '/chess-break hint' }, { kind: 'hint', piece: 'n', square: 'g1' },
       { kind: 'solved', isClean: true }, { kind: 'solved', isClean: false }, { kind: 'revealed', line: ['Qe8+'] },
     ] satisfies Feedback[]
     for (const locale of LOCALES) {

@@ -52,6 +52,8 @@ export const ru: Messages = {
         return `${f.san} — не то. Попробуй ещё раз.`
       case 'illegal':
         return `«${f.text}» здесь сыграть нельзя.`
+      case 'command':
+        return `«${f.text}» — это команда: Esc возвращает к строке ввода.`
       case 'hint':
         return `Сходи ${ru.piece(f.piece)} с ${f.square}.`
       case 'solved':
@@ -78,14 +80,19 @@ export const ru: Messages = {
     offlineFallback: (source, why) => `${source} недоступен (${why}): пока задачи из офлайн-набора.`,
     dailyPuzzle: 'Задача дня',
     retry: 'Повторить',
+    explain: 'Объяснить',
+    practise: name => `Тренировать: ${name} ↗`,
+    explaining: 'Claude разбирается…',
+    explainFailed: why => `Объяснения нет (${why}).`,
     statusHint: '/chess-break <ход> или открыть',
   },
   command: {
     description: 'Тренировка шахматной тактики: открыть панель, выбрать тему, посмотреть прогресс',
-    usage: '[<ход>|hint|solution|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<ход>|hint|solution|explain|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Панель тренировки открыта.',
     next: 'Новая задача.',
     noPuzzle: 'Задачи нет. Открой: /chess-break.',
+    explainLater: 'Объяснение — после того, как задача закончится.',
     themeSet: name => `Тренировка: ${name}. Следующая задача — на эту тему.`,
     unknownTheme: typed => `Темы «${typed}» нет. Список: /chess-break themes.`,
     themesTitle: 'Темы для /chess-break theme <тема> (или mix):',

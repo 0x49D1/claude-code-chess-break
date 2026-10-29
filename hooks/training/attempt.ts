@@ -1,5 +1,5 @@
 import type { Attempt, Puzzle } from '../../types'
-import { after, isMate, legal, pieceAt, readMove, turnOf, uciOf } from '../chess/position'
+import { after, isMate, legal, line, pieceAt, readMove, turnOf, uciOf } from '../chess/position'
 
 export function start(puzzle: Puzzle, isReview: boolean): Attempt {
   return {
@@ -7,6 +7,7 @@ export function start(puzzle: Puzzle, isReview: boolean): Attempt {
     fen: puzzle.fen,
     ply: 0,
     played: [],
+    tried: [],
     lastMove: puzzle.lastMove?.uci,
     status: 'playing',
     hadMistake: false,
@@ -33,12 +34,13 @@ export const isClean = (a: Attempt) => a.status === 'solved' && !a.hadMistake &&
 export function play(a: Attempt, text: string): Attempt {
   if (a.status !== 'playing' || awaitsReply(a)) return a
   const base = { ...a, selected: undefined, promoting: undefined }
+  if (text.trim().startsWith('/')) return { ...base, feedback: { kind: 'command', text: text.trim() } }
   const move = readMove(a.fen, text)
   if (!move) return { ...base, feedback: { kind: 'illegal', text } }
   const fen = after(a.fen, move)
   const isMating = isMate(fen)
   if (uciOf(move) !== a.puzzle.solution[a.ply] && !isMating) {
-    return { ...base, hadMistake: true, feedback: { kind: 'wrong', san: move.san } }
+    return { ...base, hadMistake: true, tried: [...a.tried, move.san], feedback: { kind: 'wrong', san: move.san } }
   }
   const next: Attempt = {
     ...base,
@@ -125,17 +127,36 @@ export function promote(a: Attempt, piece: string): Attempt {
   return a.promoting ? play(a, a.promoting + piece) : a
 }
 
-/** The moves since the puzzle started, numbered from its position: `12… Qe8+ 13. Rxe8`. */
-export function moveLine(a: Attempt): string {
+/** Each move since the puzzle started, numbered from its position: `12… Qe8+`, `13. Rxe8`, `Rxe8#`. */
+export function moveLabels(a: Attempt): string[] {
   const [, turn, , , , full] = a.puzzle.fen.split(' ')
   const first = Number(full) || 1
   const offset = turn === 'b' ? 1 : 0
-  return a.played
-    .map((san, i) => {
-      const ply = i + offset
-      const number = first + Math.floor(ply / 2)
-      if (ply % 2 === 0) return `${number}. ${san}`
-      return i === 0 ? `${number}… ${san}` : san
-    })
-    .join(' ')
+  return a.played.map((san, i) => {
+    const ply = i + offset
+    const number = first + Math.floor(ply / 2)
+    if (ply % 2 === 0) return `${number}. ${san}`
+    return i === 0 ? `${number}… ${san}` : san
+  })
+}
+
+/** The moves since the puzzle started, on one line: `12… Qe8+ 13. Rxe8 Rxe8#`. */
+export const moveLine = (a: Attempt) => moveLabels(a).join(' ')
+
+/**
+ * The attempt as it stood after `ply` of its moves, to replay a finished puzzle: 0 is its start,
+ * `played.length` its end.
+ */
+export function atPly(a: Attempt, ply: number): Attempt {
+  const moves = line(a.puzzle.fen, a.played) ?? []
+  const n = Math.max(0, Math.min(ply, moves.length))
+  const last = moves[n - 1]
+  return {
+    ...a,
+    fen: last ? last.after : a.puzzle.fen,
+    lastMove: last ? uciOf(last) : a.puzzle.lastMove?.uci,
+    selected: undefined,
+    hint: undefined,
+    promoting: undefined,
+  }
 }

@@ -27,6 +27,8 @@ export type Feedback =
   | { kind: 'reply'; san: string }
   | { kind: 'wrong'; san: string }
   | { kind: 'illegal'; text: string }
+  /** A slash command typed into the move field instead of the prompt. */
+  | { kind: 'command'; text: string }
   | { kind: 'hint'; piece: string; square: string }
   | { kind: 'solved'; isClean: boolean }
   | { kind: 'revealed'; line: string[] }
@@ -40,6 +42,8 @@ export type Attempt = {
   ply: number
   /** SAN of every move since the puzzle started, both sides. */
   played: string[]
+  /** The solver's wrong moves, as SAN. */
+  tried: string[]
   lastMove?: string
   selected?: string
   /** A pawn move to the last rank, as UCI, waiting for its piece. */
@@ -75,6 +79,10 @@ export type View = {
   typed?: string
   dueCount: number
   progress: Progress
+  /** The move a finished puzzle is replayed at: 0 its start, played.length its end; undefined the end. */
+  replayPly?: number
+  /** Claude's explanation of a finished puzzle: asked, given, or failed. */
+  explanation?: { puzzleId: string; text?: string; failed?: string }
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean

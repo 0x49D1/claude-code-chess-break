@@ -44,6 +44,8 @@ export const en: Messages = {
         return `${f.san} isn't it. Try again.`
       case 'illegal':
         return `“${f.text}” can't be played here.`
+      case 'command':
+        return `“${f.text}” is a command: Esc returns to the prompt.`
       case 'hint':
         return `Move ${en.piece(f.piece)} on ${f.square}.`
       case 'solved':
@@ -70,14 +72,19 @@ export const en: Messages = {
     offlineFallback: (source, why) => `${source} can't be reached (${why}): puzzles from the offline set for now.`,
     dailyPuzzle: 'Daily puzzle',
     retry: 'Retry',
+    explain: 'Explain',
+    practise: (name: string) => `Practise ${name} ↗`,
+    explaining: 'Claude is looking at it…',
+    explainFailed: (why: string) => `No explanation (${why}).`,
     statusHint: '/chess-break <move> or open',
   },
   command: {
     description: 'Chess tactics training: open the pane, pick a theme, see your progress',
-    usage: '[<move>|hint|solution|next|theme <name>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
+    usage: '[<move>|hint|solution|explain|next|theme <name>|themes|source lichess|chesscom|offline|stats|review|lang auto|en|fr|ru|ka]',
     opened: 'Training pane opened.',
     next: 'New puzzle.',
     noPuzzle: 'No puzzle under way. Open one with /chess-break.',
+    explainLater: 'Explanations come once the puzzle ends.',
     themeSet: name => `Training: ${name}. The next puzzle is on it.`,
     unknownTheme: typed => `No theme “${typed}”. /chess-break themes lists them.`,
     themesTitle: 'Themes for /chess-break theme <name> (or mix):',

@@ -28,6 +28,10 @@ export type Messages = {
     offlineFallback: (source: string, why: string) => string
     dailyPuzzle: string
     retry: string
+    explain: string
+    practise: (theme: string) => string
+    explaining: string
+    explainFailed: (why: string) => string
     statusHint: string
   }
   command: {
@@ -36,6 +40,7 @@ export type Messages = {
     opened: string
     next: string
     noPuzzle: string
+    explainLater: string
     themeSet: (name: string) => string
     unknownTheme: (typed: string) => string
     themesTitle: string
