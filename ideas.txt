@@ -1,1 +1,3 @@
 ideas
+20261030
+- Adjust puzzle difficulty even when I am an anonymous. Same as I complete non rated puzzles, if possible. So, 2 options here: dynamically adjust ELO of the puzzle to my solved ones (~same as the one i've solved before) and ability to change difficulty from the UI during the play for the next puzzle (again: when the puzzles are not rated)
