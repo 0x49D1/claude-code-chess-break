@@ -86,6 +86,11 @@ Claude Code older than 2.1.275 needs two steps:
 
 ```
 /plugin marketplace add 0x49D1/claude-code-chess-break
+```
+
+Then, as a second command:
+
+```
 /plugin install chess-break@chess-break
 ```
 
