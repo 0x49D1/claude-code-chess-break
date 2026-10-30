@@ -52,7 +52,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
   const clockLine = (side: 'w' | 'b') => {
     const ms = side === 'w' ? left.white : left.black
     const { captured, lead } = counts[side]
-    const taken = captured.map(p => glyphOf(side === 'w' ? p : p.toUpperCase())).join('')
+    const taken = captured.map(p => glyphOf(side === 'w' ? p : p.toUpperCase(), v.hasEmojiPawn)).join('')
     const isLow = isPlaying && side === g.side && !g.isCorrespondence && ms < 30_000
     return (
       <Text key={`clock-${side}`} bold={isPlaying && toMove === side} color={isLow ? 'error' : undefined}>
@@ -95,7 +95,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
       <Text bold>{title}</Text>
       <Box flexDirection="row" gap={2}>
         <Box borderStyle="round" borderDimColor paddingX={1}>
-          {board(els, { fen: shown.fen, side: g.side, lastMove: shown.lastMove, selected: g.selected, isActive: isMyTurn(g) }, square => void gameMove($, x => clickGame(x, square)))}
+          {board(els, { fen: shown.fen, side: g.side, lastMove: shown.lastMove, selected: g.selected, isActive: isMyTurn(g), hasEmojiPawn: v.hasEmojiPawn }, square => void gameMove($, x => clickGame(x, square)))}
         </Box>
         <Box flexDirection="column">
           {clockLine(opponent)}

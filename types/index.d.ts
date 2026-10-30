@@ -173,6 +173,8 @@ export type View = {
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
+  /** The terminal draws ♟ as a colour emoji whatever follows it (Windows Terminal). */
+  hasEmojiPawn: boolean
 }
 
 declare module 'claude-code' {

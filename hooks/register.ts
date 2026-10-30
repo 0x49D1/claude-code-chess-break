@@ -33,7 +33,9 @@ export const register: Register = (on, options) => {
     const progress = await storedProgress($)
     const theme = await storedTheme($)
     const source = await storedSource($)
-    await update($, view, v => ({ ...v, locale, progress, theme, source, isRated: settings.ratedPuzzles }))
+    // Windows Terminal ignores the text selector after ♟ and still draws the emoji.
+    const hasEmojiPawn = Boolean(await $.env.get('WT_SESSION'))
+    await update($, view, v => ({ ...v, locale, progress, theme, source, isRated: settings.ratedPuzzles, hasEmojiPawn }))
     await refreshDue($)
     await restoreAccount($)
     // The account's games come back, a live one on the pane; the session does not wait for them.

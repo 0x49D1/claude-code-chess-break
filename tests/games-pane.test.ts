@@ -241,4 +241,6 @@ test('/chess-break games: the list in words, the game awaiting on the pane', asy
 test('the solid pawn asks for its text glyph, not the emoji', () => {
   expect(glyphOf('p')).toBe('♟︎')
   expect(glyphOf('P')).toBe('♙')
+  expect(glyphOf('p', true)).toBe('♙')
+  expect(glyphOf('n', true)).toBe('♞')
 })
