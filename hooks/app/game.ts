@@ -224,18 +224,29 @@ export async function openSetup($: $, kind: GameSettings['kind']) {
   await update($, view, v => ({ ...v, setup, gameNote: undefined }))
 }
 
-/** ▶ Play on the setup screen. */
+// A live seek pairs a real person, whose clock starts at once: the pane asks before it is sent.
+const needsConfirming = (s: GameSettings) => s.kind === 'seek' && !isCorrespondence(s)
+
+/** ▶ Play on the setup screen, and its confirmation for a live game against a person. */
 export async function playSetup($: $): Promise<GameNote | undefined> {
-  const { setup } = await read($, view)
+  const { setup, isConfirming } = await read($, view)
   if (!setup) return undefined
-  await update($, view, v => ({ ...v, setup: undefined }))
+  if (needsConfirming(setup) && !isConfirming) {
+    await update($, view, v => ({ ...v, isConfirming: true }))
+    return undefined
+  }
+  await update($, view, v => ({ ...v, setup: undefined, isConfirming: undefined }))
   return startGame($, setup)
 }
 
-/** Another game with the same settings: the same Stockfish, or a new seek. */
+/** Another game with the same settings: the same Stockfish, or a new seek once confirmed. */
 export async function playAgain($: $): Promise<GameNote | undefined> {
   const { game } = await read($, view)
-  return game?.settings ? startGame($, game.settings) : undefined
+  if (!game?.settings) return undefined
+  const settings = game.settings
+  if (!needsConfirming(settings)) return startGame($, settings)
+  await update($, view, v => ({ ...v, setup: settings, isConfirming: true }))
+  return undefined
 }
 
 export async function send($: $, url: string): Promise<GameNote | undefined> {

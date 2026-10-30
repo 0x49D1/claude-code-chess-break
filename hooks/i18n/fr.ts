@@ -125,6 +125,8 @@ export const fr: Messages = {
     colour: 'Couleur',
     random: 'Au hasard',
     play: 'Jouer',
+    confirmSeek: (clock, rated) => `Cela cherche maintenant un vrai adversaire sur Lichess : une partie en direct ${clock}, ${rated ? 'classée' : 'amicale'}. Les pendules partent dès que quelqu’un accepte.`,
+    findOpponent: 'Trouver un adversaire',
     games: 'Parties',
     live: 'en direct',
     takeback: 'Reprendre',

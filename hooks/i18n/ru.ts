@@ -134,6 +134,8 @@ export const ru: Messages = {
     colour: 'Цвет',
     random: 'Случайно',
     play: 'Играть',
+    confirmSeek: (clock, rated) => `Сейчас начнётся поиск живого соперника на Lichess: партия ${clock}, ${rated ? 'на рейтинг' : 'без рейтинга'}. Часы пойдут, как только кто-то примет вызов.`,
+    findOpponent: 'Найти соперника',
     games: 'Партии',
     live: 'живая',
     takeback: 'Вернуть ход',

@@ -48,7 +48,7 @@ Games on Lichess, through its Board API. They need the sign-in, and `curl` (alre
 
 Days per move, for a correspondence game: `1d`, `2d`, `3d`, `5d`, `7d`, `10d` or `14d`.
 
-Or press 🤖 or 👤 in the pane: a setup screen offers the level, the clock or days, the colour, and casual or rated. ▶ Play starts the game. The last choices come back next time, also after a game started by command.
+Or press 🤖 or 👤 in the pane: a setup screen offers the level, the clock or days, the colour, and casual or rated. ▶ Play starts the game. A live game against a person asks first: Lichess pairs you with a real opponent at once, so ▶ Play shows what is about to start, and only ✔ Find an opponent sends it (🔄 after a game asks the same way). The last choices come back next time, also after a game started by command.
 
 - **Moves:** click, or type in the pane, or from the prompt (`/chess-break Nf3`), the same way as in puzzles.
 - **Beside the board:** the moves between the two clocks (the latest ones when they don't fit), the pieces each side has taken, and who is ahead (`+3`). In a live game, your clock turns red under 30 seconds and one beep plays.

@@ -141,6 +141,8 @@ export type View = {
   games?: GameSummary[]
   /** The setup screen's choices, before ▶ Play. */
   setup?: GameSettings
+  /** ▶ Play was pressed for a live game against a person: it waits for the second press. */
+  isConfirming?: boolean
   /** A seek for a person waiting for Lichess to pair it. */
   seeking?: Extract<GameSettings, { kind: 'seek' }>
   /** Why a game did not start, or what the game says now. */

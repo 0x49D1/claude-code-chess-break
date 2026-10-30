@@ -95,6 +95,32 @@ test('a person: the seek waits on the event stream, which announces the game', a
   await settle(() => false, 1)
 })
 
+test('a live game against a person starts only after a second, separate press', async ($, on) => {
+  const settle = signedIn(on)
+  const { streams } = lichess(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'play-human' })
+  await ui.press({ key: 'setup-play' })
+  await settle(() => false, 1)
+  expect(streams('/api/board/seek')).toHaveLength(0)
+  expect(await ui.find({ text: /real opponent on Lichess now: a live 10\+0 game, casual/ })).toBeDefined()
+  expect(JSON.stringify(await ui.find({ key: 'setup-cancel' }))).toContain('"autoFocus":true')
+  expect(await ui.find({ key: 'setup-play' })).toBeUndefined()
+
+  // Cancel goes back to the puzzles, and nothing was sent.
+  await ui.press({ key: 'setup-cancel' })
+  expect(await ui.find({ key: 'setup-confirm' })).toBeUndefined()
+  await ui.press({ key: 'play-human' })
+  await ui.press({ key: 'setup-play' })
+  await ui.press({ key: 'setup-confirm' })
+  await settle(() => streams('/api/board/seek').length > 0)
+  expect(streams('/api/board/seek')).toHaveLength(1)
+  expect(await ui.find({ text: /Looking for an opponent \(10\+0, casual\)/ })).toBeDefined()
+  await ui.press({ key: 'cancel-seek' })
+  await settle(() => streams('/api/board/seek')[0]!.killed.aborted)
+  await ui.unmount()
+})
+
 test('a seek cancelled from the pane is withdrawn', async ($, on) => {
   const settle = signedIn(on)
   const { streams } = lichess(on)

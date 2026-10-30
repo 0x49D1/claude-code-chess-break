@@ -1,6 +1,6 @@
 {
   "name": "chess-break",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"

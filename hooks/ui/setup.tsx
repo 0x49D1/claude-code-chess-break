@@ -14,7 +14,8 @@ const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 export function setupPane($: $, els: Elements[keyof Elements], setup: GameSettings, v: View, t: Messages) {
   const { Box, Text, Button } = els
   type Option = { key: string; text: string; isChosen: boolean; change: (s: GameSettings) => GameSettings }
-  const choose = (change: Option['change']) => void update($, view, x => (x.setup ? { ...x, setup: change(x.setup) } : x))
+  const choose = (change: Option['change']) => void update($, view, x => (x.setup ? { ...x, setup: change(x.setup), isConfirming: undefined } : x))
+  const cancel = () => void update($, view, x => ({ ...x, setup: undefined, isConfirming: undefined }))
   const row = (label: string | undefined, name: string, options: Option[]) => (
     <Box key={`row-${name}`} flexDirection="row" flexWrap="wrap" columnGap={1}>
       {label && <Text dimColor>{label}</Text>}
@@ -25,6 +26,19 @@ export function setupPane($: $, els: Elements[keyof Elements], setup: GameSettin
       ))}
     </Box>
   )
+  if (v.isConfirming && setup.kind === 'seek') {
+    // Cancel takes the focus, so that a stray Enter does not start the game.
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text bold>{`👤 ${t.game.person}`}</Text>
+        <Text>{t.game.confirmSeek(setup.clock, setup.rated)}</Text>
+        <Box flexDirection="row" gap={2}>
+          <Button key="setup-cancel" plain autoFocus onPress={cancel}>{`✖ ${t.pane.cancel}`}</Button>
+          <Button key="setup-confirm" plain onPress={() => void playSetup($).catch(() => undefined)}>{`✔ ${t.game.findOpponent}`}</Button>
+        </Box>
+      </Box>
+    )
+  }
   const clocks = [...(setup.kind === 'ai' ? AI_CLOCKS : SEEK_CLOCKS), ...DAYS]
   return (
     <Box flexDirection="column" gap={1}>
@@ -48,8 +62,8 @@ export function setupPane($: $, els: Elements[keyof Elements], setup: GameSettin
         })))}
       {v.gameNote && <Text color="error">{t.game.note(v.gameNote)}</Text>}
       <Box flexDirection="row" gap={2}>
-        <Button key="setup-play" plain onPress={() => void playSetup($)}>{`▶ ${t.game.play}`}</Button>
-        <Button key="setup-cancel" plain onPress={() => void update($, view, x => ({ ...x, setup: undefined }))}>{`✖ ${t.pane.cancel}`}</Button>
+        <Button key="setup-play" plain onPress={() => void playSetup($).catch(() => undefined)}>{`▶ ${t.game.play}`}</Button>
+        <Button key="setup-cancel" plain onPress={cancel}>{`✖ ${t.pane.cancel}`}</Button>
       </Box>
     </Box>
   )

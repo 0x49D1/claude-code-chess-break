@@ -126,6 +126,8 @@ export const en: Messages = {
     colour: 'Colour',
     random: 'Random',
     play: 'Play',
+    confirmSeek: (clock, rated) => `This looks for a real opponent on Lichess now: a live ${clock} game, ${rated ? 'rated' : 'casual'}. Their clock and yours start as soon as someone accepts.`,
+    findOpponent: 'Find an opponent',
     games: 'Games',
     live: 'live',
     takeback: 'Take back',

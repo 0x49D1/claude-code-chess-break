@@ -70,6 +70,8 @@ export type Messages = {
     colour: string
     random: string
     play: string
+    confirmSeek: (clock: string, rated: boolean) => string
+    findOpponent: string
     games: string
     live: string
     takeback: string
