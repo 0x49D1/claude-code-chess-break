@@ -1,6 +1,6 @@
 {
   "name": "chess-break",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"
@@ -30,6 +30,12 @@
       "type": "boolean",
       "title": "Rated puzzles",
       "description": "Signed in to Lichess, puzzles count for your puzzle rating. Off, they are casual: Lichess still marks them as played. c in the pane switches it",
+      "default": true
+    },
+    "outlinedPawn": {
+      "type": "boolean",
+      "title": "Windows Terminal pawn",
+      "description": "In Windows Terminal, black pawns are drawn outlined in red, because Windows shows the solid pawn as an emoji. Turn it off once the terminal's font has its own chess pieces (see the README)",
       "default": true
     },
     "source": {

@@ -132,9 +132,24 @@ In the pane: `h` hint, `s` solution, `n` next, `e` explain, `l` sign in, `c` rat
 - **Puzzle line under the prompt** (on by default)
 - **Game sounds** (off by default): in a Lichess game, a sound when the opponent moves while the pane is hidden, and one beep when your clock drops under 30 seconds; macOS and the desktop app only
 - **Rated puzzles** (on by default): signed in to Lichess, puzzles count for your rating; off, they are casual
+- **Windows Terminal pawn** (on by default): in Windows Terminal, black pawns are drawn outlined in red; see [Black pawns in Windows Terminal](#black-pawns-in-windows-terminal)
 - **Puzzles from**: lichess, chesscom, offline
 - **Difficulty**: easiest → hardest, for new Lichess puzzles
 - **Language**: auto, en, fr, ru, ka
+
+## Black pawns in Windows Terminal
+
+The black pawn `♟` is also an emoji. Windows Terminal's default font, Cascadia, has no chess pieces, so Windows takes the pawn from its colour emoji font, and it comes out coloured and in another shape. The other pieces are not emoji and look as they should.
+
+So in Windows Terminal, chess-break draws black pawns outlined (`♙`) in red. To get solid black pawns like the other pieces:
+
+1. Install a monospace font that has chess pieces, such as [DejaVu Sans Mono](https://dejavu-fonts.github.io/).
+2. In Windows Terminal: Settings → your profile → Appearance → Font face, pick that font, and save.
+3. In Claude Code: `/config` → **Windows Terminal pawn** off, then start a new session.
+
+If the pawns still come out as emoji, turn **Windows Terminal pawn** back on.
+
+Other terminals that show a coloured pawn need the same font change. There, chess-break already asks for the plain pawn, and most terminals follow it.
 
 ## Development
 
