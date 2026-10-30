@@ -2,6 +2,8 @@
 
 A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess by theme, from Chess.com's daily puzzles, or from a set of 1,469 shipped with the mod for offline use. The ones you miss come back for review until you've learned them, and your progress is tracked per theme. For longer waits, play a live game on Lichess against Stockfish or a person.
 
+![A puzzle solved in the pane: the moves typed one by one, Lichess's replies, then the solved card with its themes and links](docs/puzzle.svg)
+
 ## What it does
 
 - **Train a theme:** forks, pins, back-rank mates, rook endgames… or a mix (`/chess-break themes` lists them).
@@ -155,6 +157,7 @@ Before changing code, read [`AGENTS.md`](AGENTS.md): how the code is laid out an
 | `hooks/i18n/` | every text, one file per language, typed by `Messages` |
 | `hooks/app/` | state and the actions that use `$`, the game streams through `curl` |
 | `hooks/ui/` | the board and the pane |
+| `scripts/` | `pick_offline.py` builds the offline set; `terminal_svg.py` turns `tmux capture-pane -e` frames into the README's animation |
 | `hooks/vendor/` | chess.js 1.4.0 (BSD-2-Clause, see `chess.js.LICENSE`), copied because a mod can only import its own files |
 
 A few rules the mod engine enforces: a file that reads or updates the pane's state declares the atom itself; `$` goes only into `function` declarations across files, never arrow functions or object methods.
