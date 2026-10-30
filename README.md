@@ -8,7 +8,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 
 - **Train a theme:** forks, pins, back-rank mates, rook endgames… or a mix (`/chess-break themes` lists them).
 - **Review what you miss:** a puzzle failed, or solved with a hint or the solution, comes back after 1 day. Solve it cleanly and it returns after 3 days, then 7, then it's learned. Due reviews come before new puzzles.
-- **Replay and learn:** once a puzzle ends, click any move (or `j` / `k`) to see the board at that point. 🧠 Explain asks Claude why the solution works, with a tip to remember and a fact about the pattern, plus links to practise the theme on Lichess and read about it on Wikipedia.
+- **Replay and learn:** once a puzzle ends, click any move (or `j` / `k`) to see the board at that point. 🧠 Explain asks Claude why the solution works, with a tip to remember and a fact about the pattern, plus links to practise the theme on Lichess and read about it on Wikipedia. When Claude can't answer, the pane says why (out of usage limits, busy, offline, not signed in) and Explain can be pressed again.
 - **See your progress:** `/chess-break stats` shows accuracy per theme, your streak and your weakest theme.
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
@@ -31,7 +31,7 @@ Pick one with `/chess-break source …` or in `/config`. When Lichess or Chess.c
 
 ## Lichess account (optional)
 
-`/chess-break login` (or 🔑 in the pane) signs in to Lichess for **rated puzzles** and for [games](#games): new puzzles come from your account, results count toward your puzzle rating, and the sidebar shows it (`👤 you · ⭐ 1650 (+8)`).
+`/chess-break login` (or 🔑 / `l` in the pane) signs in to Lichess for **rated puzzles** and for [games](#games): new puzzles come from your account, results count toward your puzzle rating, and the sidebar shows it (`👤 you · ⭐ 1650 (+8)`).
 
 - **In the browser:** approve on Lichess; a one-shot listener on `127.0.0.1` (needs `python3`) catches the answer and exits. Only puzzle and board permissions are asked for (`puzzle:read`, `puzzle:write`, `board:play`).
 - **Or paste a personal token** in the pane, if the browser runs on another machine.
@@ -124,7 +124,7 @@ Then, as a second command:
 | `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles and games |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
-In the pane: `h` hint, `s` solution, `n` next, `e` explain, `c` rated or casual (signed in), `j` / `k` replay of a finished puzzle or game (outside the move field). Esc returns to the prompt.
+In the pane: `h` hint, `s` solution, `n` next, `e` explain, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc returns to the prompt.
 
 ## Settings (`/config`)
 
