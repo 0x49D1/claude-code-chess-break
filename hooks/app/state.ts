@@ -31,7 +31,7 @@ export const settings = {
   language: 'auto',
   source: 'lichess' as Source,
   promptLine: true,
-  /** A sound with the opponent's move when the pane is hidden. */
+  /** Sounds in a game: the opponent's move when the pane is hidden, and low time. */
   gameSound: false,
   ratedPuzzles: true,
 }

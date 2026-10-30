@@ -53,11 +53,11 @@ Days per move, for a correspondence game: `1d`, `2d`, `3d`, `5d`, `7d`, `10d` or
 Or press 🤖 or 👤 in the pane: a setup screen offers the level, the clock or days, the colour, and casual or rated. ▶ Play starts the game. A live game against a person asks first: Lichess pairs you with a real opponent at once, so ▶ Play shows what is about to start, and only ✔ Find an opponent sends it (🔄 after a game asks the same way). The last choices come back next time, also after a game started by command.
 
 - **Moves:** click, or type in the pane, or from the prompt (`/chess-break Nf3`), the same way as in puzzles.
-- **Beside the board:** the moves between the two clocks (the latest ones when they don't fit), the pieces each side has taken, and who is ahead (`+3`). In a live game, your clock turns red under 30 seconds and one beep plays.
+- **Beside the board:** the moves between the two clocks (the latest ones when they don't fit), the pieces each side has taken, and who is ahead (`+3`). In a live game, your clock turns red under 30 seconds, with one beep if **Game sounds** is on.
 - **During the game:** `/chess-break resign` (twice within three seconds), `draw` (offer, or accept the opponent's), `draw no` (decline), `abort` (before both sides have moved). The same actions are buttons in the pane.
 - **Takeback:** ↩ in the pane, or `/chess-break takeback`, against Stockfish only. Stockfish takes back your move and its reply. Against a person, takebacks are not offered, and theirs are declined.
 - **The live game outlives Claude's turn:** the pane stays open, the line under the prompt shows the opponent, both clocks and whose move it is, and puzzles wait. A live game still on when a new session starts comes back.
-- **The opponent moved:** when the pane is hidden, a toast names the move (`♞ Stockfish level 3 played Nf6`). With **Sound when the opponent moves** in `/config`, a short sound plays too.
+- **The opponent moved:** when the pane is hidden, a toast names the move (`♞ Stockfish level 3 played Nf6`). With **Game sounds** on in `/config`, a short sound plays too.
 - **At the end:** the result, the moves to replay (click one, or `j` / `k`), a link to the game on Lichess, 🔄 another game with the same settings, or 🧩 back to puzzles. Games don't count in puzzle progress.
 - A sign-in made before games existed has no `board:play`: the first game asks you to sign in again.
 
@@ -130,7 +130,7 @@ In the pane: `h` hint, `s` solution, `n` next, `e` explain, `l` sign in, `c` rat
 
 - **Open while Claude works** (on by default)
 - **Puzzle line under the prompt** (on by default)
-- **Sound when the opponent moves** (off by default): in a Lichess game with the pane hidden; macOS and the desktop app only
+- **Game sounds** (off by default): in a Lichess game, a sound when the opponent moves while the pane is hidden, and one beep when your clock drops under 30 seconds; macOS and the desktop app only
 - **Rated puzzles** (on by default): signed in to Lichess, puzzles count for your rating; off, they are casual
 - **Puzzles from**: lichess, chesscom, offline
 - **Difficulty**: easiest → hardest, for new Lichess puzzles

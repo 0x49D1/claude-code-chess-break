@@ -49,7 +49,7 @@ function startTick($: $) {
 
 const LOW_TIME = 30_000
 
-/** Moves the clocks on, and beeps once a live game when the person's clock drops under 30 s. */
+/** Moves the clocks on, and with game sounds on, beeps once a live game when the person's clock drops under 30 s. */
 async function moveClocks($: $) {
   const now = await $.clock.now()
   const v = await update($, view, x => (x.game && isOn(x.game) ? { ...x, game: { ...x.game, now } } : x))
@@ -58,7 +58,7 @@ async function moveClocks($: $) {
   const left = clockLeft(g)
   if ((g.side === 'w' ? left.white : left.black) >= LOW_TIME) return
   await update($, view, x => (x.game?.id === g.id ? { ...x, game: { ...x.game, isLowTimeWarned: true } } : x))
-  void sound($, 880)
+  if (options.gameSound) void sound($, 880)
 }
 
 /** A beep where the host plays sounds; a host that cannot is no error. */

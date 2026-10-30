@@ -1,6 +1,6 @@
 {
   "name": "chess-break",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"
@@ -22,8 +22,8 @@
     },
     "gameSound": {
       "type": "boolean",
-      "title": "Sound when the opponent moves",
-      "description": "In a Lichess game with the pane hidden, a short sound joins the toast. macOS and the desktop app only",
+      "title": "Game sounds",
+      "description": "In a Lichess game: a short sound when the opponent moves while the pane is hidden, and one beep when your clock drops under 30 seconds. macOS and the desktop app only",
       "default": false
     },
     "ratedPuzzles": {

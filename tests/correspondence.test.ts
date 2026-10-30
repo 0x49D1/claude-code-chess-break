@@ -160,23 +160,35 @@ test('nothing is told while the pane is shown', async ($, on) => {
   await settle(() => false, 1)
 })
 
-test('one beep when the person’s clock drops under 30 seconds in a live game', async ($, on) => {
+test('no beep at low time without game sounds', async ($, on) => {
+  toasts(on)
+  const played = sounds(on)
+  const { curl, settle, endAll } = await stockfishGame($, on)
+  curl.feed.line(JSON.stringify({ type: 'gameState', moves: 'e2e4 e7e5', wtime: 31_000, btime: 595_000, status: 'started' }))
+  await settle(() => false, 1000, 6)
+  expect(played.length).toBe(0)
+  endAll()
+  await settle(() => false, 1)
+})
+
+test('with game sounds, one beep when the person’s clock drops under 30 seconds in a live game', { options: { gameSound: true } }, async ($, on) => {
   toasts(on)
   const played = sounds(on)
   const { curl, settle, endAll } = await stockfishGame($, on)
   curl.feed.line(JSON.stringify({ type: 'gameState', moves: 'e2e4 e7e5', wtime: 31_000, btime: 595_000, status: 'started' }))
   await settle(() => false, 1000, 1)
-  expect(played.length).toBe(0)
+  // The opponent's reply has its own sound; the beep comes on top of it, once.
+  const before = played.length
   await settle(() => false, 1000, 5)
-  expect(played.length).toBe(1)
-  expect(played[0]).toMatchObject({ clip: { mime: 'audio/wav' } })
+  expect(played.length).toBe(before + 1)
+  expect(played.at(-1)).toMatchObject({ clip: { mime: 'audio/wav' } })
   await settle(() => false, 1000, 5)
-  expect(played.length).toBe(1)
+  expect(played.length).toBe(before + 1)
   endAll()
   await settle(() => false, 1)
 })
 
-test('no beep in a correspondence game', async ($, on) => {
+test('no beep in a correspondence game', { options: { gameSound: true } }, async ($, on) => {
   toasts(on)
   const played = sounds(on)
   const settle = signedIn(on)
