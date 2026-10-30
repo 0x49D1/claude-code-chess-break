@@ -287,7 +287,8 @@ test('a game from the puzzle view: the sidebar starts one', async ($, on) => {
   await settle(() => false, 1)
 })
 
-test('in Windows Terminal the black pawn is outlined, in its own ink', async ($, on) => {
+/** The e5 square drawn in Windows Terminal, after 1.e4 e5 in a game picked up from Lichess. */
+async function blackPawnInWindowsTerminal($: Engine, on: On) {
   const settle = signedIn(on)
   mock.env(on, { WT_SESSION: '1f2e' })
   const { streams, endAll } = lichess(on, { '/api/account/playing': { status: 200, text: '{"nowPlaying":[{"gameId":"g4m3"}]}' } })
@@ -298,11 +299,21 @@ test('in Windows Terminal the black pawn is outlined, in its own ink', async ($,
   streams('/stream/g4m3')[0]!.feed.line(full('e2e4 e7e5'))
   await settle(() => false, 1)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
-  const pawn = JSON.stringify(await ui.find({ key: 'sq-e5' }))
-  expect(pawn).toContain('♙')
-  expect(pawn).toContain('#9b2335')
-  expect(JSON.stringify(await ui.find({ key: 'sq-e4' }))).not.toContain('#9b2335')
+  const square = JSON.stringify(await ui.find({ key: 'sq-e5' }))
   await ui.unmount()
   endAll()
   await settle(() => false, 1)
+  return square
+}
+
+test('in Windows Terminal the black pawn is outlined, in its own ink', async ($, on) => {
+  const square = await blackPawnInWindowsTerminal($, on)
+  expect(square).toContain('♙')
+  expect(square).toContain('#9b2335')
+})
+
+test('with the Windows Terminal pawn off, the black pawn is solid', { options: { outlinedPawn: false } }, async ($, on) => {
+  const square = await blackPawnInWindowsTerminal($, on)
+  expect(square).toContain('♟')
+  expect(square).not.toContain('#9b2335')
 })

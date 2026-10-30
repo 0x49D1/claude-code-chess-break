@@ -35,6 +35,8 @@ export const settings = {
   /** Sounds in a game: the opponent's move when the pane is hidden, and low time. */
   gameSound: false,
   ratedPuzzles: true,
+  /** In Windows Terminal, the black pawn outlined in its own ink. */
+  outlinedPawn: true,
 }
 
 export const SOURCES: Source[] = ['lichess', 'chesscom', 'offline']
