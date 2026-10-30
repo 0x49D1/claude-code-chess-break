@@ -24,7 +24,11 @@ const DIAGRAM = {
   check: '#e05a4f',
 }
 
-const SOLID: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+/**
+ * The solid pawn is the one chess sign that is also an emoji, so some terminals draw it in colour
+ * and in another shape. The text variation selector asks for the plain glyph, like the others.
+ */
+const SOLID: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟\uFE0E' }
 const OUTLINE: Record<string, string> = { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' }
 
 /** A piece as the diagram draws it: `N` an outlined knight, `n` a solid one. */

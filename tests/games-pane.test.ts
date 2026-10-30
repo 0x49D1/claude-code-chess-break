@@ -237,3 +237,8 @@ test('/chess-break games: the list in words, the game awaiting on the pane', asy
   answers['/api/account/playing'] = { status: 200, text: '{"nowPlaying":[]}' }
   expect((await $.command.run(command('games'))).text).toBe('No games on at Lichess.')
 })
+
+test('the solid pawn asks for its text glyph, not the emoji', () => {
+  expect(glyphOf('p')).toBe('♟︎')
+  expect(glyphOf('P')).toBe('♙')
+})
