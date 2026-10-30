@@ -21,6 +21,7 @@ export const INITIAL_VIEW: View = {
   progress: NO_PROGRESS,
   session: [],
   isClaudeWorking: false,
+  isRated: true,
 }
 
 /** The person's settings, as the module was last loaded with them. */
@@ -30,6 +31,9 @@ export const settings = {
   language: 'auto',
   source: 'lichess' as Source,
   promptLine: true,
+  /** A sound with the opponent's move when the pane is hidden. */
+  gameSound: false,
+  ratedPuzzles: true,
 }
 
 export const SOURCES: Source[] = ['lichess', 'chesscom', 'offline']

@@ -78,7 +78,17 @@ export const en: Messages = {
     explain: 'Explain',
     practise: (name: string) => `Practise ${name} ↗`,
     explaining: 'Claude is looking at it…',
-    explainFailed: (why: string) => `No explanation (${why}).`,
+    explainFailed: why => {
+      switch (why) {
+        case 'limit': return 'Claude is out of usage limits for now.'
+        case 'busy': return 'Claude is busy: try again later.'
+        case 'offline': return 'Claude could not be reached.'
+        case 'signedOut': return 'Claude Code is not signed in.'
+        case 'empty': return 'Claude gave no answer.'
+        case 'refused': return 'The request to Claude was not sent.'
+        case 'other': return 'Claude could not explain it this time.'
+      }
+    },
     statusHint: '/chess-break <move> or open',
     signIn: 'Sign in',
     signInTitle: 'Sign in to Lichess for rated puzzles and games',
@@ -111,6 +121,17 @@ export const en: Messages = {
     abort: 'Abort',
     playAgain: 'Play again',
     puzzles: 'Puzzles',
+    level: 'Level',
+    clock: 'Clock',
+    colour: 'Colour',
+    random: 'Random',
+    play: 'Play',
+    games: 'Games',
+    live: 'live',
+    takeback: 'Take back',
+    awaitingCount: n => `${n} game${n === 1 ? '' : 's'} await${n === 1 ? 's' : ''} your move`,
+    opponentPlayed: (name, san) => `${name} played ${san}`,
+    yourMoveAgainst: name => `Your move against ${name}.`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Games need a Lichess account: /chess-break login.'
@@ -121,6 +142,9 @@ export const en: Messages = {
         case 'cannotAbort': return 'Both sides have moved: the game can only be resigned now.'
         case 'confirmResign': return 'Press resign again to resign.'
         case 'reconnecting': return 'Connection lost, reconnecting…'
+        case 'seekPosted': return 'Seek posted. The game joins your games list once someone accepts it.'
+        case 'finishLiveFirst': return 'Finish the live game first.'
+        case 'takebackStockfishOnly': return 'Takebacks are only against Stockfish.'
         case 'illegal': return `“${n.text}” can't be played here.`
         case 'refused': return `Lichess refused: ${n.text}.`
         case 'failed': return `Lichess can't be reached (${n.text}).`
@@ -129,7 +153,7 @@ export const en: Messages = {
   },
   command: {
     description: 'Chess tactics training: open the pane, pick a theme, see your progress',
-    usage: '[<move>|hint|solution|explain|next|theme <name>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<move>|hint|solution|explain|next|theme <name>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|takeback|games|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'Training pane opened.',
     next: 'New puzzle.',
     noPuzzle: 'No puzzle under way. Open one with /chess-break.',
@@ -152,7 +176,7 @@ export const en: Messages = {
     signedIn: (name: string, rating?: number) => `Signed in as ${name}${rating ? `, puzzle rating ${rating}` : ''}.`,
     notSignedIn: 'Not signed in. /chess-break login for rated puzzles.',
     loggedOut: 'Signed out; the token is revoked on Lichess.',
-    playUsage: '/chess-break play stockfish [1-8] [clock] [white|black|random], or play human [clock] [rated]',
+    playUsage: '/chess-break play stockfish [1-8] [clock|days] [white|black|random], or play human [clock|days] [rated]',
     badLevel: 'Stockfish levels go from 1 to 8.',
     badClock: clocks => `Clocks against Stockfish: ${clocks}.`,
     badSeekClock: clocks => `Lichess pairs apps like this one at rapid and classical only: ${clocks}.`,
@@ -164,6 +188,8 @@ export const en: Messages = {
     drawAccepted: 'Draw accepted.',
     drawDeclined: 'Draw declined.',
     aborted: 'Game aborted.',
+    takebackAsked: 'Takeback asked.',
+    gamesNone: 'No games on at Lichess.',
     gameGoesOn: 'Claude is done. Your game goes on.',
   },
 }

@@ -1,19 +1,17 @@
 import { atom, read, update } from 'claude-code'
-import type { HookStream, ProcessSpawnChunk, ProcessSpawnResult } from 'claude-code'
 
 import type { Game, GameNote, GameSettings } from '../../types'
-import { AI_URL, EVENT_URL, PLAYING_URL, SEEK_URL, actionUrl, drawUrl, gameForm, moveUrl, readGameEvent, readPlaying, streamUrl } from '../lichess/game'
-import { applyState, canAbort, fromFull, isOn, rollBack } from '../training/game'
+import { START, line } from '../chess/position'
+import { playerName } from '../i18n'
+import { AI_URL, EVENT_URL, SEEK_URL, actionUrl, drawUrl, gameForm, moveUrl, readGameEvent, streamUrl, takebackUrl } from '../lichess/game'
+import { beep } from '../training/beep'
+import { GAME_DEFAULTS, applyState, canAbort, clockLeft, fromFull, isCorrespondence, isMyTurn, isOn, rollBack } from '../training/game'
 import { storedAccount, storedToken } from './account'
-import { INITIAL_VIEW } from './state'
+import { hasCurl, stop, streamLines } from './curl'
+import { INITIAL_VIEW, PANE, messagesOf, settings as options } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
-
-type Child = HookStream<ProcessSpawnChunk, ProcessSpawnResult>
-
-/** The curl children: the followed game's stream, and a seek with the event stream that announces its game. */
-const children: { game?: Child; seek?: Child; events?: Child } = {}
 
 /** The game whose stream is read; another id, or none, ends the reading. */
 let followed: string | undefined
@@ -44,56 +42,44 @@ async function noted($: $, note: GameNote | undefined): Promise<GameNote | undef
   return note
 }
 
-async function hasCurl($: $): Promise<boolean> {
-  return $.process.run(['curl', '--version']).then(r => r.exitCode === 0, () => false)
-}
-
-/**
- * Reads a long-lived Lichess answer line by line through curl, the token on stdin so that no
- * process list shows it. `onLine` answering true ends the reading. Resolves the HTTP status once
- * the answer ends (0 when none came), or undefined when curl could not start.
- */
-async function streamLines($: $, slot: keyof typeof children, url: string, token: string, onLine: (line: string) => Promise<boolean | void>, form?: string) {
-  const config = [`header = "Authorization: Bearer ${token}"`, 'header = "Accept: application/x-ndjson"', ...(form ? [`data = "${form}"`] : []), ''].join('\n')
-  const child = $.process.spawn({ argv: ['curl', '-sSN', '--write-out', '%{stderr}HTTP %{http_code}\\n', '--config', '-', url], input: config })
-  children[slot] = child
-  let buffer = ''
-  let errors = ''
-  try {
-    reading: for await (const { stream, text } of child) {
-      if (stream === 'stderr') {
-        errors += text
-        continue
-      }
-      buffer += text
-      const lines = buffer.split('\n')
-      buffer = lines.pop() ?? ''
-      for (const line of lines) if (line.trim() && (await onLine(line))) break reading
-    }
-  } catch {
-    return undefined
-  } finally {
-    if (children[slot] === child) children[slot] = undefined
-  }
-  return Number(errors.match(/HTTP (\d{3})/)?.[1] ?? 0)
-}
-
-async function stop(...slots: (keyof typeof children)[]) {
-  for (const slot of slots) {
-    const child = children[slot]
-    children[slot] = undefined
-    await child?.return(undefined as never).catch(() => undefined)
-  }
-}
-
 function startTick($: $) {
   tick?.cancel()
   tick = $.clock.every(1000, () => void moveClocks($).catch(() => undefined))
 }
 
+const LOW_TIME = 30_000
+
+/** Moves the clocks on, and beeps once a live game when the person's clock drops under 30 s. */
 async function moveClocks($: $) {
   const now = await $.clock.now()
-  await update($, view, v => (v.game && isOn(v.game) ? { ...v, game: { ...v.game, now } } : v))
+  const v = await update($, view, x => (x.game && isOn(x.game) ? { ...x, game: { ...x.game, now } } : x))
+  const g = v.game
+  if (!g || !isOn(g) || g.isCorrespondence || g.isLowTimeWarned) return
+  const left = clockLeft(g)
+  if ((g.side === 'w' ? left.white : left.black) >= LOW_TIME) return
+  await update($, view, x => (x.game?.id === g.id ? { ...x, game: { ...x.game, isLowTimeWarned: true } } : x))
+  void sound($, 880)
+}
+
+/** A beep where the host plays sounds; a host that cannot is no error. */
+function sound($: $, frequency: number) {
+  return $.audio.play({ base64: beep(frequency, 150), mime: 'audio/wav' }).catch(() => undefined)
+}
+
+/**
+ * What a new state of the game shown asks of the mod: the opponent's move told when the pane is
+ * hidden, and a person's takeback request declined, once per request.
+ */
+async function answerState($: $, before: Game, after: Game) {
+  const opponent = before.side === 'w' ? 'b' : 'w'
+  const theirs = after.side === 'w' ? after.black : after.white
+  if (after.takebackOffer === opponent && before.takebackOffer !== opponent && !theirs.aiLevel) await send($, takebackUrl(after.id, false))
+  const moved = after.moves.length > before.moves.length && (after.moves.length % 2 === 1 ? 'w' : 'b') === opponent
+  if (!moved || (await $.ui.panes()).some(p => p.id === PANE && p.isShown)) return
+  const san = line(START, after.moves)?.at(-1)?.san ?? after.moves.at(-1) ?? ''
+  const v = await read($, view)
+  $.ui.toast(`♞ ${messagesOf(v).game.opponentPlayed(playerName(messagesOf(v), theirs), san)}`)
+  if (options.gameSound) void sound($, 660)
 }
 
 /**
@@ -101,7 +87,7 @@ async function moveClocks($: $) {
  * 4… up to 30 seconds, a minute when Lichess asks to slow down. The stream's first line gives the
  * whole game again, so a reconnect needs nothing kept.
  */
-async function follow($: $, id: string, settings?: GameSettings) {
+export async function follow($: $, id: string, settings?: GameSettings) {
   await stop('game')
   followed = id
   startTick($)
@@ -114,10 +100,15 @@ async function follow($: $, id: string, settings?: GameSettings) {
       if (followed !== id || !e || e.type === 'start') return
       const now = await $.clock.now()
       wait = 1000
-      await update($, view, v => {
-        if (e.type === 'full') return { ...v, seeking: undefined, gameNote: undefined, game: fromFull(e, username, settings ?? v.game?.settings, now) }
-        return v.game?.id === id ? { ...v, gameNote: undefined, game: applyState(v.game, e.state, now) } : v
+      const before = (await read($, view)).game
+      const v = await update($, view, x => {
+        if (e.type === 'full') return { ...x, seeking: undefined, gameNote: undefined, game: fromFull(e, username, settings ?? x.game?.settings, now) }
+        if (x.game?.id !== id) return x
+        const game = applyState(x.game, e.state, now)
+        // The list knows the move is made before its next read.
+        return { ...x, gameNote: undefined, game, games: x.games?.map(s => (s.id === id ? { ...s, isMyTurn: isMyTurn(game) } : s)) }
       })
+      if (e.type === 'state' && before?.id === id && v.game?.id === id) await answerState($, before, v.game)
     })
     if (followed !== id) return
     const { game } = await read($, view)
@@ -140,28 +131,51 @@ async function follow($: $, id: string, settings?: GameSettings) {
   tick = undefined
 }
 
+/** The choices a game was last started with, one set per kind, for the setup screen. */
+export type GameChoices = { ai?: Extract<GameSettings, { kind: 'ai' }>; seek?: Extract<GameSettings, { kind: 'seek' }> }
+
+export async function storedChoices($: $): Promise<GameChoices> {
+  const stored = (await $.store.get('gameChoices')) as GameChoices | undefined
+  return { ai: stored?.ai?.kind === 'ai' ? stored.ai : undefined, seek: stored?.seek?.kind === 'seek' ? stored.seek : undefined }
+}
+
+async function post($: $, url: string, token: string, form: string) {
+  return $.http
+    .fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: form,
+    })
+    .catch(err => ({ ok: false, status: 0, text: err instanceof Error ? err.message : String(err) }))
+}
+
 /**
  * Starts a game against Stockfish, or seeks a person: the event stream says when Lichess paired
- * the seek. Resolves why it could not start, or undefined once it is on its way.
+ * a live seek, and a correspondence seek waits in Lichess's lobby on its own. A second live game
+ * is refused; correspondence games are not, and leave a live game on the pane. Resolves why it
+ * could not start or what became of it, or undefined once it is on its way.
  */
 export async function startGame($: $, settings: GameSettings): Promise<GameNote | undefined> {
   const token = await storedToken($)
   if (!token) return noted($, { kind: 'signIn' })
-  if (!(await hasCurl($))) return noted($, { kind: 'needsCurl' })
-  await leaveGame($)
+  const slow = isCorrespondence(settings)
+  const { game } = await read($, view)
+  const isLiveOn = !!game && isOn(game) && !game.isCorrespondence
+  if (isLiveOn && !slow) return noted($, { kind: 'finishLiveFirst' })
+  if (!slow && !(await hasCurl($))) return noted($, { kind: 'needsCurl' })
+  await $.store.set('gameChoices', { ...(await storedChoices($)), [settings.kind]: settings })
+  if (settings.kind === 'seek' && slow) {
+    const note = refusal(await post($, SEEK_URL, token, gameForm(settings)))
+    return noted($, note ?? { kind: 'seekPosted' })
+  }
+  if (!isLiveOn) await leaveGame($)
   if (settings.kind === 'ai') {
-    const res = await $.http
-      .fetch(AI_URL, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-        body: gameForm(settings),
-      })
-      .catch(err => ({ ok: false, status: 0, text: err instanceof Error ? err.message : String(err) }))
+    const res = await post($, AI_URL, token, gameForm(settings))
     const note = refusal(res)
     if (note) return noted($, note)
     const id = (JSON.parse(res.text) as { id?: string }).id
     if (!id) return noted($, { kind: 'failed', text: 'no game' })
-    void follow($, id, settings).catch(() => undefined)
+    if (!isLiveOn) void follow($, id, settings).catch(() => undefined)
     return undefined
   }
   await update($, view, v => ({ ...v, seeking: settings, gameNote: undefined }))
@@ -195,7 +209,27 @@ export async function leaveGame($: $) {
   tick?.cancel()
   tick = undefined
   await stop('game', 'seek', 'events')
-  await update($, view, v => ({ ...v, game: undefined, seeking: undefined, gameNote: undefined }))
+  await update($, view, v => ({ ...v, game: undefined, seeking: undefined, gameNote: undefined, replayPly: undefined }))
+}
+
+/** Shows a game of the list, its stream followed in place of the game shown. */
+export async function showGame($: $, id: string) {
+  await leaveGame($)
+  void follow($, id).catch(() => undefined)
+}
+
+/** Opens the setup screen for a kind of game, filled with the choices it was last started with. */
+export async function openSetup($: $, kind: GameSettings['kind']) {
+  const setup = (await storedChoices($))[kind] ?? GAME_DEFAULTS[kind]
+  await update($, view, v => ({ ...v, setup, gameNote: undefined }))
+}
+
+/** ▶ Play on the setup screen. */
+export async function playSetup($: $): Promise<GameNote | undefined> {
+  const { setup } = await read($, view)
+  if (!setup) return undefined
+  await update($, view, v => ({ ...v, setup: undefined }))
+  return startGame($, setup)
 }
 
 /** Another game with the same settings: the same Stockfish, or a new seek. */
@@ -204,20 +238,7 @@ export async function playAgain($: $): Promise<GameNote | undefined> {
   return game?.settings ? startGame($, game.settings) : undefined
 }
 
-/** A game of the account still on at Lichess, followed again; at the start of a session. */
-export async function resumeGame($: $) {
-  const token = await storedToken($)
-  if (!token || (await read($, view)).game) return
-  try {
-    const res = await $.http.fetch(PLAYING_URL, { method: 'GET', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } })
-    const id = res.ok ? readPlaying(res.text) : undefined
-    if (id) void follow($, id).catch(() => undefined)
-  } catch (err) {
-    $.ui.log(`chess-break: no game to resume (${err instanceof Error ? err.message : String(err)})`, { to: 'debug' })
-  }
-}
-
-async function send($: $, url: string): Promise<GameNote | undefined> {
+export async function send($: $, url: string): Promise<GameNote | undefined> {
   const token = await storedToken($)
   if (!token) return { kind: 'signIn' }
   const res = await $.http
@@ -265,4 +286,13 @@ export async function abort($: $): Promise<GameNote | undefined> {
   if (!game || !isOn(game)) return undefined
   if (!canAbort(game)) return noted($, { kind: 'cannotAbort' })
   return noted($, await send($, actionUrl(game.id, 'abort')))
+}
+
+/** Takes the last move back, against Stockfish only. */
+export async function takeback($: $): Promise<GameNote | undefined> {
+  const { game } = await read($, view)
+  if (!game || !isOn(game)) return undefined
+  const opponent = game.side === 'w' ? game.black : game.white
+  if (!opponent.aiLevel) return noted($, { kind: 'takebackStockfishOnly' })
+  return noted($, await send($, takebackUrl(game.id, true)))
 }

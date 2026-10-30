@@ -4,13 +4,14 @@ import type { Register } from 'claude-code'
 import type { GameNote } from '../types'
 import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
-import { abort, draw, gameMove, resign, startGame } from './app/game'
+import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './app/game'
+import { refreshGames } from './app/games'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
 import { completions } from './chess/position'
-import { LOCALES, asLocale, messagesFor } from './i18n'
-import { AI_CLOCKS, SEEK_CLOCKS } from './lichess/game'
+import { LOCALES, asLocale, gameLine, messagesFor } from './i18n'
+import { AI_CLOCKS, DAYS, SEEK_CLOCKS } from './lichess/game'
 import { hint, play, reveal, solverOf } from './training/attempt'
-import { isOn, playTyped, readSettings } from './training/game'
+import { awaiting, isOn, playTyped, readSettings } from './training/game'
 import { learnLinks, readExplanation } from './training/explain'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
@@ -52,7 +53,8 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const text = await explain($)
         if (!text) {
           const { explanation } = await read($, view)
-          return { text: t.pane.explainFailed(explanation?.failed ?? '?') }
+          // No text and no failure: the pane's request is still under way.
+          return { text: explanation?.failed ? t.pane.explainFailed(explanation.failed) : t.pane.explaining }
         }
         const { why, tip, fact } = readExplanation(text)
         const links = learnLinks(attempt.puzzle.themes).map(l => l.url)
@@ -112,8 +114,8 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const settings = readSettings([arg ?? '', ...rest].filter(Boolean))
         if (settings === 'usage') return { text: t.command.playUsage }
         if (settings === 'level') return { text: t.command.badLevel }
-        if (settings === 'aiClock') return { text: t.command.badClock(AI_CLOCKS.join(', ')) }
-        if (settings === 'seekClock') return { text: t.command.badSeekClock(SEEK_CLOCKS.join(', ')) }
+        if (settings === 'aiClock') return { text: t.command.badClock([...AI_CLOCKS, ...DAYS].join(', ')) }
+        if (settings === 'seekClock') return { text: t.command.badSeekClock([...SEEK_CLOCKS, ...DAYS].join(', ')) }
         const note = await startGame($, settings)
         if (note) return { text: t.game.note(note) }
         await openPane($, true)
@@ -129,6 +131,23 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       }
       case 'abort':
         return gameAction(() => abort($), t.command.aborted)
+      case 'takeback':
+        return gameAction(() => takeback($), t.command.takebackAsked)
+      case 'games': {
+        await refreshGames($)
+        const { games = [], game } = await read($, view)
+        if (!games.length) return { text: t.command.gamesNone }
+        // The pane shows the game awaiting first, unless a live game holds it.
+        const first = awaiting(games)[0]
+        if (first && !(game && isOn(game) && !game.isCorrespondence)) await showGame($, first.id)
+        await openPane($, true)
+        const ordered = [...awaiting(games), ...games.filter(g => !g.isMyTurn)]
+        return {
+          text: ordered
+            .map(g => gameLine(t, g))
+            .join('\n'),
+        }
+      }
       case 'login': {
         if (arg) return { text: t.command.noTokenInCommand }
         await openPane($, true)

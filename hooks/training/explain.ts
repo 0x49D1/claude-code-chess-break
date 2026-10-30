@@ -1,4 +1,6 @@
-import type { Attempt, Locale } from '../../types'
+import type { ModelCompleteResult } from 'claude-code'
+
+import type { Attempt, ExplainFailure, Locale } from '../../types'
 import { after, legal, uciOf } from '../chess/position'
 
 const LANGUAGES: Record<Locale, string> = { en: 'English', fr: 'French', ru: 'Russian', ka: 'Georgian' }
@@ -54,6 +56,17 @@ export function readExplanation(text: string): Explanation {
   const part = (tag: string) => text.match(new RegExp(`^\\s*${tag}:\\s*(.+)$`, 'm'))?.[1]?.trim()
   const why = part('WHY')
   return why ? { why, tip: part('TIP'), fact: part('FACT') } : { why: text.trim() }
+}
+
+/** Why the model gave no explanation; a rejected call is `refused`, caught by the action. */
+export function explainFailure(r: Extract<ModelCompleteResult, { isAnswered: false }>): ExplainFailure {
+  if (r.reason === 'empty-reply') return 'empty'
+  if (r.reason !== 'api-error') return 'other'
+  if (r.status === 429 || r.error === 'rate_limit') return 'limit'
+  if (r.error === 'overloaded' || (r.status !== null && r.status >= 500)) return 'busy'
+  if (r.error === 'authentication_failed' || r.status === 401 || r.status === 403) return 'signedOut'
+  if (r.status === null) return 'offline'
+  return 'other'
 }
 
 /** Themes that say how long a puzzle is or how it ends, with no lesson page of their own. */

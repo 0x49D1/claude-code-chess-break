@@ -74,9 +74,28 @@ export type GameSettings =
 /** A player as Lichess names them; Stockfish has a level and no name. */
 export type Player = { name?: string; rating?: number; aiLevel?: number }
 
+/** A game of the account on at Lichess, as its list of games gives it, without a stream. */
+export type GameSummary = {
+  id: string
+  fen: string
+  side: 'w' | 'b'
+  opponent: Player
+  isMyTurn: boolean
+  /** The side to move's time left, in seconds; absent when Lichess gives none. */
+  secondsLeft?: number
+  /** Days per move rather than a clock. */
+  isCorrespondence: boolean
+  isRated: boolean
+}
+
+/** Why Claude gave no explanation, put into words when drawn. */
+export type ExplainFailure = 'limit' | 'busy' | 'offline' | 'signedOut' | 'empty' | 'refused' | 'other'
+
 /** What the pane says about a game, put into words when drawn. */
 export type GameNote =
   | { kind: 'signIn' | 'renewSignIn' | 'needsCurl' | 'limited' | 'notYourTurn' | 'cannotAbort' | 'confirmResign' | 'reconnecting' }
+  /** A correspondence seek waits in Lichess's lobby; a second live game; a takeback against a person. */
+  | { kind: 'seekPosted' | 'finishLiveFirst' | 'takebackStockfishOnly' }
   | { kind: 'illegal' | 'refused' | 'failed'; text: string }
 
 /** A live Lichess game, as its stream last told it, with the person's move not yet confirmed. */
@@ -88,6 +107,8 @@ export type Game = {
   white: Player
   black: Player
   isRated: boolean
+  /** Days per move rather than a clock: such a game never holds the pane. */
+  isCorrespondence: boolean
   /** Every move as UCI, as Lichess holds them. */
   moves: string[]
   /** The position shown: Lichess's, or after the person's pending move. */
@@ -101,6 +122,9 @@ export type Game = {
   status: string
   winner?: 'w' | 'b'
   drawOffer?: 'w' | 'b'
+  takebackOffer?: 'w' | 'b'
+  /** The low-time beep has played: once a game. */
+  isLowTimeWarned?: boolean
   selected?: string
   promoting?: string
   /** The person's move sent and not yet in Lichess's moves, as UCI. */
@@ -113,6 +137,10 @@ export type View = {
   attempt?: Attempt
   /** The Lichess game under way or just ended; puzzles wait behind it. */
   game?: Game
+  /** Every game of the account on at Lichess, as last read; undefined before the first read. */
+  games?: GameSummary[]
+  /** The setup screen's choices, before ▶ Play. */
+  setup?: GameSettings
   /** A seek for a person waiting for Lichess to pair it. */
   seeking?: Extract<GameSettings, { kind: 'seek' }>
   /** Why a game did not start, or what the game says now. */
@@ -131,9 +159,11 @@ export type View = {
   /** The move a finished puzzle is replayed at: 0 its start, played.length its end; undefined the end. */
   replayPly?: number
   /** Claude's explanation of a finished puzzle: asked, given, or failed. */
-  explanation?: { puzzleId: string; text?: string; failed?: string }
+  explanation?: { puzzleId: string; text?: string; failed?: ExplainFailure }
   /** The Lichess account signed in, its puzzle rating as last known. */
   account?: { username: string; rating?: number }
+  /** Whether a signed-in person's Lichess puzzle results count for their rating. */
+  isRated: boolean
   /** The last rated result's change to that rating. */
   ratingDiff?: number
   /** A sign-in under way: the address to approve it at once the listener is up, or why it failed. */

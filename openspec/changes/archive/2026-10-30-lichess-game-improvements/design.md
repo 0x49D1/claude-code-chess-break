@@ -55,15 +55,15 @@ A separate `days` field was rejected. Every place that reads a clock would then 
   - it follows a live game if one is on, else nothing;
   - it diffs `isMyTurn` against the previous list, for the toast.
 - `turn.start` calls `refreshGames`. When no live game is on and `games` has entries awaiting the person, the pane follows the one with the least `secondsLeft`, instead of loading a puzzle.
-- The five-minute refresh is `$.clock.every(300_000)`, started at `session.start` when signed in and stopped at sign-out.
+- The five-minute refresh is `$.clock.every(300_000)`, started at `session.start` for the whole session. A read while signed out asks Lichess nothing, so signing out stops the reads and signing in mid-session starts them. Stopping the timer from `signOut` would make `app/account.ts` and `app/games.ts` import each other.
 
 ### A correspondence seek is a plain POST
 
-Lichess answers a correspondence seek at once, with no open request to keep. So it goes through `$.http.fetch`, not curl. Nothing waits for it: the game appears in `games` on a later refresh. This behaviour is assumed, and task 1.1 checks it on Lichess before anything depends on it.
+Lichess answers a correspondence seek at once, with no open request to keep. So it goes through `$.http.fetch`, not curl. Nothing waits for it: the game appears in `games` on a later refresh. Task 1.1 confirmed it: the answer is `{"id": …}` at once.
 
 ### Time left in days
 
-`formatClock(ms)` picks the unit by size: `2d 12h`, `5h 03m`, `42m`, and `m:ss` under an hour, as today. Correspondence state lines carry `wtime`/`btime` in ms like live ones, which task 1.1 checks too. The countdown, `clockLeft`, works unchanged. The low-time warning checks `isCorrespondence` and stays live-only.
+`formatClock(ms, slow)` reads a correspondence clock (`slow`) as `2d 12h`, `5h 03m` or `42m`; a live clock stays `m:ss`, since a 30+0 game would otherwise show `30m`. Correspondence state lines carry `wtime`/`btime` in ms like live ones (checked in task 1.1). `gameFull` also carries `speed: "correspondence"` and `daysPerTurn`, so a game resumed from Lichess is known to be slow without its settings. The countdown, `clockLeft`, works unchanged. The low-time warning checks `isCorrespondence` and stays live-only.
 
 ### Setup screen: `View.setup`
 
@@ -104,11 +104,11 @@ When a `gameState` adds an opponent move, `follow` checks `$.ui.panes()` for the
 - `POST /api/board/game/{id}/takeback/yes` offers or accepts; `/no` declines.
 - The ↩ button shows only when the opponent is Stockfish (`aiLevel`) and the person has moved.
 - The state line's `wtakeback`/`btakeback` is read into `GameState.takebackOffer`. Against a person, `follow` answers `/no` once per offer.
-- Lichess's Stockfish is assumed to accept at once, and the next `gameState` carries the shortened move list. Task 7.2 checks it.
+- Lichess's Stockfish accepts at once, and the next `gameState` carries the shortened move list. It takes back the whole pair, the person's move and its reply (checked in task 1.1).
 
 ## Risks / Trade-offs
 
-- [The correspondence assumptions (instant seek answer, ms clocks, Stockfish accepting takebacks) are unverified] → task 1.1 checks them on Lichess first. Design changes from it come back here before the dependent tasks.
+- [The correspondence assumptions (instant seek answer, ms clocks, Stockfish accepting takebacks, the account's list) were unverified] → task 1.1 checked all four on Lichess on 2026-10-30; all held. Answers in `tests/fixtures/lichess.ts`.
 - [A refresh every five minutes reads Lichess all session long] → one small GET, only when signed in; stopped at sign-out; 429 skips the next refresh.
 - [Opponent-move toasts could be noisy in a live game with the pane hidden] → shown only when the pane is hidden. The pane opening each Claude turn makes that rare during work.
 - [The sidebar's 8 rows are fixed] → long games show the latest moves only; the full game is on Lichess, linked at the end.

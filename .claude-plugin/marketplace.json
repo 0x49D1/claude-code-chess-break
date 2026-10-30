@@ -1,5 +1,6 @@
 {
   "name": "chess-break",
+  "description": "chess-break, a Claude Code mod: chess tactics and Lichess games while Claude works",
   "owner": { "name": "Dima Pursanov" },
   "plugins": [{ "name": "chess-break", "source": "./" }]
 }

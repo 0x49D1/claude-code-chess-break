@@ -1,13 +1,15 @@
 import { atom, read, update } from 'claude-code'
 
-import type { Attempt, Puzzle, Source } from '../../types'
+import type { Attempt, Puzzle, Source, View } from '../../types'
 import { RANDOM_DAILY_URL, USER_AGENT, readDaily } from '../chesscom/client'
 import { nextPuzzleUrl, readAnswer } from '../lichess/client'
 import { offlinePuzzle } from '../offline'
 import { sendResult, storedToken } from './account'
-import { leaveGame } from './game'
-import { explainRequest } from '../training/explain'
+import { leaveGame, showGame } from './game'
+import { refreshGames } from './games'
+import { explainFailure, explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
+import { awaiting, isOn } from '../training/game'
 import { recordProgress } from '../training/progress'
 import { dueIds, recordReview } from '../training/review'
 import { INITIAL_VIEW, PANE, TITLE, settings, storedProgress, storedReview } from './state'
@@ -104,8 +106,10 @@ export async function explain($: $): Promise<string | undefined> {
   const puzzleId = a.puzzle.id
   await update($, view, x => ({ ...x, explanation: { puzzleId } }))
   const ask = explainRequest(a, v.locale)
-  const r = await $.model.complete({ model: 'sonnet', system: ask.system, prompt: ask.prompt, maxTokens: 600, effort: 'low' })
-  const explanation = r.isAnswered ? { puzzleId, text: r.text.trim() } : { puzzleId, failed: r.reason }
+  const explanation: NonNullable<View['explanation']> = await $.model
+    .complete({ model: 'sonnet', system: ask.system, prompt: ask.prompt, maxTokens: 600, effort: 'low' })
+    .then(r => (r.isAnswered ? { puzzleId, text: r.text.trim() } : { puzzleId, failed: explainFailure(r) }))
+    .catch(() => ({ puzzleId, failed: 'refused' as const }))
   await update($, view, x => ({ ...x, explanation }))
   return explanation.text
 }
@@ -119,10 +123,24 @@ export async function next($: $) {
 
 export async function openPane($: $, focus = false) {
   await $.ui.open({ id: PANE, title: TITLE, rows: PANE_ROWS, ...(focus ? { focus: true as const } : {}) })
+  // The list read as the pane opens: a live game on comes to the pane.
+  await refreshGames($)
   const v = await read($, view)
   // A game or a seek holds the pane: puzzles wait behind it.
   if (v.game || v.seeking) return
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
+}
+
+/**
+ * The pane as Claude starts working: a live game or a seek holds it, else a correspondence game
+ * awaiting the person's move comes before puzzles, the least time left first.
+ */
+export async function openForTurn($: $) {
+  await openPane($)
+  const v = await read($, view)
+  if ((v.game && isOn(v.game) && !v.game.isCorrespondence) || v.seeking) return
+  const waiting = awaiting(v.games ?? []).find(g => g.isCorrespondence)
+  if (waiting && v.game?.id !== waiting.id) await showGame($, waiting.id)
 }
 
 /** From a game back to the puzzle left behind, or a new one. */

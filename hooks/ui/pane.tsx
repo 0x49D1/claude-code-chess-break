@@ -2,20 +2,23 @@ import { atom, read, update } from 'claude-code'
 import type { Elements, Register } from 'claude-code'
 
 import type { Feedback, View } from '../../types'
-import { cancelSignIn, signIn, signOut, useToken } from '../app/account'
+import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
-import { startGame } from '../app/game'
+import { openSetup, showGame } from '../app/game'
 import { INITIAL_VIEW, PANE, messagesOf } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
+import { gameLine } from '../i18n'
 import type { Messages } from '../i18n'
 import { TOKEN_PAGE } from '../lichess/auth'
 import { analysisUrl } from '../lichess/client'
 import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
 import { learnLinks, readExplanation } from '../training/explain'
+import { awaiting, isOn } from '../training/game'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
+import { setupPane } from './setup'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
@@ -45,11 +48,14 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
   const { Box, Text, Button } = els
   const marks = v.session.slice(-8).map(r => (r === 'clean' ? '🟩' : '🟥')).join('')
   const diff = v.ratingDiff === undefined ? '' : ` (${v.ratingDiff >= 0 ? '+' : ''}${v.ratingDiff})`
+  // The games awaiting the person first, then the others.
+  const games = [...awaiting(v.games ?? []), ...(v.games ?? []).filter(g => !g.isMyTurn)]
   return (
     <Box flexDirection="column">
       {v.account ? (
         <Box flexDirection="row" gap={1}>
           <Text>{`👤 ${v.account.username}${v.account.rating ? ` · ⭐ ${v.account.rating}${diff}` : ''}`}</Text>
+          <Button key="rated" plain dimColor hotkey="c" onPress={() => void switchRated($).catch(() => undefined)}>{v.isRated ? t.game.rated : t.game.casual}</Button>
           <Button key="logout" plain dimColor onPress={() => void signOut($)}>{t.pane.signOut}</Button>
         </Box>
       ) : (
@@ -57,10 +63,17 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
       )}
       <Text bold>{`⚔ ${t.game.newGame}`}</Text>
       <Box flexDirection="row" gap={1}>
-        <Button key="play-stockfish" plain onPress={() => void startGame($, { kind: 'ai', level: 3, clock: '10+0', color: 'random' })}>{`🤖 ${t.game.stockfish(3)}`}</Button>
-        <Button key="play-human" plain onPress={() => void startGame($, { kind: 'seek', clock: '10+0', rated: false })}>{`👤 ${t.game.person}`}</Button>
+        <Button key="play-stockfish" plain onPress={() => void openSetup($, 'ai')}>{'🤖 Stockfish'}</Button>
+        <Button key="play-human" plain onPress={() => void openSetup($, 'seek')}>{`👤 ${t.game.person}`}</Button>
       </Box>
-      {v.gameNote && <Text color="error">{t.game.note(v.gameNote)}</Text>}
+      {v.gameNote && <Text color={v.gameNote.kind === 'seekPosted' ? undefined : 'error'}>{t.game.note(v.gameNote)}</Text>}
+      {games.map(g => (
+        <Button key={`game-${g.id}`} plain onPress={() => void showGame($, g.id)}>
+          <Text bold={g.isMyTurn}>
+            {gameLine(t, g)}
+          </Text>
+        </Button>
+      ))}
       <Text bold>{`📈 ${t.pane.session}`}</Text>
       <Text>{marks || '·'}</Text>
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
@@ -108,6 +121,8 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       )
     }
 
+    const isLiveOn = !!v.game && isOn(v.game) && !v.game.isCorrespondence
+    if (v.setup && !isLiveOn && !v.seeking) return setupPane($, els, v.setup, v, t)
     if (v.game || v.seeking) return gamePane($, els, v, t)
 
     if (!a) {
@@ -222,7 +237,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
           {isPlaying && <Button key="hint" plain hotkey="h" onPress={() => void change($, hint)}>{`💡 ${t.pane.hint}`}</Button>}
           {isPlaying && <Button key="reveal" plain hotkey="s" onPress={() => void change($, reveal)}>{`👀 ${t.pane.show}`}</Button>}
           {!isPlaying && !explanation?.text && (
-            <Button key="explain" plain hotkey="e" onPress={() => void explain($)}>{`🧠 ${t.pane.explain}`}</Button>
+            <Button key="explain" plain hotkey="e" onPress={() => void explain($).catch(() => undefined)}>{`🧠 ${t.pane.explain}`}</Button>
           )}
           <Button key="next" plain hotkey="n" onPress={() => void next($)}>{`⏩ ${t.pane.skip}`}</Button>
           {a.puzzle.url && <Link href={a.puzzle.url} label={a.puzzle.source === 'chesscom' ? 'Chess.com ↗' : 'Lichess ↗'} />}

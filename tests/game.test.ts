@@ -3,7 +3,9 @@ import { describe, expect, test } from 'claude-code/testing'
 import { SCOPES, TOKEN_PAGE } from '../hooks/lichess/auth'
 import { gameForm, readGameEvent, readPlaying } from '../hooks/lichess/game'
 import type { GameEvent } from '../hooks/lichess/game'
-import { applyState, clickGame, clockLeft, endingOf, formatClock, fromFull, isMyTurn, outcomeOf, playGame, readSettings, rollBack } from '../hooks/training/game'
+import type { GameSettings, GameSummary } from '../types'
+import { AFTER_TAKEBACK, CORRESPONDENCE_FULL, PLAYING, PLAYING_NONE } from './fixtures/lichess'
+import { applyState, clickGame, clockLeft, endingOf, awaiting, formatClock, fromFull, gameAtPly, newlyMine, isCorrespondence, isMyTurn, material, moveRows, sanMoves, outcomeOf, playGame, readSettings, rollBack } from '../hooks/training/game'
 
 /** A form's fields, as a plain object. */
 function fields(form: string | undefined) {
@@ -39,13 +41,13 @@ describe('the Board API, read', () => {
     for (const line of ['', '{"type":"chatLine","text":"hi"}', '{"type":"opponentGone","gone":true}', '{"error":"Missing scope"}', 'not json']) {
       expect(readGameEvent(line)).toBeUndefined()
     }
-    expect(readPlaying('{"nowPlaying":[{"gameId":"g4m3","fullId":"g4m3abcd"}]}')).toBe('g4m3')
-    expect(readPlaying('{"nowPlaying":[]}')).toBeUndefined()
   })
 
   test('the forms Lichess expects', () => {
     expect(fields(gameForm({ kind: 'ai', level: 5, clock: '5+3', color: 'black' }))).toEqual({ level: '5', 'clock.limit': '300', 'clock.increment': '3', color: 'black' })
     expect(fields(gameForm({ kind: 'seek', clock: '15+10', rated: true }))).toEqual({ rated: 'true', time: '15', increment: '10', variant: 'standard' })
+    expect(fields(gameForm({ kind: 'ai', level: 4, clock: '3d', color: 'white' }))).toEqual({ level: '4', days: '3', color: 'white' })
+    expect(fields(gameForm({ kind: 'seek', clock: '14d', rated: false }))).toEqual({ rated: 'false', days: '14', variant: 'standard' })
   })
 
   test('sign-in asks for games too', () => {
@@ -101,6 +103,15 @@ describe('a game, step by step', () => {
     expect(formatClock(7340)).toBe('0:07.3')
   })
 
+  test('a correspondence clock reads in days, hours and minutes', () => {
+    const minute = 60_000
+    expect(formatClock((2 * 24 + 12) * 60 * minute, true)).toBe('2d 12h')
+    expect(formatClock((5 * 60 + 3) * minute, true)).toBe('5h 03m')
+    expect(formatClock(42 * minute + 5000, true)).toBe('42m')
+    expect(formatClock(4 * minute + 5000)).toBe('4:05')
+    expect(formatClock(30 * minute)).toBe('30:00')
+  })
+
   test('the end: a draw offer, mate, and who won', () => {
     let g = fromFull(full(), 'magnus', undefined, 0)
     expect(applyState(g, stateOf(state('e2e4', { bdraw: true })), 0).drawOffer).toBe('b')
@@ -120,11 +131,92 @@ describe('/chess-break play …', () => {
     expect(readSettings(['Human', '15+10', 'rated'])).toEqual({ kind: 'seek', clock: '15+10', rated: true })
   })
 
+  test('days per move', () => {
+    const ai = readSettings(['stockfish', '4', '3d'])
+    expect(ai).toEqual({ kind: 'ai', level: 4, clock: '3d', color: 'random' })
+    expect(readSettings(['human', '3d'])).toEqual({ kind: 'seek', clock: '3d', rated: false })
+    expect(isCorrespondence(ai as GameSettings)).toBe(true)
+    expect(isCorrespondence({ kind: 'seek', clock: '10+0', rated: false })).toBe(false)
+  })
+
   test('what is refused', () => {
     expect(readSettings(['stockfish', '9'])).toBe('level')
     expect(readSettings(['stockfish', '1+0'])).toBe('aiClock')
     expect(readSettings(['human', '3+2'])).toBe('seekClock')
+    expect(readSettings(['stockfish', '9d'])).toBe('aiClock')
+    expect(readSettings(['human', '9d'])).toBe('seekClock')
     expect(readSettings([])).toBe('usage')
     expect(readSettings(['chess960'])).toBe('usage')
+  })
+})
+
+describe('the move list, the replay and the material', () => {
+  const played = (moves: string) => applyState(fromFull(full(), 'magnus', undefined, 0), stateOf(state(moves)), 0)
+
+  test('a short game: one pair a row', () => {
+    const sans = sanMoves(played('e2e4 e7e5 g1f3'))
+    expect(sans).toEqual(['e4', 'e5', 'Nf3'])
+    expect(moveRows(sans)).toEqual({ isCut: false, rows: [{ number: 1, ply: 0, sans: ['e4', 'e5'] }, { number: 2, ply: 2, sans: ['Nf3'] }] })
+  })
+
+  test('a long game: the oldest moves go behind …', () => {
+    const sans = Array.from({ length: 60 }, (_, i) => `m${i}`)
+    const { isCut, rows } = moveRows(sans)
+    expect(isCut).toBe(true)
+    expect(rows.length).toBe(7)
+    expect(rows[0]).toEqual({ number: 24, ply: 46, sans: ['m46', 'm47'] })
+    expect(rows[6]).toEqual({ number: 30, ply: 58, sans: ['m58', 'm59'] })
+  })
+
+  test('the board after any move', () => {
+    const g = played('e2e4 e7e5 g1f3 b8c6')
+    expect(gameAtPly(g, 3).fen).toBe(played('e2e4 e7e5 g1f3').fen)
+    expect(gameAtPly(g, 3).lastMove).toBe('g1f3')
+    expect(gameAtPly(g, 0).fen).toBe(fromFull(full(), 'magnus', undefined, 0).fen)
+    expect(gameAtPly(g, 0).lastMove).toBeUndefined()
+  })
+
+  test('captures and the lead', () => {
+    expect(material('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toEqual({ w: { captured: [], lead: 0 }, b: { captured: [], lead: 0 } })
+    expect(material('r1bqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toEqual({ w: { captured: ['n'], lead: 3 }, b: { captured: [], lead: 0 } })
+    // White promoted a pawn to a second queen: no count goes below zero.
+    const promoted = material('rnbqkbnQ/ppppppp1/8/8/8/8/1PPPPPPP/RNBQKBNR b KQq - 0 1')
+    expect(promoted.w).toEqual({ captured: ['r', 'p'], lead: 14 })
+    expect(promoted.b).toEqual({ captured: ['p'], lead: 0 })
+  })
+})
+
+describe('the account\u2019s games, as Lichess answered them', () => {
+  test('the list of games on', () => {
+    expect(readPlaying(PLAYING)).toEqual([{
+      id: 'cAf7Dbod', fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', side: 'w',
+      opponent: { aiLevel: 1 }, isMyTurn: true, secondsLeft: 86392, isCorrespondence: true, isRated: false,
+    }])
+    expect(readPlaying(PLAYING_NONE)).toEqual([])
+  })
+
+  test('a correspondence stream: clocks in ms; a takeback empties the moves', () => {
+    const g = fromFull(readGameEvent(CORRESPONDENCE_FULL) as Extract<GameEvent, { type: 'full' }>, 'magnus', undefined, 0)
+    expect(g.moves).toEqual(['e2e4', 'e7e5'])
+    expect(formatClock(clockLeft(g).white, true)).toBe('23h 59m')
+    expect(applyState(g, stateOf(AFTER_TAKEBACK), 0).moves).toEqual([])
+  })
+
+  test('a takeback offer is read', () => {
+    expect(stateOf(state('e2e4 e7e5', { btakeback: true })).takebackOffer).toBe('b')
+    expect(stateOf(state('e2e4')).takebackOffer).toBeUndefined()
+  })
+
+  const game = (id: string, isMyTurn: boolean, secondsLeft?: number): GameSummary =>
+    ({ id, fen: '', side: 'w', opponent: {}, isMyTurn, secondsLeft, isCorrespondence: true, isRated: false })
+
+  test('the games awaiting, the least time left first', () => {
+    expect(awaiting([game('a', true, 9000), game('b', false, 10), game('c', true, 300), game('d', true)]).map(g => g.id)).toEqual(['c', 'a', 'd'])
+  })
+
+  test('only games newly awaiting are told', () => {
+    const before = [game('a', true), game('b', false)]
+    expect(newlyMine(before, [game('a', true), game('b', true), game('c', true), game('d', false)]).map(g => g.id)).toEqual(['b', 'c'])
+    expect(newlyMine(before, before)).toEqual([])
   })
 })

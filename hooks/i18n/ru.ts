@@ -86,7 +86,17 @@ export const ru: Messages = {
     explain: 'Объяснить',
     practise: name => `Тренировать: ${name} ↗`,
     explaining: 'Claude разбирается…',
-    explainFailed: why => `Объяснения нет (${why}).`,
+    explainFailed: why => {
+      switch (why) {
+        case 'limit': return 'У Claude пока закончились лимиты.'
+        case 'busy': return 'Claude занят: попробуйте позже.'
+        case 'offline': return 'Не удалось связаться с Claude.'
+        case 'signedOut': return 'Claude Code не авторизован.'
+        case 'empty': return 'Claude ничего не ответил.'
+        case 'refused': return 'Запрос к Claude не отправлен.'
+        case 'other': return 'Claude не смог объяснить на этот раз.'
+      }
+    },
     statusHint: '/chess-break <ход> или открыть',
     signIn: 'Войти',
     signInTitle: 'Вход в Lichess для рейтинговых задач и партий',
@@ -119,6 +129,17 @@ export const ru: Messages = {
     abort: 'Прервать',
     playAgain: 'Ещё партию',
     puzzles: 'Задачи',
+    level: 'Уровень',
+    clock: 'Контроль',
+    colour: 'Цвет',
+    random: 'Случайно',
+    play: 'Играть',
+    games: 'Партии',
+    live: 'живая',
+    takeback: 'Вернуть ход',
+    awaitingCount: n => `${plural(n, 'партия ждёт', 'партии ждут', 'партий ждут')} твоего хода`,
+    opponentPlayed: (name, san) => `${name}: ход ${san}`,
+    yourMoveAgainst: name => `Твой ход: ${name}.`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Для партий нужен аккаунт Lichess: /chess-break login.'
@@ -129,6 +150,9 @@ export const ru: Messages = {
         case 'cannotAbort': return 'Обе стороны уже сходили: партию можно только сдать.'
         case 'confirmResign': return 'Нажми «Сдаться» ещё раз, чтобы сдаться.'
         case 'reconnecting': return 'Связь потеряна, переподключаемся…'
+        case 'seekPosted': return 'Вызов опубликован. Партия появится в списке, когда кто-нибудь его примет.'
+        case 'finishLiveFirst': return 'Сначала закончи живую партию.'
+        case 'takebackStockfishOnly': return 'Ход можно вернуть только против Stockfish.'
         case 'illegal': return `«${n.text}» здесь сыграть нельзя.`
         case 'refused': return `Lichess отказал: ${n.text}.`
         case 'failed': return `Lichess недоступен (${n.text}).`
@@ -137,7 +161,7 @@ export const ru: Messages = {
   },
   command: {
     description: 'Тренировка шахматной тактики: открыть панель, выбрать тему, посмотреть прогресс',
-    usage: '[<ход>|hint|solution|explain|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<ход>|hint|solution|explain|next|theme <тема>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|takeback|games|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'Панель тренировки открыта.',
     next: 'Новая задача.',
     noPuzzle: 'Задачи нет. Открой: /chess-break.',
@@ -160,7 +184,7 @@ export const ru: Messages = {
     signedIn: (name, rating) => `Вход выполнен: ${name}${rating ? `, рейтинг в задачах ${rating}` : ''}.`,
     notSignedIn: 'Вход не выполнен. /chess-break login — для рейтинговых задач.',
     loggedOut: 'Выход выполнен; токен отозван на Lichess.',
-    playUsage: '/chess-break play stockfish [1-8] [контроль] [white|black|random] или play human [контроль] [rated]',
+    playUsage: '/chess-break play stockfish [1-8] [контроль|дни] [white|black|random] или play human [контроль|дни] [rated]',
     badLevel: 'Уровни Stockfish — от 1 до 8.',
     badClock: clocks => `Контроль против Stockfish: ${clocks}.`,
     badSeekClock: clocks => `Lichess подбирает соперников таким приложениям только в рапиде и классике: ${clocks}.`,
@@ -172,6 +196,8 @@ export const ru: Messages = {
     drawAccepted: 'Ничья принята.',
     drawDeclined: 'Ничья отклонена.',
     aborted: 'Партия прервана.',
+    takebackAsked: 'Просьба вернуть ход отправлена.',
+    gamesNone: 'На Lichess нет идущих партий.',
     gameGoesOn: 'Claude закончил. Партия продолжается.',
   },
 }

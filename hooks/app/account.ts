@@ -1,4 +1,4 @@
-import { atom, update } from 'claude-code'
+import { atom, read, update } from 'claude-code'
 import type { HookStream, ProcessSpawnChunk, ProcessSpawnResult } from 'claude-code'
 
 import type { Attempt } from '../../types'
@@ -107,34 +107,44 @@ export async function signOut($: $) {
   if (token) await $.http.fetch(TOKEN_URL, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined)
   await $.store.delete('token')
   await $.store.delete('account')
-  await update($, view, v => ({ ...v, account: undefined, ratingDiff: undefined }))
+  await update($, view, v => ({ ...v, account: undefined, ratingDiff: undefined, games: undefined }))
 }
 
 /**
- * Sends a new Lichess puzzle's result to the account, rated, and shows the new rating. Reviews
+ * Sends a new Lichess puzzle's result to the account, rated or casual, and shows the new rating. Reviews
  * and puzzles from elsewhere stay local: Lichess rates a puzzle once.
  */
 export async function sendResult($: $, attempt: Attempt, isWin: boolean, theme: string) {
   if (attempt.isReview || attempt.puzzle.source !== 'lichess') return
   const token = await storedToken($)
   if (!token) return
+  const { isRated } = await read($, view)
   try {
+    // A casual result is still sent, so that Lichess counts the puzzle as seen.
     const res = await $.http.fetch(resultUrl(theme), {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ solutions: [{ id: attempt.puzzle.id, win: isWin, rated: true }] }),
+      body: JSON.stringify({ solutions: [{ id: attempt.puzzle.id, win: isWin, rated: isRated }] }),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const { rating, diff } = readResult(res.text)
     const after = await update($, view, v => ({
       ...v,
       account: v.account && rating !== undefined ? { ...v.account, rating } : v.account,
-      ratingDiff: diff,
+      ratingDiff: isRated ? diff : undefined,
     }))
     if (after.account) await $.store.set('account', after.account)
   } catch (err) {
     $.ui.log(`chess-break: result not sent to Lichess (${err instanceof Error ? err.message : String(err)})`, { to: 'debug' })
   }
+}
+
+/** Switches results between rated and casual, and saves it to the /config option. */
+export async function switchRated($: $) {
+  const { isRated } = await update($, view, v => ({ ...v, isRated: !v.isRated }))
+  // Refused, the switch holds for this session only.
+  const { deny } = await $.config.set({ key: 'chess-break.ratedPuzzles', value: isRated }).catch((err: unknown) => ({ deny: String(err) }))
+  if (deny) $.ui.log(`chess-break: rated puzzles not saved (${deny})`, { to: 'debug' })
 }
 
 /** The account in the pane at the start of a session. */

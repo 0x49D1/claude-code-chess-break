@@ -20,6 +20,18 @@
       "description": "While the pane is hidden, the end of the line under the prompt shows the puzzle: theme, whose move, the last move, the streak",
       "default": true
     },
+    "gameSound": {
+      "type": "boolean",
+      "title": "Sound when the opponent moves",
+      "description": "In a Lichess game with the pane hidden, a short sound joins the toast. macOS and the desktop app only",
+      "default": false
+    },
+    "ratedPuzzles": {
+      "type": "boolean",
+      "title": "Rated puzzles",
+      "description": "Signed in to Lichess, puzzles count for your puzzle rating. Off, they are casual: Lichess still marks them as played. c in the pane switches it",
+      "default": true
+    },
     "source": {
       "type": "string",
       "title": "Puzzles from",

@@ -71,7 +71,17 @@ export const ka: Messages = {
     explain: 'ახსნა',
     practise: name => `ივარჯიშე: ${name} ↗`,
     explaining: 'Claude ათვალიერებს…',
-    explainFailed: why => `ახსნა ვერ მივიღე (${why}).`,
+    explainFailed: why => {
+      switch (why) {
+        case 'limit': return 'Claude-ის ლიმიტი ამ ეტაპზე ამოიწურა.'
+        case 'busy': return 'Claude დაკავებულია: სცადეთ მოგვიანებით.'
+        case 'offline': return 'Claude-თან დაკავშირება ვერ მოხერხდა.'
+        case 'signedOut': return 'Claude Code-ში შესული არ ხართ.'
+        case 'empty': return 'Claude-მა პასუხი არ გასცა.'
+        case 'refused': return 'მოთხოვნა Claude-თან არ გაიგზავნა.'
+        case 'other': return 'Claude-მა ამჯერად ვერ ახსნა.'
+      }
+    },
     statusHint: '/chess-break <სვლა> ან გახსნა',
     signIn: 'შესვლა',
     signInTitle: 'შესვლა Lichess-ზე რეიტინგული ამოცანებისა და პარტიებისთვის',
@@ -104,6 +114,17 @@ export const ka: Messages = {
     abort: 'შეწყვეტა',
     playAgain: 'კიდევ ერთი',
     puzzles: 'ამოცანები',
+    level: 'დონე',
+    clock: 'კონტროლი',
+    colour: 'ფერი',
+    random: 'შემთხვევითი',
+    play: 'თამაში',
+    games: 'პარტიები',
+    live: 'ცოცხალი',
+    takeback: 'სვლის დაბრუნება',
+    awaitingCount: n => `${n} პარტია შენს სვლას ელოდება`,
+    opponentPlayed: (name, san) => `${name} — სვლა ${san}`,
+    yourMoveAgainst: name => `შენი სვლაა: ${name}.`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'პარტიებისთვის Lichess-ის ანგარიშია საჭირო: /chess-break login.'
@@ -114,6 +135,9 @@ export const ka: Messages = {
         case 'cannotAbort': return 'ორივე მხარემ უკვე იარა: ახლა მხოლოდ დანებება შეიძლება.'
         case 'confirmResign': return 'დასანებებლად კიდევ ერთხელ დააჭირე „დანებებას“.'
         case 'reconnecting': return 'კავშირი გაწყდა, ხელახლა ვუკავშირდებით…'
+        case 'seekPosted': return 'გამოწვევა გამოქვეყნდა. პარტია შენს სიაში გამოჩნდება, როცა ვინმე მიიღებს.'
+        case 'finishLiveFirst': return 'ჯერ მიმდინარე პარტია დაასრულე.'
+        case 'takebackStockfishOnly': return 'სვლის დაბრუნება მხოლოდ Stockfish-თან შეიძლება.'
         case 'illegal': return `„${n.text}“ აქ ვერ ითამაშება.`
         case 'refused': return `Lichess-მა უარი თქვა: ${n.text}.`
         case 'failed': return `Lichess მიუწვდომელია (${n.text}).`
@@ -122,7 +146,7 @@ export const ka: Messages = {
   },
   command: {
     description: 'ჭადრაკის ტაქტიკის ვარჯიში: პანელის გახსნა, თემის არჩევა, პროგრესის ნახვა',
-    usage: '[<სვლა>|hint|solution|explain|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<სვლა>|hint|solution|explain|next|theme <თემა>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|takeback|games|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'სავარჯიშო პანელი გაიხსნა.',
     next: 'ახალი ამოცანა.',
     noPuzzle: 'ამოცანა არ არის. გახსენი: /chess-break.',
@@ -145,7 +169,7 @@ export const ka: Messages = {
     signedIn: (name, rating) => `შესული ხარ როგორც ${name}${rating ? `, ამოცანების რეიტინგი ${rating}` : ''}.`,
     notSignedIn: 'არ ხარ შესული. /chess-break login — რეიტინგული ამოცანებისთვის.',
     loggedOut: 'გამოხვედი; ტოკენი Lichess-ზე გაუქმდა.',
-    playUsage: '/chess-break play stockfish [1-8] [კონტროლი] [white|black|random] ან play human [კონტროლი] [rated]',
+    playUsage: '/chess-break play stockfish [1-8] [კონტროლი|დღეები] [white|black|random] ან play human [კონტროლი|დღეები] [rated]',
     badLevel: 'Stockfish-ის დონეები 1-დან 8-მდეა.',
     badClock: clocks => `დროის კონტროლი Stockfish-თან: ${clocks}.`,
     badSeekClock: clocks => `Lichess ასეთ აპებს მოწინააღმდეგეს მხოლოდ რაპიდსა და კლასიკაში უძებნის: ${clocks}.`,
@@ -157,6 +181,8 @@ export const ka: Messages = {
     drawAccepted: 'ფრე მიღებულია.',
     drawDeclined: 'ფრეზე უარი ითქვა.',
     aborted: 'პარტია შეწყდა.',
+    takebackAsked: 'სვლის დაბრუნება მოთხოვნილია.',
+    gamesNone: 'Lichess-ზე მიმდინარე პარტია არ არის.',
     gameGoesOn: 'Claude-მა დაასრულა. შენი პარტია გრძელდება.',
   },
 }

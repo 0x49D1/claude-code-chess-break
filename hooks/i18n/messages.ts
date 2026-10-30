@@ -1,4 +1,4 @@
-import type { Feedback, GameNote, Source } from '../../types'
+import type { ExplainFailure, Feedback, GameNote, Source } from '../../types'
 import type { Ending } from '../training/game'
 
 export type Side = 'w' | 'b'
@@ -32,7 +32,7 @@ export type Messages = {
     explain: string
     practise: (theme: string) => string
     explaining: string
-    explainFailed: (why: string) => string
+    explainFailed: (why: ExplainFailure) => string
     statusHint: string
     signIn: string
     signInTitle: string
@@ -65,6 +65,17 @@ export type Messages = {
     abort: string
     playAgain: string
     puzzles: string
+    level: string
+    clock: string
+    colour: string
+    random: string
+    play: string
+    games: string
+    live: string
+    takeback: string
+    awaitingCount: (n: number) => string
+    opponentPlayed: (name: string, san: string) => string
+    yourMoveAgainst: (name: string) => string
     note: (n: GameNote) => string
   }
   command: {
@@ -104,6 +115,8 @@ export type Messages = {
     drawAccepted: string
     drawDeclined: string
     aborted: string
+    takebackAsked: string
+    gamesNone: string
     gameGoesOn: string
   }
 }

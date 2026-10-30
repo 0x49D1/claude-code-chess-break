@@ -2,8 +2,8 @@ import { atom, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
 import { restoreAccount } from './app/account'
-import { openPane, refreshDue } from './app/actions'
-import { resumeGame } from './app/game'
+import { openForTurn, refreshDue } from './app/actions'
+import { startRefresh } from './app/games'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
@@ -23,6 +23,8 @@ export const register: Register = (on, options) => {
   settings.language = String(options.language ?? 'auto')
   settings.source = asSource(options.source) ?? 'lichess'
   settings.promptLine = options.promptLine !== false
+  settings.gameSound = options.gameSound === true
+  settings.ratedPuzzles = options.ratedPuzzles !== false
 
   on('session.start', async ($, e, next) => {
     const locale = await resolveLocale($)
@@ -31,17 +33,27 @@ export const register: Register = (on, options) => {
     const progress = await storedProgress($)
     const theme = await storedTheme($)
     const source = await storedSource($)
-    await update($, view, v => ({ ...v, locale, progress, theme, source }))
+    await update($, view, v => ({ ...v, locale, progress, theme, source, isRated: settings.ratedPuzzles }))
     await refreshDue($)
     await restoreAccount($)
-    // A game left on at Lichess comes back; the session does not wait for it.
-    void resumeGame($).catch(() => undefined)
+    // The account's games come back, a live one on the pane; the session does not wait for them.
+    void startRefresh($).catch(() => undefined)
     return next(e)
+  })
+
+  // A change in the /config menu reaches the next result; the pane's own switch is not seen here.
+  on('config.set', { key: 'chess-break.ratedPuzzles' }, async ($, e, next) => {
+    const result = await next(e)
+    if (typeof result.value === 'boolean') {
+      const isRated = result.value
+      await update($, view, v => ({ ...v, isRated }))
+    }
+    return result
   })
 
   on('turn.start', async ($, e, next) => {
     await update($, view, v => ({ ...v, isClaudeWorking: true }))
-    if (settings.autoOpen) void openPane($).catch(() => undefined)
+    if (settings.autoOpen) void openForTurn($).catch(() => undefined)
     return next(e)
   })
 
@@ -51,8 +63,9 @@ export const register: Register = (on, options) => {
     if (e.agentId) return result
     const v = await update($, view, x => ({ ...x, isClaudeWorking: false }))
     if (!(await $.ui.panes()).some(p => p.id === PANE)) return result
-    if ((v.game && isOn(v.game)) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
-    else if (isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
+    // A correspondence game has no clock to lose on: it never holds the pane.
+    if ((v.game && isOn(v.game) && !v.game.isCorrespondence) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
+    else if (!v.game?.isCorrespondence && isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
     else await $.ui.close({ id: PANE })
     return result
   })

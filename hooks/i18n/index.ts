@@ -1,4 +1,5 @@
-import type { Locale } from '../../types'
+import type { GameSummary, Locale, Player } from '../../types'
+import { formatClock } from '../training/game'
 import { en } from './en'
 import { fr } from './fr'
 import { ka } from './ka'
@@ -30,3 +31,10 @@ export function pickLocale(hints: (string | undefined)[]): Locale {
   }
   return 'en'
 }
+
+/** A player by name: Stockfish by its level, a person by name. */
+export const playerName = (t: Messages, p: Player) => (p.aiLevel ? t.game.stockfish(p.aiLevel) : p.name ?? t.game.anonymous)
+
+/** A game of the list in one line: whose move, the opponent, the time left or `live`. */
+export const gameLine = (t: Messages, g: GameSummary) =>
+  `${g.isMyTurn ? '👉' : '⏳'} ${playerName(t, g.opponent)} · ${g.isCorrespondence ? formatClock((g.secondsLeft ?? 0) * 1000, true) : t.game.live}`

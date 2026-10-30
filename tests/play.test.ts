@@ -1,121 +1,8 @@
 import { expect, mock, test } from 'claude-code/testing'
-import type { On, ProcessSpawnChunk, RenderElement } from 'claude-code'
+import type { On, RenderElement } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
 
-/** A form's fields, as a plain object. */
-function fields(form: string | undefined) {
-  const out: Record<string, string> = {}
-  new URLSearchParams(form).forEach((value, key) => (out[key] = value))
-  return out
-}
-
-const PANE = {
-  plugin: 'chess-break',
-  component: 'Pane',
-  requestId: 'chess-break',
-  props: {
-    title: '♞ chess-break',
-    isFocused: true,
-    bodyColumns: 60,
-    placement: 'inline' as 'dock' | 'inline',
-    scroll: { offset: 0, bodyRows: 24 },
-    view: {},
-  },
-} as const
-
-const command = (args: string) => ({ command: 'chess-break', args, origin: { kind: 'composer' as const }, presentation: { isFullscreen: false, columns: 120 } })
-
-const full = (moves = '', extra: object = {}) =>
-  JSON.stringify({
-    type: 'gameFull', id: 'g4m3', rated: false,
-    white: { id: 'magnus', name: 'magnus', rating: 1500 }, black: { aiLevel: 3 },
-    clock: { initial: 600000, increment: 0 },
-    state: { type: 'gameState', moves, wtime: 600000, btime: 600000, status: 'started', ...extra },
-  })
-const state = (moves: string, extra: object = {}) => JSON.stringify({ type: 'gameState', moves, wtime: 590000, btime: 595000, status: 'started', ...extra })
-
-/** A curl child's output, fed by the test: lines, then the HTTP status curl writes at the end. */
-function feed() {
-  const queue: (ProcessSpawnChunk | null)[] = []
-  let wake = () => undefined as void
-  const put = (c: ProcessSpawnChunk | null) => {
-    queue.push(c)
-    wake()
-  }
-  return {
-    line: (text: string) => put({ stream: 'stdout', text: `${text}\n` }),
-    /** A piece as curl's write cut it: a line may end in the next one. */
-    raw: (text: string) => put({ stream: 'stdout', text }),
-    end: (status = 200) => {
-      put({ stream: 'stderr', text: `HTTP ${status}\n` })
-      put(null)
-    },
-    /** The pieces until the end, or until the child is killed (`signal`), as curl would stop. */
-    async *chunks(signal: AbortSignal) {
-      signal.addEventListener('abort', () => wake())
-      for (;;) {
-        while (!queue.length && !signal.aborted) await new Promise<void>(resolve => (wake = resolve))
-        if (signal.aborted) return
-        const c = queue.shift()!
-        if (c === null) return
-        yield c
-      }
-    },
-  }
-}
-
-type Call = { method: string; url: string; auth?: string; body?: string }
-
-/**
- * Lichess from memory. Short answers come from `answers` by the end of the address; each curl
- * child gets a feed of its own, kept by address in order, with its argv and stdin.
- */
-function lichess(on: On, answers: Record<string, { status: number; text: string }> = {}, panes: unknown[] = []) {
-  const calls: Call[] = []
-  const spawned: { argv: readonly string[]; input?: string; feed: ReturnType<typeof feed>; killed: AbortSignal }[] = []
-  let hasCurl = true
-  on('ui.status', async () => ({ value: undefined }))
-  on('ui.panes', async () => ({ value: panes as never }))
-  on('ui.open', async () => ({ value: { isPlaced: true } as never }))
-  on('process.run', async () => {
-    if (!hasCurl) throw new Error('ENOENT')
-    return { value: { exitCode: 0, stdout: 'curl 8.5.0', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
-  })
-  on('process.spawn', async function* (_$, e, next) {
-    const f = feed()
-    spawned.push({ argv: e.argv, input: e.input, feed: f, killed: next.signal })
-    for await (const chunk of f.chunks(next.signal)) yield chunk
-    return { value: { code: 0, signal: null } }
-  })
-  on('http.fetch', async (_$, e) => {
-    const call = { method: e.init?.method ?? 'GET', url: e.url, auth: e.init?.headers?.Authorization, body: e.init?.body }
-    calls.push(call)
-    const key = Object.keys(answers).find(k => e.url.endsWith(k))
-    const a = key ? answers[key]! : { status: 200, text: '{"ok":true}' }
-    return { value: { status: a.status, ok: a.status < 400, headers: {}, text: a.text } }
-  })
-  /** The curl children opened on an address ending so, oldest first. */
-  const streams = (end: string) => spawned.filter(s => String(s.argv.at(-1)).endsWith(end))
-  /** Lichess ends whatever is still open, a game as aborted, so that nothing outlives the test. */
-  const endAll = () => {
-    for (const s of spawned.filter(s => !s.killed.aborted)) {
-      s.feed.line(state('', { status: 'aborted' }))
-      s.feed.end()
-    }
-  }
-  return { calls, spawned, streams, endAll, noCurl: () => (hasCurl = false) }
-}
-
-/** Signed in as Magnus; resolves a wait that moves the clock on until `until` holds. */
-function signedIn(on: On, token = 'lip_good') {
-  mock.store(on, { token, account: { username: 'Magnus' } })
-  const clock = mock.clock(on)
-  return async (until: () => boolean, ms = 1, steps = 200) => {
-    for (let i = 0; i < steps && !until(); i++) await clock.advance(ms)
-  }
-}
-
-const AI = { '/api/challenge/ai': { status: 201, text: '{"id":"g4m3"}' } }
+import { AI, PANE, command, fields, full, lichess, signedIn, state, stockfishGame } from './fixtures/fake'
 
 test('Stockfish: the challenge, the stream through curl, moves from the prompt, resign twice', async ($, on) => {
   const settle = signedIn(on)
@@ -246,18 +133,6 @@ test('no curl: nothing goes to Lichess', async ($, on) => {
   expect(fake.calls.length).toBe(0)
 })
 
-/** A game against Stockfish under way, its stream open: resolves the stream and the settle. */
-async function stockfishGame($: Engine, on: On, panes: unknown[] = []) {
-  const settle = signedIn(on)
-  const fake = lichess(on, AI, panes)
-  await $.command.run(command('play stockfish'))
-  await settle(() => fake.streams('/stream/g4m3').length > 0)
-  const curl = fake.streams('/stream/g4m3')[0]!
-  curl.feed.line(full())
-  await settle(() => false, 1)
-  return { ...fake, curl, settle }
-}
-
 test('draws: offered, accepted, declined; abort before the second move', async ($, on) => {
   const { calls, curl, settle, endAll } = await stockfishGame($, on)
   expect((await $.command.run(command('draw'))).text).toBe('Draw offered.')
@@ -375,6 +250,7 @@ test('a game from the puzzle view: the sidebar starts one', async ($, on) => {
   const { calls, streams, endAll } = lichess(on, AI)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'play-stockfish' })
+  await ui.press({ key: 'setup-play' })
   expect(fields(calls.find(c => c.url.endsWith('/api/challenge/ai'))?.body)).toEqual({ level: '3', 'clock.limit': '600', 'clock.increment': '0', color: 'random' })
   await settle(() => streams('/stream/g4m3').length > 0)
   streams('/stream/g4m3')[0]!.feed.line(full())

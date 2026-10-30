@@ -262,6 +262,35 @@ test('the line under the prompt can be turned off', { options: { promptLine: fal
   expect(await tail()).not.toContain('♞')
 })
 
+test('a failed explanation says why, and Explain asks again', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  lichess(on)
+  const usage = { input_tokens: 0, output_tokens: 0 } as never
+  let calls = 0
+  on('model.complete', async () => {
+    calls++
+    if (calls === 2) throw new Error('refused')
+    return { value: { isAnswered: false, reason: 'api-error', status: 429, error: 'rate_limit', usage } }
+  })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  await ui.press({ key: 'reveal' })
+  await ui.press({ key: 'explain' })
+  expect(await ui.find({ text: /🧠 Claude is out of usage limits for now\./ })).toBeDefined()
+  expect(await ui.find({ key: 'explain' })).toBeDefined()
+
+  await ui.press({ key: 'explain' })
+  expect(calls).toBe(2)
+  expect(await ui.find({ text: /🧠 The request to Claude was not sent\./ })).toBeDefined()
+  expect(await ui.find({ text: /looking at it/ })).toBeUndefined()
+
+  // The command asks again too, and answers the pane's words.
+  expect((await $.command.run(command('explain'))).text).toBe('Claude is out of usage limits for now.')
+  expect(calls).toBe(3)
+  await ui.unmount()
+})
+
 test('a finished puzzle replays move by move, and Claude explains it on request', async ($, on) => {
   quietStatus(on)
   mock.store(on)

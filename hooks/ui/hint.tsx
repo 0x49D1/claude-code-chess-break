@@ -4,7 +4,7 @@ import type { Register } from 'claude-code'
 import type { View } from '../../types'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import { solverOf } from '../training/attempt'
-import { clockLeft, formatClock, isMyTurn, isOn } from '../training/game'
+import { awaiting, clockLeft, formatClock, isMyTurn, isOn } from '../training/game'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
@@ -18,14 +18,17 @@ export function hintTail(v: View): string | undefined {
     const [mine, theirs] = g.side === 'w' ? [left.white, left.black] : [left.black, left.white]
     return [
       `⚔ ${opponent.aiLevel ? t.game.stockfish(opponent.aiLevel) : opponent.name ?? t.game.anonymous}`,
-      `⏱ ${formatClock(mine)} – ${formatClock(theirs)}`,
+      `⏱ ${formatClock(mine, g.isCorrespondence)} – ${formatClock(theirs, g.isCorrespondence)}`,
       isMyTurn(g) ? t.game.yourMove : t.game.theirMove,
       t.pane.statusHint,
     ].join(' · ')
   }
   if (v.seeking) return `⏳ ${t.game.searching(v.seeking.clock, v.seeking.rated)}`
   const a = v.attempt
-  if (!a || a.status !== 'playing') return undefined
+  if (!a || a.status !== 'playing') {
+    const waiting = awaiting(v.games ?? []).filter(x => x.isCorrespondence).length
+    return waiting ? `⚔ ${t.game.awaitingCount(waiting)}` : undefined
+  }
   const last = a.played.at(-1) ?? a.puzzle.lastMove?.san
   return [
     `♞ ${a.puzzle.source === 'chesscom' ? a.puzzle.title ?? t.pane.dailyPuzzle : t.theme(v.theme)}`,

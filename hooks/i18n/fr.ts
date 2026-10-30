@@ -77,7 +77,17 @@ export const fr: Messages = {
     explain: 'Expliquer',
     practise: name => `S’entraîner : ${name} ↗`,
     explaining: 'Claude regarde…',
-    explainFailed: why => `Pas d’explication (${why}).`,
+    explainFailed: why => {
+      switch (why) {
+        case 'limit': return 'Claude a atteint ses limites d’usage pour l’instant.'
+        case 'busy': return 'Claude est occupé : réessayez plus tard.'
+        case 'offline': return 'Claude est injoignable.'
+        case 'signedOut': return 'Claude Code n’est pas connecté.'
+        case 'empty': return 'Claude n’a rien répondu.'
+        case 'refused': return 'La demande à Claude n’a pas été envoyée.'
+        case 'other': return 'Claude n’a pas pu l’expliquer cette fois.'
+      }
+    },
     statusHint: '/chess-break <coup> ou ouvrir',
     signIn: 'Se connecter',
     signInTitle: 'Se connecter à Lichess pour des puzzles et parties classés',
@@ -110,6 +120,17 @@ export const fr: Messages = {
     abort: 'Annuler la partie',
     playAgain: 'Rejouer',
     puzzles: 'Puzzles',
+    level: 'Niveau',
+    clock: 'Cadence',
+    colour: 'Couleur',
+    random: 'Au hasard',
+    play: 'Jouer',
+    games: 'Parties',
+    live: 'en direct',
+    takeback: 'Reprendre',
+    awaitingCount: n => `${n} partie${n > 1 ? 's' : ''} attend${n > 1 ? 'ent' : ''} ton coup`,
+    opponentPlayed: (name, san) => `${name} a joué ${san}`,
+    yourMoveAgainst: name => `À toi de jouer contre ${name}.`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Les parties demandent un compte Lichess : /chess-break login.'
@@ -120,6 +141,9 @@ export const fr: Messages = {
         case 'cannotAbort': return 'Les deux camps ont joué : la partie ne peut plus qu’être abandonnée.'
         case 'confirmResign': return 'Appuie encore sur abandonner pour abandonner.'
         case 'reconnecting': return 'Connexion perdue, reconnexion…'
+        case 'seekPosted': return 'Demande publiée. La partie rejoindra ta liste de parties quand quelqu’un l’acceptera.'
+        case 'finishLiveFirst': return 'Termine d’abord la partie en direct.'
+        case 'takebackStockfishOnly': return 'On ne reprend un coup que contre Stockfish.'
         case 'illegal': return `« ${n.text} » ne peut pas être joué ici.`
         case 'refused': return `Lichess a refusé : ${n.text}.`
         case 'failed': return `Lichess est injoignable (${n.text}).`
@@ -128,7 +152,7 @@ export const fr: Messages = {
   },
   command: {
     description: 'Entraînement tactique aux échecs : ouvrir le panneau, choisir un thème, voir ses progrès',
-    usage: '[<coup>|hint|solution|explain|next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|login|logout|account|lang auto|en|fr|ru|ka]',
+    usage: '[<coup>|hint|solution|explain|next|theme <nom>|themes|source lichess|chesscom|offline|stats|review|play stockfish|human|resign|draw|abort|takeback|games|login|logout|account|lang auto|en|fr|ru|ka]',
     opened: 'Panneau d’entraînement ouvert.',
     next: 'Nouveau puzzle.',
     noPuzzle: 'Aucun puzzle en cours. Ouvre-en un avec /chess-break.',
@@ -151,7 +175,7 @@ export const fr: Messages = {
     signedIn: (name, rating) => `Connecté en tant que ${name}${rating ? `, classement puzzle ${rating}` : ''}.`,
     notSignedIn: 'Non connecté. /chess-break login pour des puzzles classés.',
     loggedOut: 'Déconnecté ; le token est révoqué sur Lichess.',
-    playUsage: '/chess-break play stockfish [1-8] [cadence] [white|black|random], ou play human [cadence] [rated]',
+    playUsage: '/chess-break play stockfish [1-8] [cadence|jours] [white|black|random], ou play human [cadence|jours] [rated]',
     badLevel: 'Les niveaux de Stockfish vont de 1 à 8.',
     badClock: clocks => `Cadences contre Stockfish : ${clocks}.`,
     badSeekClock: clocks => `Lichess n’apparie les applis comme celle-ci qu’en rapide et en classique : ${clocks}.`,
@@ -163,6 +187,8 @@ export const fr: Messages = {
     drawAccepted: 'Nulle acceptée.',
     drawDeclined: 'Nulle refusée.',
     aborted: 'Partie annulée.',
+    takebackAsked: 'Reprise demandée.',
+    gamesNone: 'Aucune partie en cours sur Lichess.',
     gameGoesOn: 'Claude a fini. Ta partie continue.',
   },
 }

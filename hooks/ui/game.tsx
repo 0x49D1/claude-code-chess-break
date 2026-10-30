@@ -4,13 +4,14 @@ import type { Elements } from 'claude-code'
 import type { Game, View } from '../../types'
 import { signIn } from '../app/account'
 import { backToPuzzles } from '../app/actions'
-import { abort, cancelSeek, draw, gameMove, playAgain, resign } from '../app/game'
+import { abort, cancelSeek, draw, gameMove, playAgain, resign, takeback } from '../app/game'
 import { INITIAL_VIEW } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
+import { playerName } from '../i18n'
 import type { Messages } from '../i18n'
 import { gameUrl } from '../lichess/game'
-import { canAbort, clickGame, clockLeft, endingOf, formatClock, isMyTurn, isOn, outcomeOf, playGame, playTyped } from '../training/game'
+import { canAbort, clickGame, clockLeft, endingOf, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
 import { board, glyphOf } from './board'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -18,8 +19,7 @@ const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 /** A player as the pane names them: Stockfish by its level, a person by name and rating. */
 function nameOf(g: Game, side: 'w' | 'b', t: Messages) {
   const p = side === 'w' ? g.white : g.black
-  if (p.aiLevel) return t.game.stockfish(p.aiLevel)
-  return `${p.name ?? t.game.anonymous}${p.rating ? ` (${p.rating})` : ''}`
+  return `${playerName(t, p)}${p.rating && !p.aiLevel ? ` (${p.rating})` : ''}`
 }
 
 /** The seek waiting for a pairing, or the game: clocks beside the board, then its actions. */
@@ -48,11 +48,45 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
   // Whose clock runs is Lichess's word, not the pending move's.
   const toMove = g.moves.length % 2 === 0 ? 'w' : 'b'
   const left = clockLeft(g)
-  const clockLine = (side: 'w' | 'b') => (
-    <Text key={`clock-${side}`} bold={isPlaying && toMove === side}>
-      {`${isPlaying && toMove === side ? '▶' : ' '} ⏱ ${formatClock(side === 'w' ? left.white : left.black)}  ${nameOf(g, side, t)}`}
-    </Text>
+  const counts = material(g.fen)
+  const clockLine = (side: 'w' | 'b') => {
+    const ms = side === 'w' ? left.white : left.black
+    const { captured, lead } = counts[side]
+    const taken = captured.map(p => glyphOf(side === 'w' ? p : p.toUpperCase())).join('')
+    const isLow = isPlaying && side === g.side && !g.isCorrespondence && ms < 30_000
+    return (
+      <Text key={`clock-${side}`} bold={isPlaying && toMove === side} color={isLow ? 'error' : undefined}>
+        {`${isPlaying && toMove === side ? '▶' : ' '} ⏱ ${formatClock(ms, g.isCorrespondence)}  ${nameOf(g, side, t)}${taken ? `  ${taken}` : ''}${lead ? ` +${lead}` : ''}`}
+      </Text>
+    )
+  }
+  // Once the game is over, its moves replay on the board, as a finished puzzle's do.
+  const sans = sanMoves(g)
+  const ply = isPlaying ? sans.length : Math.min(v.replayPly ?? sans.length, sans.length)
+  const shown = isPlaying ? g : gameAtPly(g, ply)
+  const goTo = (n: number) => void update($, view, x => ({ ...x, replayPly: Math.max(0, Math.min(n, sans.length)) }))
+  const { isCut, rows } = moveRows(sans)
+  const moveList = (
+    <Box flexDirection="column">
+      {isCut && <Text dimColor>…</Text>}
+      {rows.map(row => (
+        <Box key={`moves-${row.number}`} flexDirection="row" columnGap={1}>
+          <Text dimColor>{`${row.number}.`}</Text>
+          {row.sans.map((san, i) => {
+            const at = row.ply + i + 1
+            const label = <Text inverse={at === ply}>{san}</Text>
+            return isPlaying ? (
+              <Box key={`san-${at}`}>{label}</Box>
+            ) : (
+              <Button key={`game-ply-${at}`} plain onPress={() => goTo(at)}>{label}</Button>
+            )
+          })}
+        </Box>
+      ))}
+    </Box>
   )
+  const hasMoved = g.moves.length > (g.side === 'w' ? 0 : 1)
+  const canTakeBack = isPlaying && hasMoved && !!(opponent === 'w' ? g.white : g.black).aiLevel
   const title = [`⚔ ${nameOf(g, opponent, t)}`, g.isRated ? t.game.rated : t.game.casual, ...(g.settings ? [g.settings.clock] : [])].join('  ·  ')
   const suggestions = isMyTurn(g) && v.typed ? completions(g.fen, v.typed) : []
 
@@ -61,10 +95,11 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
       <Text bold>{title}</Text>
       <Box flexDirection="row" gap={2}>
         <Box borderStyle="round" borderDimColor paddingX={1}>
-          {board(els, { fen: g.fen, side: g.side, lastMove: g.lastMove, selected: g.selected, isActive: isMyTurn(g) }, square => void gameMove($, x => clickGame(x, square)))}
+          {board(els, { fen: shown.fen, side: g.side, lastMove: shown.lastMove, selected: g.selected, isActive: isMyTurn(g) }, square => void gameMove($, x => clickGame(x, square)))}
         </Box>
         <Box flexDirection="column">
           {clockLine(opponent)}
+          {moveList}
           {clockLine(g.side)}
         </Box>
       </Box>
@@ -110,9 +145,13 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
           <Button key="resign" plain onPress={() => void resign($)}>{`🏳 ${t.game.resign}`}</Button>
           {!g.drawOffer && <Button key="draw" plain onPress={() => void draw($, true)}>{`🤝 ${t.game.offerDraw}`}</Button>}
           {canAbort(g) && <Button key="abort" plain onPress={() => void abort($)}>{`✖ ${t.game.abort}`}</Button>}
+          {canTakeBack && <Button key="takeback" plain onPress={() => void takeback($)}>{`↩ ${t.game.takeback}`}</Button>}
+          {g.isCorrespondence && <Button key="games" plain onPress={() => void backToPuzzles($)}>{`☰ ${t.game.games}`}</Button>}
         </Box>
       ) : (
         <Box flexDirection="row" gap={2}>
+          <Button key="game-back" plain hotkey="j" onPress={() => goTo(ply - 1)}>◀</Button>
+          <Button key="game-forward" plain hotkey="k" onPress={() => goTo(ply + 1)}>▶</Button>
           {g.settings && <Button key="play-again" plain onPress={() => void playAgain($)}>{`🔄 ${t.game.playAgain}`}</Button>}
           <Button key="puzzles" plain onPress={() => void backToPuzzles($)}>{`🧩 ${t.game.puzzles}`}</Button>
           <Link href={gameUrl(g.id)} label="Lichess ↗" />

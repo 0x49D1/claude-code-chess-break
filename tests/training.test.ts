@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'claude-code/testing'
+import type { ModelApiError } from 'claude-code'
 
 import type { Feedback, Puzzle } from '../types'
 import { LOCALES, messagesFor, pickLocale } from '../hooks/i18n'
@@ -6,7 +7,7 @@ import { parseDaily } from '../hooks/chesscom/client'
 import { analysisUrl, parsePuzzle } from '../hooks/lichess/client'
 import { OFFLINE_COUNT, offlinePuzzle } from '../hooks/offline'
 import { atPly, click, hint, isClean, isStarted, moveLabels, moveLine, play, promote, reply, reveal, start } from '../hooks/training/attempt'
-import { explainRequest, learnLinks, readExplanation } from '../hooks/training/explain'
+import { explainFailure, explainRequest, learnLinks, readExplanation } from '../hooks/training/explain'
 import { NO_PROGRESS, recordProgress, themeLines, weakest } from '../hooks/training/progress'
 import { dueIds, recordReview } from '../hooks/training/review'
 import { MIX } from '../hooks/training/themes'
@@ -91,6 +92,20 @@ describe('an attempt', () => {
     expect(ask.prompt).toContain('Moves the player tried that were wrong: Qe7')
     expect(ask.prompt).toContain('Answer in Russian')
     expect(ask.system).toContain('no links')
+  })
+
+  test('a failed explanation says why', () => {
+    const usage = { input_tokens: 0, output_tokens: 0 } as never
+    const api = (status: number | null, error: ModelApiError) => explainFailure({ isAnswered: false, reason: 'api-error', status, error, usage })
+    expect(api(429, 'unknown')).toBe('limit')
+    expect(api(400, 'rate_limit')).toBe('limit')
+    expect(api(200, 'overloaded')).toBe('busy')
+    expect(api(503, 'server_error')).toBe('busy')
+    expect(api(null, 'unknown')).toBe('offline')
+    expect(api(401, 'authentication_failed')).toBe('signedOut')
+    expect(explainFailure({ isAnswered: false, reason: 'empty-reply', usage })).toBe('empty')
+    expect(api(400, 'invalid_request')).toBe('other')
+    expect(explainFailure({ isAnswered: false, reason: 'aborted', usage })).toBe('other')
   })
 
   test('the answer read in its parts; links chosen by the mod', () => {

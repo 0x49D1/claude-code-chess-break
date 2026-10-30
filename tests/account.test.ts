@@ -115,6 +115,70 @@ test('a pasted token signs in; puzzles come from the account and count as rated'
   await ui.unmount()
 })
 
+test('c switches puzzles to casual: saved to /config, sent unrated, no rating change', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  const calls = lichess(on)
+  const saved: unknown[] = []
+  on('config.set', async (_$, e) => {
+    saved.push([e.key, e.value])
+    return { value: e.value }
+  })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  expect(await ui.find({ key: 'rated' })).toBeUndefined()
+
+  await ui.press({ key: 'login' })
+  await ui.input({ key: 'token', text: 'lip_good' })
+  await ui.press({ key: 'rated' })
+  expect(await ui.find({ text: /^casual$/ })).toBeDefined()
+  expect(saved).toEqual([['chess-break.ratedPuzzles', false]])
+
+  await ui.press({ key: 'next' })
+  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  const result = calls.find(c => c.url.includes('/api/puzzle/batch/mix'))
+  expect(JSON.parse(result!.body!)).toEqual({ solutions: [{ id: 'abc12', win: true, rated: false }] })
+  expect(await ui.find({ text: /👤 magnus · ⭐ 2108$/ })).toBeDefined()
+
+  await ui.press({ key: 'rated' })
+  expect(await ui.find({ text: /^rated$/ })).toBeDefined()
+  expect(saved.at(-1)).toEqual(['chess-break.ratedPuzzles', true])
+  await ui.unmount()
+})
+
+test('Rated puzzles turned off in /config holds for the next result', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  const calls = lichess(on)
+  on('config.set', async (_$, e) => ({ value: e.value }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  await ui.press({ key: 'login' })
+  await ui.input({ key: 'token', text: 'lip_good' })
+  await $.config.set({ key: 'chess-break.ratedPuzzles', value: false, previous: true, provider: { plugin: 'chess-break', tier: 'user' }, origin: { kind: 'composer' } })
+  expect(await ui.find({ text: /^casual$/ })).toBeDefined()
+  await ui.press({ key: 'next' })
+  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  const result = calls.find(c => c.url.includes('/api/puzzle/batch/mix'))
+  expect(JSON.parse(result!.body!).solutions[0].rated).toBe(false)
+  await ui.unmount()
+})
+
+test('the Rated puzzles option off starts casual', { options: { ratedPuzzles: false } }, async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  mock.env(on, {})
+  lichess(on)
+  on('command.register', async (_$, e) => ({ value: { command: e.name } }))
+  on('session.start', async (_$, e) => e)
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'login' })
+  await ui.input({ key: 'token', text: 'lip_good' })
+  expect(await ui.find({ text: /^casual$/ })).toBeDefined()
+  await ui.unmount()
+})
+
 test('signing in through the browser: the listener catches the redirect, its code becomes a token', async ($, on) => {
   mock.store(on)
   const clock = mock.clock(on)
