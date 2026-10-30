@@ -4,7 +4,7 @@ import { checkedKing, legal, pieceAt } from '../chess/position'
 import type { Color } from '../chess/position'
 
 /** What the board draws: a position from a side, the marks on it, and whether its moves can be picked. */
-export type BoardView = { fen: string; side: Color; lastMove?: string; selected?: string; hint?: string; isActive: boolean }
+export type BoardView = { fen: string; side: Color; lastMove?: string; selected?: string; hint?: string; isActive: boolean; hasEmojiPawn: boolean }
 
 /**
  * A printed diagram: one ink for every piece, white ones outlined and black ones solid, on cream
@@ -22,13 +22,21 @@ const DIAGRAM = {
   capture: '#d9a99f',
   dot: '#2b6f8a',
   check: '#e05a4f',
+  /** The black pawn where it can only be drawn outlined, as the white one is. */
+  pawn: '#9b2335',
 }
 
-const SOLID: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+/**
+ * The solid pawn is the one chess sign that is also an emoji, so some terminals draw it in colour
+ * and in another shape. The text variation selector asks for the plain glyph, like the others.
+ * Where that is ignored, the black pawn is drawn outlined in its own ink.
+ */
+const SOLID: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟\uFE0E' }
 const OUTLINE: Record<string, string> = { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' }
 
 /** A piece as the diagram draws it: `N` an outlined knight, `n` a solid one. */
-export const glyphOf = (piece: string) => (piece === piece.toUpperCase() ? OUTLINE : SOLID)[piece.toLowerCase()] ?? piece
+export const glyphOf = (piece: string, hasEmojiPawn = false) =>
+  piece === 'p' && hasEmojiPawn ? OUTLINE.p : (piece === piece.toUpperCase() ? OUTLINE : SOLID)[piece.toLowerCase()] ?? piece
 
 export const BOARD_COLUMNS = 2 + 8 * 2
 
@@ -54,10 +62,12 @@ export function board(els: Elements[keyof Elements], shown: BoardView, onSquare:
         : isTarget && piece ? DIAGRAM.capture
         : last.includes(name) ? (isCream ? DIAGRAM.lastCream : DIAGRAM.lastSage)
         : isCream ? DIAGRAM.cream : DIAGRAM.sage
-    const mark = piece ? glyphOf(piece) : isTarget ? '·' : ' '
+    const mark = piece ? glyphOf(piece, shown.hasEmojiPawn) : isTarget ? '·' : ' '
+    const isRedPawn = piece === 'p' && shown.hasEmojiPawn
+    const ink = isRedPawn ? DIAGRAM.pawn : !piece && isTarget ? DIAGRAM.dot : DIAGRAM.ink
     return (
       <Button key={`sq-${name}`} plain onPress={() => onSquare(name)}>
-        <Text backgroundColor={bg} color={!piece && isTarget ? DIAGRAM.dot : DIAGRAM.ink} bold={!piece}>{`${mark} `}</Text>
+        <Text backgroundColor={bg} color={ink} bold={!piece || isRedPawn}>{`${mark} `}</Text>
       </Button>
     )
   }

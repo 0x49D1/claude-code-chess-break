@@ -157,7 +157,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
         <Text bold>{title}</Text>
         <Box flexDirection="row" gap={2}>
           <Box borderStyle="round" borderDimColor paddingX={1}>
-            {board(els, { ...shown, side: solverOf(a), isActive: shown.status === 'playing' }, square => void change($, x => click(x, square)))}
+            {board(els, { ...shown, side: solverOf(a), isActive: shown.status === 'playing', hasEmojiPawn: v.hasEmojiPawn }, square => void change($, x => click(x, square)))}
           </Box>
           {sidebar($, els, v, t)}
         </Box>

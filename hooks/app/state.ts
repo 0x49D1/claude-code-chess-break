@@ -22,6 +22,7 @@ export const INITIAL_VIEW: View = {
   session: [],
   isClaudeWorking: false,
   isRated: true,
+  hasEmojiPawn: false,
 }
 
 /** The person's settings, as the module was last loaded with them. */
