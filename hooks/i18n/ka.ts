@@ -135,6 +135,16 @@ export const ka: Messages = {
     awaitingCount: n => `${n} პარტია შენს სვლას ელოდება`,
     opponentPlayed: (name, san) => `${name} — სვლა ${san}`,
     yourMoveAgainst: name => `შენი სვლაა: ${name}.`,
+    review: 'განხილვა',
+    analysisOnLichess: 'ანალიზი Lichess-ზე ხდება: გახსენი პარტია იქ და დააჭირე „კომპიუტერული ანალიზის მოთხოვნას“. განსახილველი სვლები აქ გამოჩნდება, როცა მზად იქნება.',
+    openOnLichess: 'პარტიის გახსნა Lichess-ზე ↗',
+    waitingAnalysis: 'ველოდებით Lichess-ის ანალიზს…',
+    analysisNotYet: 'Lichess-ს ამ პარტიის ანალიზი ჯერ არ აქვს.',
+    checkAgain: 'თავიდან შემოწმება',
+    analysisFailed: why => `Lichess-ის ანალიზი ვერ წავიკითხეთ (${why}).`,
+    noMistakes: 'Lichess-მა შენს სვლებში შეცდომა ვერ იპოვა.',
+    costliest: 'შენი ყველაზე ძვირი სვლები, Lichess-ის ანალიზით:',
+    mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'უზუსტობა', Mistake: 'შეცდომა', Blunder: 'უხეში შეცდომა' }[judgment]} · უკეთესი ${best} · −${pawns}`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'პარტიებისთვის Lichess-ის ანგარიშია საჭირო: /chess-break login.'

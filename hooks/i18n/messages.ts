@@ -1,4 +1,4 @@
-import type { ExplainFailure, Feedback, GameNote, Source } from '../../types'
+import type { ExplainFailure, Feedback, GameNote, Judgment, Source } from '../../types'
 import type { Ending } from '../training/game'
 
 export type Side = 'w' | 'b'
@@ -86,6 +86,16 @@ export type Messages = {
     awaitingCount: (n: number) => string
     opponentPlayed: (name: string, san: string) => string
     yourMoveAgainst: (name: string) => string
+    review: string
+    analysisOnLichess: string
+    openOnLichess: string
+    waitingAnalysis: string
+    analysisNotYet: string
+    checkAgain: string
+    analysisFailed: (why: string) => string
+    noMistakes: string
+    costliest: string
+    mistake: (move: string, judgment: Judgment, best: string, pawns: string) => string
     note: (n: GameNote) => string
   }
   command: {

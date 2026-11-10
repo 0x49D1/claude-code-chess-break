@@ -76,6 +76,17 @@ export type ThemeResult = { played: number; accuracy: number; performance: numbe
 /** Lichess's puzzle dashboard as last read for the progress screen, or why it could not be. */
 export type Dashboard = { themes: Record<string, ThemeResult> } | { failed: string }
 
+export type Judgment = 'Inaccuracy' | 'Mistake' | 'Blunder'
+
+/** One of the person's moves Lichess's analysis judged: its index in the game's moves, and the pawns it lost (in centipawns). */
+export type Mistake = { ply: number; san: string; judgment: Judgment; best: string; loss: number }
+
+/** The review of a finished game: waiting for Lichess's analysis, given up waiting, failed, or ready. */
+export type GameAnalysis =
+  | { gameId: string; state: 'waiting' | 'gaveUp' }
+  | { gameId: string; state: 'failed'; why: string }
+  | { gameId: string; state: 'ready'; mistakes: Mistake[] }
+
 export type Daily = { day: string; done: number; metOn?: string; streak: number; best: number }
 
 /** A game to start: Lichess's Stockfish at a level, or a seek for a person; the clock as `minutes+increment`. */
@@ -175,6 +186,8 @@ export type View = {
   /** The progress screen is open. */
   isProgressShown?: boolean
   dashboard?: Dashboard
+  /** The finished game's review, from Lichess's computer analysis. */
+  analysis?: GameAnalysis
   /** The move a finished puzzle is replayed at: 0 its start, played.length its end; undefined the end. */
   replayPly?: number
   /** Claude's explanation of a finished puzzle: asked, given, or failed. */
