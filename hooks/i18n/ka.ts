@@ -67,6 +67,7 @@ export const ka: Messages = {
     whatsNew: 'რა არის ახალი',
     allChanges: 'ყველა ცვლილება',
     changesUnread: 'ცვლილებების სია ვერ წავიკითხეთ.',
+    times: (average, fastest) => `სუფთა ამოხსნები: საშუალოდ ${average}, ყველაზე სწრაფი ${fastest}`,
     dueCount: n => `${n} ამოცანა გასამეორებლად`,
     noneDue: 'გასამეორებელი არაფერია',
     hint: 'მინიშნება',

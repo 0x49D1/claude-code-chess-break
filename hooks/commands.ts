@@ -7,7 +7,7 @@ import { change, explain, loadNext, next, openPane, refreshDue } from './app/act
 import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './app/game'
 import { refreshGames } from './app/games'
 import { refreshDashboard } from './app/progress'
-import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview } from './app/state'
+import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
 import { LOCALES, asLocale, gameLine, messagesFor } from './i18n'
 import { AI_CLOCKS, DAYS, SEEK_CLOCKS } from './lichess/game'
@@ -15,6 +15,7 @@ import { hint, play, reveal, solverOf } from './training/attempt'
 import { awaiting, isOn, playTyped, readSettings } from './training/game'
 import { learnLinks, readExplanation } from './training/explain'
 import { progressRows, spark } from './training/history'
+import { averageMs, formatTime } from './training/timing'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
 import { THEME_GROUPS, findTheme } from './training/themes'
@@ -89,13 +90,21 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const weak = weakest(progress)
         // The last 4 weeks' bars, and Lichess's rating when signed in, after each all-time line.
         const rows = new Map(progressRows(await storedHistory($), now, await refreshDashboard($)).map(r => [r.theme, r]))
+        // And each theme's average time for a clean solve.
+        const times = await storedTimes($)
         const trend = (theme: string) => {
           const row = rows.get(theme)
-          return `${row?.accuracy === undefined ? '' : ` · ${spark(row.weeks)}`}${row?.lichess ? ` · ⭐ ${row.lichess.performance}` : ''}`
+          const timing = times.themes[theme]
+          return [
+            ...(row?.accuracy === undefined ? [] : [spark(row.weeks)]),
+            ...(row?.lichess ? [`⭐ ${row.lichess.performance}`] : []),
+            ...(timing?.count ? [`⏱ ${formatTime(averageMs(timing))}`] : []),
+          ].map(part => ` · ${part}`).join('')
         }
         return {
           text: [
             t.command.statsHead(progress.streak, progress.best, due ? t.pane.dueCount(due) : t.pane.noneDue),
+            ...(times.all.count ? [`⏱ ${t.pane.times(formatTime(averageMs(times.all)), formatTime(times.all.fastestMs))}`] : []),
             ...lines.map(l => `${t.theme(l.theme)}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)${trend(l.theme)}`),
             ...(weak ? [t.command.weakest(t.theme(weak.theme), weak.theme)] : []),
           ].join('\n'),

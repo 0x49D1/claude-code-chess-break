@@ -13,11 +13,15 @@ import { awaiting, isOn } from '../training/game'
 import { recordDaily } from '../training/daily'
 import { recordHistory } from '../training/history'
 import { recordProgress } from '../training/progress'
+import { recordTime } from '../training/timing'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedHistory, storedProgress, storedReview } from './state'
+import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedHistory, storedProgress, storedReview, storedTimes } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
+
+/** Redraws the pane every second while a puzzle is played in it and it is shown, so its clock moves. */
+let puzzleTick: { cancel(): void } | undefined
 
 // Title, framed board, feedback, moves, themes, an explanation, field, suggestions, buttons.
 const PANE_ROWS = 24
@@ -34,11 +38,43 @@ async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle>
   return readAnswer(await $.http.fetch(nextPuzzleUrl(theme, settings.difficulty), { method: 'GET', headers }))
 }
 
+/** The next puzzle, its clock started as it shows. */
+export async function loadNext($: $) {
+  await fetchNext($)
+  await startClock($)
+}
+
+/**
+ * Starts the clock of a puzzle not yet touched, from now, and the redraw that moves it. A puzzle
+ * shown again before any move starts afresh, so time with the pane closed does not count.
+ */
+async function startClock($: $) {
+  const now = await $.clock.now()
+  const { attempt } = await update($, view, v => {
+    const a = v.attempt
+    const isUntouched = a?.status === 'playing' && !a.played.length && !a.hadMistake && !a.usedHelp
+    return isUntouched ? { ...v, attempt: { ...a, startedAt: now } } : v
+  })
+  if (puzzleTick || attempt?.status !== 'playing') return
+  puzzleTick = $.clock.every(1000, () => {
+    void (async () => {
+      const v = await read($, view)
+      // A host with no surface for panes has none shown.
+      const panes = await $.ui.panes().catch(() => [])
+      const isShown = panes.some(p => p.id === PANE && p.isShown)
+      if (isShown && v.attempt?.status === 'playing' && !v.game && !v.seeking) return $.ui.invalidate('ui.render')
+      // Stopped; opening the pane starts it again.
+      puzzleTick?.cancel()
+      puzzleTick = undefined
+    })().catch(() => undefined)
+  })
+}
+
 /**
  * The next puzzle: one due for review first, kept whole; else a new one from the chosen source.
  * When Lichess or Chess.com cannot be reached, the offline set keeps the training going.
  */
-export async function loadNext($: $) {
+async function fetchNext($: $) {
   const before = await read($, view)
   if (before.isLoading) return
   await update($, view, v => ({ ...v, isLoading: true, typed: undefined, replayPly: undefined }))
@@ -64,7 +100,7 @@ export async function loadNext($: $) {
   }
 }
 
-/** Counts a finished or abandoned attempt once: progress, its day in the history, the review queue, and the day's goal. */
+/** Counts a finished or abandoned attempt once: progress, its day in the history, the review queue, the day's goal, and a clean solve's time. */
 async function record($: $, attempt: Attempt, isWin: boolean) {
   if (attempt.isRecorded) return
   const now = await $.clock.now()
@@ -76,14 +112,19 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
   await $.store.set('daily', daily)
   const history = recordHistory(await storedHistory($), now, attempt.puzzle.themes, isWin)
   await $.store.set('history', history)
+  const elapsedMs = attempt.startedAt === undefined ? undefined : now - attempt.startedAt
+  const before = await storedTimes($)
+  const times = isWin && elapsedMs !== undefined ? recordTime(before, attempt.puzzle.themes, elapsedMs) : before
+  if (times !== before) await $.store.set('times', times)
   await update($, view, v => ({
     ...v,
     progress,
     daily,
     history,
+    times,
     session: [...v.session, isWin ? ('clean' as const) : ('missed' as const)],
     dueCount: dueIds(review, now).length,
-    attempt: v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v.attempt, isRecorded: true } : v.attempt,
+    attempt: v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v.attempt, isRecorded: true, ...(elapsedMs === undefined ? {} : { elapsedMs }) } : v.attempt,
   }))
   await sendResult($, attempt, isWin, (await read($, view)).theme)
 }
@@ -137,6 +178,7 @@ export async function openPane($: $, focus = false) {
   // A game or a seek holds the pane: puzzles wait behind it.
   if (v.game || v.seeking) return
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
+  else await startClock($)
 }
 
 /**

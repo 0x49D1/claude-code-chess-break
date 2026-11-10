@@ -57,6 +57,10 @@ export type Attempt = {
   isReview: boolean
   /** Counted in the progress and the review queue. */
   isRecorded: boolean
+  /** When the puzzle was shown, epoch ms: its clock runs from then. */
+  startedAt?: number
+  /** How long it took, set when it ended. */
+  elapsedMs?: number
 }
 
 /** A missed puzzle, kept whole so it comes back without the network: its box (0, 1, 2) and when it is due, in epoch ms. */
@@ -64,6 +68,11 @@ export type ReviewCard = { box: number; due: number; puzzle: Puzzle }
 export type Review = Record<string, ReviewCard>
 
 export type Tally = { solved: number; failed: number }
+
+/** Clean solves timed: how many, their total time and the fastest, in ms. */
+export type Timing = { count: number; totalMs: number; fastestMs: number }
+/** Solve times, all puzzles and by trained theme. */
+export type Times = { all: Timing; themes: Record<string, Timing> }
 export type Progress = { themes: Record<string, Tally>; streak: number; best: number }
 
 /** The daily goal's record: the local day counted (`2026-11-10`), its puzzles, the last day met, and the run of met days. */
@@ -186,6 +195,7 @@ export type View = {
   progress: Progress
   daily: Daily
   history: History
+  times: Times
   /** The progress screen is open. */
   isProgressShown?: boolean
   dashboard?: Dashboard

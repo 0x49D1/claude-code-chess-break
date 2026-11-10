@@ -73,6 +73,7 @@ export const fr: Messages = {
     whatsNew: 'Nouveautés',
     allChanges: 'Tous les changements',
     changesUnread: 'La liste des changements n’a pas pu être lue.',
+    times: (average, fastest) => `Réussites sans faute : ${average} en moyenne, record ${fastest}`,
     dueCount: n => `${n} à réviser`,
     noneDue: 'Rien à réviser',
     hint: 'Indice',

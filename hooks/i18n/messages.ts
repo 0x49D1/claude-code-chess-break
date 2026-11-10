@@ -28,6 +28,7 @@ export type Messages = {
     whatsNew: string
     allChanges: string
     changesUnread: string
+    times: (average: string, fastest: string) => string
     dueCount: (n: number) => string
     noneDue: string
     hint: string

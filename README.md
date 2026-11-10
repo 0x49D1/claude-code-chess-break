@@ -1,6 +1,6 @@
 # chess-break
 
-A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess by theme, from Chess.com's daily puzzles, or from a set of 1,469 shipped with the mod for offline use. The ones you miss come back for review until you've learned them, and your progress is tracked per theme. For longer waits, play a live game on Lichess against Stockfish or a person.
+A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training while Claude works**. Puzzles come from Lichess by theme, from Chess.com's daily puzzles, or from a set of 500+ shipped with the mod for offline use. The ones you miss come back for review until you've learned them, and your progress is tracked per theme. For longer waits, play a live game on Lichess against Stockfish or a person.
 
 ![A puzzle solved in the pane: the moves typed one by one, Lichess's replies, then the solved card with its themes and links](docs/puzzle.svg)
 
@@ -9,9 +9,10 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **Train a theme:** forks, pins, back-rank mates, rook endgames… or a mix (`/chess-break themes` lists them).
 - **Review what you miss:** a puzzle failed, or solved with a hint or the solution, comes back after 1 day. Solve it cleanly and it returns after 3 days, then 7, then it's learned. Due reviews come before new puzzles.
 - **Replay and learn:** once a puzzle ends, click any move (or `j` / `k`) to see the board at that point. 🧠 Explain asks Claude why the solution works, with a tip to remember and a fact about the pattern, plus links to practise the theme on Lichess and read about it on Wikipedia. When Claude can't answer, the pane says why (out of usage limits, busy, offline, not signed in) and Explain can be pressed again.
-- **See your progress:** 📊 Progress in the pane (`p`) shows each theme's accuracy week by week over the last 4 weeks (`··▃█`), weakest first. Signed in to Lichess, each theme also shows Lichess's performance rating and first-try accuracy over 30 days. `/chess-break stats` gives the all-time numbers per theme with the same weekly bars, your streak and your weakest theme.
+- **See your progress:** 📊 Progress in the pane (`p`) shows each theme's accuracy week by week over the last 4 weeks (`··▃█`), weakest first. Signed in to Lichess, each theme also shows Lichess's performance rating and first-try accuracy over 30 days. `/chess-break stats` gives the all-time numbers per theme with the same weekly bars (and, signed in, Lichess's rating), your streak and your weakest theme.
+- **A clock on each puzzle:** `⏱ 0:42` on the puzzle's title line; time with the pane closed doesn't count. Clean solves are timed, and Progress and `stats` show your average and fastest (each theme's average in `stats`).
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
-- **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
+- **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, today's goal 🎯, 📊 Progress, reviews due 🔁, your top themes' accuracy, and the version.
 - **What's new:** the version shows at the bottom of the sidebar. Click it (or `i`) for ℹ About: what the latest versions added, from [CHANGELOG.md](CHANGELOG.md), and a link to this page.
 - **A daily goal:** a few puzzles a day (5 by default), with today's count 🎯 and the days in a row you met it 📅.
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
@@ -25,7 +26,7 @@ The pane opens when Claude starts working and closes when Claude is done, unless
 | --- | --- |
 | `lichess` (default) | a new puzzle on your theme, at your chosen difficulty |
 | `chesscom` | a random puzzle from Chess.com's daily puzzle archive (no themes or ratings: its API has none) |
-| `offline` | 1,469 popular puzzles picked from the [Lichess puzzle database](https://database.lichess.org/#puzzles) (CC0), every training theme covered |
+| `offline` | 500+ popular puzzles picked from the [Lichess puzzle database](https://database.lichess.org/#puzzles) (CC0), every training theme covered |
 
 Pick one with `/chess-break source …` or in `/config`. When Lichess or Chess.com can't be reached, puzzles come from the offline set until it can. Missed puzzles are kept whole, so reviews work offline too.
 
@@ -162,17 +163,21 @@ claude --plugin-dir .
 
 Before changing code, read [`AGENTS.md`](AGENTS.md): how the code is laid out and written, and what done means. Claude Code reads it on its own.
 
+What comes next is in [`ROADMAP.md`](ROADMAP.md). A new version bumps `.claude-plugin/plugin.json` and adds its lines to [`CHANGELOG.md`](CHANGELOG.md): the pane's What's new reads them, and on the merge to `main` the release workflow tags `v<version>` and publishes them as its [GitHub release](https://github.com/0x49D1/claude-code-chess-break/releases).
+
 | Folder | What's in it |
 | --- | --- |
 | `hooks/chess/` | a thin layer over chess.js: reading typed moves, completions |
-| `hooks/lichess/` | Lichess addresses and answers, sign-in (PKCE, the redirect listener), the Board API's game events |
+| `hooks/lichess/` | Lichess addresses and answers, sign-in (PKCE, the redirect listener), the Board API's game events, the puzzle dashboard, a game's computer analysis |
 | `hooks/chesscom/` | Chess.com's daily puzzle answers |
 | `hooks/offline/` | the shipped puzzle set (generated, CC0) |
-| `hooks/training/` | an attempt at a puzzle, a game's moves and clocks, the review queue, progress, themes (no `$`, all tested directly) |
+| `hooks/training/` | an attempt at a puzzle, a game's moves and clocks, the review queue, progress, the history by day, the daily goal, solve times, themes, the changelog (no `$`, all tested directly) |
 | `hooks/i18n/` | every text, one file per language, typed by `Messages` |
 | `hooks/app/` | state and the actions that use `$`, the game streams through `curl` |
-| `hooks/ui/` | the board and the pane |
+| `hooks/ui/` | the board and the pane: puzzles, games, setup, Progress, About, a game's review |
 | `scripts/` | `pick_offline.py` builds the offline set; `terminal_svg.py` turns `tmux capture-pane -e` frames into the README's animation |
+| `openspec/` | each change's plan (proposal, spec, design, tasks), and the specs of what is built |
+| `.github/workflows/` | `release.yml`: a tag and GitHub release for each version in `CHANGELOG.md` |
 | `hooks/vendor/` | chess.js 1.4.0 (BSD-2-Clause, see `chess.js.LICENSE`), copied because a mod can only import its own files |
 
 A few rules the mod engine enforces: a file that reads or updates the pane's state declares the atom itself; `$` goes only into `function` declarations across files, never arrow functions or object methods.

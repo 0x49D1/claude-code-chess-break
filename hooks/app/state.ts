@@ -1,10 +1,11 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Daily, History, Progress, Review, Source, Tally, View } from '../../types'
+import type { Daily, History, Progress, Review, Source, Tally, Times, Timing, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_DAILY } from '../training/daily'
 import { NO_PROGRESS } from '../training/progress'
+import { NO_TIMES } from '../training/timing'
 import { MIX } from '../training/themes'
 
 export type $ = EngineInterface
@@ -22,6 +23,7 @@ export const INITIAL_VIEW: View = {
   progress: NO_PROGRESS,
   daily: NO_DAILY,
   history: {},
+  times: NO_TIMES,
   session: [],
   isClaudeWorking: false,
   isRated: true,
@@ -72,6 +74,22 @@ export async function storedDaily($: $): Promise<Daily> {
   const x = (await $.store.get('daily')) as Partial<Record<keyof Daily, unknown>> | undefined
   if (!x || typeof x.day !== 'string' || typeof x.done !== 'number' || typeof x.streak !== 'number' || typeof x.best !== 'number') return NO_DAILY
   return { day: x.day, done: x.done, streak: x.streak, best: x.best, ...(typeof x.metOn === 'string' ? { metOn: x.metOn } : {}) }
+}
+
+const asTiming = (x: unknown): Timing | undefined => {
+  const t = x as Partial<Record<keyof Timing, unknown>> | undefined
+  return typeof t?.count === 'number' && typeof t.totalMs === 'number' && typeof t.fastestMs === 'number' ? { count: t.count, totalMs: t.totalMs, fastestMs: t.fastestMs } : undefined
+}
+
+/** Solve times, each timing checked; a broken one is left out. */
+export async function storedTimes($: $): Promise<Times> {
+  const x = (await $.store.get('times')) as { all?: unknown; themes?: Record<string, unknown> } | undefined
+  const themes: Record<string, Timing> = {}
+  for (const [theme, t] of Object.entries(typeof x?.themes === 'object' && x.themes !== null ? x.themes : {})) {
+    const timing = asTiming(t)
+    if (timing) themes[theme] = timing
+  }
+  return { all: asTiming(x?.all) ?? NO_TIMES.all, themes }
 }
 
 /** The mod's own version and home page, from its plugin.json; either undefined when the file can't be read or has none. */
