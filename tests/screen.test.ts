@@ -10,7 +10,7 @@ const view = (v: Partial<View>): View => ({ ...INITIAL_VIEW, ...v })
 test('Esc steps back from the screen on top, in the order the pane draws them', () => {
   expect(screenOf(view({}))).toBe('puzzle')
   expect(screenOf(view({ isProgressShown: true }))).toBe('progress')
-  expect(screenOf(view({ about: { releases: [] } }))).toBe('about')
+  expect(screenOf(view({ isAboutShown: true }))).toBe('about')
   expect(screenOf(view({ setup: { kind: 'ai', level: 3, clock: '10+0', color: 'random' } }))).toBe('setup')
   expect(screenOf(view({ signIn: {}, isProgressShown: true }))).toBe('signIn')
   // A finished game, or a correspondence one, goes back to puzzles; a live game holds the pane.

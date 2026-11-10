@@ -216,11 +216,8 @@ export type View = {
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
-  /** The mod's version and home page, from its plugin.json; undefined when it could not be read. */
-  version?: string
-  homepage?: string
-  /** The About screen is open, with CHANGELOG.md's versions, or none when it could not be read. */
-  about?: { releases: Release[] }
+  /** The About screen is open. */
+  isAboutShown?: boolean
 }
 
 declare module 'claude-code' {

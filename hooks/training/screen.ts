@@ -11,6 +11,6 @@ export function screenOf(v: View): Screen {
   if (isLiveOn) return 'liveGame'
   if (v.game) return 'game'
   if (v.isProgressShown) return 'progress'
-  if (v.about) return 'about'
+  if (v.isAboutShown) return 'about'
   return 'puzzle'
 }

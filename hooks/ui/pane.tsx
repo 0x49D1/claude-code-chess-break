@@ -12,6 +12,7 @@ import type { $ } from '../app/state'
 import { completions } from '../chess/position'
 import { gameLine } from '../i18n'
 import type { Messages } from '../i18n'
+import { VERSION } from '../release'
 import { TOKEN_PAGE } from '../lichess/auth'
 import { analysisUrl } from '../lichess/client'
 import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
@@ -95,7 +96,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
       ))}
-      <Button key="about" plain dimColor hotkey="i" onPress={() => void openAbout($)}>{`ℹ ${v.version ? `chess-break ${v.version}` : t.pane.about}`}</Button>
+      <Button key="about" plain dimColor hotkey="i" onPress={() => void openAbout($)}>{`ℹ chess-break ${VERSION}`}</Button>
     </Box>
   )
 }
@@ -147,7 +148,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'setup' && v.setup) return setupPane($, els, v.setup, v, t)
     if (screen === 'liveGame' || screen === 'game') return gamePane($, els, v, t)
     if (screen === 'progress') return progressPane($, els, v, t, now)
-    if (screen === 'about') return aboutPane($, els, v, t)
+    if (screen === 'about') return aboutPane($, els, t)
 
     if (!a) {
       return (

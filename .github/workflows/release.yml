@@ -1,17 +1,33 @@
-# A tag and GitHub release for each CHANGELOG.md version that has none, at the commit that set
-# that version in plugin.json, with the version's changelog lines as its notes.
+# Checks that hooks/release.ts matches plugin.json and CHANGELOG.md, then, on main, tags each
+# CHANGELOG.md version that has no release (at the commit that set it in plugin.json) and
+# publishes its release with the version's changelog lines.
 name: Release
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: hooks/release.ts is up to date
+        run: |
+          python3 scripts/release_ts.py
+          git diff --exit-code -- hooks/release.ts || {
+            echo "::error::hooks/release.ts is stale: run python3 scripts/release_ts.py and commit it"
+            exit 1
+          }
+
   release:
+    needs: check
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
