@@ -1,8 +1,9 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Progress, Review, Source, View } from '../../types'
+import type { Daily, Progress, Review, Source, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
+import { NO_DAILY } from '../training/daily'
 import { NO_PROGRESS } from '../training/progress'
 import { MIX } from '../training/themes'
 
@@ -19,6 +20,7 @@ export const INITIAL_VIEW: View = {
   source: 'lichess',
   dueCount: 0,
   progress: NO_PROGRESS,
+  daily: NO_DAILY,
   session: [],
   isClaudeWorking: false,
   isRated: true,
@@ -34,6 +36,8 @@ export const settings = {
   /** Sounds in a game: the opponent's move when the pane is hidden, and low time. */
   gameSound: false,
   ratedPuzzles: true,
+  /** Puzzles a day for the daily goal; 0 turns it off. */
+  dailyGoal: 5,
 }
 
 export const SOURCES: Source[] = ['lichess', 'chesscom', 'offline']
@@ -46,6 +50,13 @@ export async function storedReview($: $): Promise<Review> {
 
 export async function storedProgress($: $): Promise<Progress> {
   return ((await $.store.get('progress')) as Progress | undefined) ?? NO_PROGRESS
+}
+
+/** The daily goal's record, each field checked; a missing or broken one starts afresh. */
+export async function storedDaily($: $): Promise<Daily> {
+  const x = (await $.store.get('daily')) as Partial<Record<keyof Daily, unknown>> | undefined
+  if (!x || typeof x.day !== 'string' || typeof x.done !== 'number' || typeof x.streak !== 'number' || typeof x.best !== 'number') return NO_DAILY
+  return { day: x.day, done: x.done, streak: x.streak, best: x.best, ...(typeof x.metOn === 'string' ? { metOn: x.metOn } : {}) }
 }
 
 /** /chess-break source, else the setting. */

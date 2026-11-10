@@ -12,6 +12,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **See your progress:** `/chess-break stats` shows accuracy per theme, your streak and your weakest theme.
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
+- **A daily goal:** a few puzzles a day (5 by default), with today's count 🎯 and the days in a row you met it 📅.
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
@@ -132,6 +133,7 @@ In the pane: `h` hint, `s` solution, `n` next, `e` explain, `l` sign in, `c` rat
 - **Puzzle line under the prompt** (on by default)
 - **Game sounds** (off by default): in a Lichess game, a sound when the opponent moves while the pane is hidden, and one beep when your clock drops under 30 seconds; macOS and the desktop app only
 - **Rated puzzles** (on by default): signed in to Lichess, puzzles count for your rating; off, they are casual
+- **Daily goal** (5 by default): puzzles a day to aim for, solved or missed; the pane shows `🎯 Today 3/5 · 📅 4 days in a row`, with ✅ once today is met. 0 turns it off
 - **Puzzles from**: lichess, chesscom, offline
 - **Difficulty**: easiest → hardest, for new Lichess puzzles
 - **Language**: auto, en, fr, ru, ka

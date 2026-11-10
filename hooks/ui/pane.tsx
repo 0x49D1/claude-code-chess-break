@@ -5,7 +5,7 @@ import type { Feedback, View } from '../../types'
 import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
 import { openSetup, showGame } from '../app/game'
-import { INITIAL_VIEW, PANE, messagesOf } from '../app/state'
+import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
 import { gameLine } from '../i18n'
@@ -15,6 +15,7 @@ import { analysisUrl } from '../lichess/client'
 import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
 import { learnLinks, readExplanation } from '../training/explain'
 import { awaiting, isOn } from '../training/game'
+import { todayOf } from '../training/daily'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
@@ -43,9 +44,14 @@ const bar = (percent: number, cells = 6) => {
   return '▰'.repeat(filled) + '▱'.repeat(cells - filled)
 }
 
-/** The training column beside the board: this session, the streak, reviews, the themes tried most. */
-function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
+/** The training column beside the board: this session, the streak, the day's goal, reviews, the themes tried most. */
+function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now: number) {
   const { Box, Text, Button } = els
+  const today = todayOf(v.daily, now)
+  const goalLine = [
+    `🎯 ${t.pane.today(today.done, settings.dailyGoal)}${today.isMet ? ' ✅' : ''}`,
+    ...(today.streak ? [`📅 ${t.pane.dayStreak(today.streak)}`] : []),
+  ].join(' · ')
   const marks = v.session.slice(-8).map(r => (r === 'clean' ? '🟩' : '🟥')).join('')
   const diff = v.ratingDiff === undefined ? '' : ` (${v.ratingDiff >= 0 ? '+' : ''}${v.ratingDiff})`
   // The games awaiting the person first, then the others.
@@ -77,6 +83,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages) {
       <Text bold>{`📈 ${t.pane.session}`}</Text>
       <Text>{marks || '·'}</Text>
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
+      {settings.dailyGoal > 0 && <Text>{goalLine}</Text>}
       <Text>{`🔁 ${v.dueCount ? t.pane.dueCount(v.dueCount) : t.pane.noneDue}`}</Text>
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
@@ -101,6 +108,8 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     const v = await read($, view)
     const t = messagesOf(v)
     const a = v.attempt
+    // Read at each draw, so a day that ends while the pane is open shows the new one.
+    const now = await $.clock.now()
 
     if (v.signIn) {
       return (
@@ -132,7 +141,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
             <Text>{v.isLoading ? `⏳ ${t.pane.loading}` : '♞'}</Text>
             {!v.isLoading && <Button key="retry" plain hotkey="r" onPress={() => void loadNext($)}>{`🔄 ${t.pane.retry}`}</Button>}
           </Box>
-          {sidebar($, els, v, t)}
+          {sidebar($, els, v, t, now)}
         </Box>
       )
     }
@@ -159,7 +168,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
           <Box borderStyle="round" borderDimColor paddingX={1}>
             {board(els, { ...shown, side: solverOf(a), isActive: shown.status === 'playing' }, square => void change($, x => click(x, square)))}
           </Box>
-          {sidebar($, els, v, t)}
+          {sidebar($, els, v, t, now)}
         </Box>
         <Text color={a.status === 'solved' ? 'success' : a.feedback.kind === 'wrong' ? 'error' : undefined}>
           {`${emojiOf(a.feedback)} ${t.feedback(a.feedback, solverOf(a))}`}

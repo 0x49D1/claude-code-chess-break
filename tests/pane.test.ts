@@ -347,3 +347,35 @@ test('a finished puzzle replays move by move, and Claude explains it on request'
   expect(asked).toHaveLength(1)
   await ui.unmount()
 })
+
+/** Solves the first puzzle in the pane, and gives the pane still mounted. */
+async function solveOne($: Engine, on: On) {
+  mock.store(on)
+  mock.clock(on)
+  lichess(on)
+  on('ui.panes', async () => ({ value: [] }))
+  on('ui.open', async () => ({ value: { isPlaced: true } as never }))
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
+  return ui
+}
+
+test('the day’s goal counts the puzzle', async ($, on) => {
+  const ui = await solveOne($, on)
+  expect(await ui.find({ text: /^🎯 Today 1\/5$/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the day’s goal met, with the days in a row', { options: { dailyGoal: 1 } }, async ($, on) => {
+  const ui = await solveOne($, on)
+  expect(await ui.find({ text: /^🎯 Today 1\/1 ✅ · 📅 1 day in a row$/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('goal 0 shows no goal line', { options: { dailyGoal: 0 } }, async ($, on) => {
+  const ui = await solveOne($, on)
+  expect(await ui.find({ text: /🎯 Today/ })).toBeUndefined()
+  await ui.unmount()
+})

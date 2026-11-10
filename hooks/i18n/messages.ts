@@ -16,6 +16,8 @@ export type Messages = {
     review: string
     session: string
     streak: (streak: number, best: number) => string
+    today: (done: number, goal: number) => string
+    dayStreak: (days: number) => string
     dueCount: (n: number) => string
     noneDue: string
     hint: string
