@@ -69,6 +69,12 @@ export async function storedHistory($: $): Promise<History> {
   return history
 }
 
+/** The ids of puzzles solved cleanly, oldest first; anything else in the store is left out. */
+export async function storedSolved($: $): Promise<string[]> {
+  const x = await $.store.get('solved')
+  return Array.isArray(x) ? x.filter((id): id is string => typeof id === 'string') : []
+}
+
 /** The daily goal's record, each field checked; a missing or broken one starts afresh. */
 export async function storedDaily($: $): Promise<Daily> {
   const x = (await $.store.get('daily')) as Partial<Record<keyof Daily, unknown>> | undefined

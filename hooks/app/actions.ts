@@ -13,9 +13,10 @@ import { awaiting, isOn } from '../training/game'
 import { recordDaily } from '../training/daily'
 import { recordHistory } from '../training/history'
 import { recordProgress } from '../training/progress'
+import { recordSolved } from '../training/solved'
 import { recordTime } from '../training/timing'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedHistory, storedProgress, storedReview, storedTimes } from './state'
+import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedHistory, storedProgress, storedReview, storedSolved, storedTimes } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -25,6 +26,16 @@ let puzzleTick: { cancel(): void } | undefined
 
 // Title, framed board, feedback, moves, themes, an explanation, field, suggestions, buttons.
 const PANE_ROWS = 24
+
+/** Tries for a puzzle not solved yet, before taking a solved one again. */
+const FRESH_TRIES = 3
+
+/** A new puzzle from Lichess or Chess.com, one not solved yet when it can find one. */
+async function fetchFresh($: $, source: Source, theme: string, solved: Set<string>): Promise<Puzzle> {
+  let puzzle = await fetchPuzzle($, source, theme)
+  for (let tries = 1; tries < FRESH_TRIES && solved.has(puzzle.id); tries++) puzzle = await fetchPuzzle($, source, theme)
+  return puzzle
+}
 
 /** A new puzzle from Lichess or Chess.com. */
 async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle> {
@@ -59,8 +70,9 @@ async function keepTicking($: $) {
 }
 
 /**
- * The next puzzle: one due for review first, kept whole; else a new one from the chosen source.
- * When Lichess or Chess.com cannot be reached, the offline set keeps the training going.
+ * The next puzzle: one due for review first, kept whole; else a new one from the chosen source,
+ * not one solved cleanly before. When Lichess or Chess.com cannot be reached, the offline set
+ * keeps the training going.
  */
 export async function loadNext($: $) {
   const before = await read($, view)
@@ -74,13 +86,15 @@ export async function loadNext($: $) {
     await update($, view, v => ({ ...v, isLoading: false, attempt: start(card.puzzle, true) }))
     return
   }
-  const skip = current ? [current] : []
+  // Missed puzzles stay out of it: they may come again, as well as for review.
+  const solved = await storedSolved($)
+  const skip = current ? [current, ...solved] : solved
   if (before.source === 'offline') {
     await update($, view, v => ({ ...v, isLoading: false, fallback: undefined, attempt: start(offlinePuzzle(v.theme, skip), false) }))
     return
   }
   try {
-    const puzzle = await fetchPuzzle($, before.source, before.theme)
+    const puzzle = await fetchFresh($, before.source, before.theme, new Set(skip))
     await update($, view, v => ({ ...v, isLoading: false, fallback: undefined, attempt: start(puzzle, false) }))
   } catch (err) {
     const why = err instanceof Error ? err.message : String(err)
@@ -88,7 +102,7 @@ export async function loadNext($: $) {
   }
 }
 
-/** Counts a finished or abandoned attempt once: progress, its day in the history, the review queue, the day's goal, and a clean solve's time. */
+/** Counts a finished or abandoned attempt once: progress, its day in the history, the review queue, the day's goal, and a clean solve as solved, with its time. */
 async function record($: $, attempt: Attempt, isWin: boolean) {
   if (attempt.isRecorded) return
   const now = await $.clock.now()
@@ -104,6 +118,7 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
   const before = await storedTimes($)
   const times = isWin && elapsedMs !== undefined ? recordTime(before, attempt.puzzle.themes, elapsedMs) : before
   if (times !== before) await $.store.set('times', times)
+  if (isWin) await $.store.set('solved', recordSolved(await storedSolved($), attempt.puzzle.id))
   await update($, view, v => ({
     ...v,
     progress,
