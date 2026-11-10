@@ -168,8 +168,8 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       ...(a.isReview ? [`🔁 ${t.pane.review}`] : []),
       ...(a.puzzle.rating ? [`⭐ ${a.puzzle.rating}`] : []),
       t.pane.toPlay(solverOf(a)),
-      // The clock moves while the puzzle is played, and stops at its time once it ends.
-      ...(a.startedAt === undefined ? [] : [`⏱ ${formatTime(a.elapsedMs ?? now - a.startedAt)}`]),
+      // The clock waits for the first move, moves while the puzzle is played, and stops at its time.
+      ...(a.startedAt !== undefined ? [`⏱ ${formatTime(a.elapsedMs ?? now - a.startedAt)}`] : isPlaying ? ['⏱ 0:00'] : []),
     ].join('  ·  ')
 
     return (
