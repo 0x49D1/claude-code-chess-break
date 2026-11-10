@@ -185,7 +185,7 @@ export async function next($: $) {
 }
 
 export async function openPane($: $, focus = false) {
-  await $.ui.open({ id: PANE, title: TITLE, rows: PANE_ROWS, ...(focus ? { focus: true as const } : {}) })
+  await $.ui.open({ id: PANE, title: TITLE, rows: PANE_ROWS, closeOnEscape: true, ...(focus ? { focus: true as const } : {}) })
   // The list read as the pane opens: a live game on comes to the pane.
   await refreshGames($)
   const v = await read($, view)

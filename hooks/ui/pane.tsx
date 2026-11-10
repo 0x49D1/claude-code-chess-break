@@ -16,9 +16,10 @@ import { TOKEN_PAGE } from '../lichess/auth'
 import { analysisUrl } from '../lichess/client'
 import { atPly, click, hint, moveLabels, moveLine, play, promote, reveal, solverOf } from '../training/attempt'
 import { learnLinks, readExplanation } from '../training/explain'
-import { awaiting, isOn } from '../training/game'
+import { awaiting } from '../training/game'
 import { todayOf } from '../training/daily'
 import { themeLines } from '../training/progress'
+import { screenOf } from '../training/screen'
 import { formatTime } from '../training/timing'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
@@ -118,7 +119,9 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     // Read at each draw, so a day that ends while the pane is open shows the new one.
     const now = await $.clock.now()
 
-    if (v.signIn) {
+    // The same order Esc steps back in.
+    const screen = screenOf(v)
+    if (screen === 'signIn' && v.signIn) {
       return (
         <Box flexDirection="column" gap={1}>
           {/* Cancel at the top too: a short terminal may show only the top of the pane. */}
@@ -141,11 +144,10 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       )
     }
 
-    const isLiveOn = !!v.game && isOn(v.game) && !v.game.isCorrespondence
-    if (v.setup && !isLiveOn && !v.seeking) return setupPane($, els, v.setup, v, t)
-    if (v.game || v.seeking) return gamePane($, els, v, t)
-    if (v.isProgressShown) return progressPane($, els, v, t, now)
-    if (v.about) return aboutPane($, els, v, t)
+    if (screen === 'setup' && v.setup) return setupPane($, els, v.setup, v, t)
+    if (screen === 'liveGame' || screen === 'game') return gamePane($, els, v, t)
+    if (screen === 'progress') return progressPane($, els, v, t, now)
+    if (screen === 'about') return aboutPane($, els, v, t)
 
     if (!a) {
       return (
