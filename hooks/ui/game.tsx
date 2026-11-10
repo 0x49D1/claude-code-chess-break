@@ -93,7 +93,15 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
 
   return (
     <Box flexDirection="column">
-      <Text bold>{title}</Text>
+      {/* The way back at the top too: a short terminal may show only the top of the pane. */}
+      <Box flexDirection="row" gap={2}>
+        <Text bold>{title}</Text>
+        {!isPlaying ? (
+          <Button key="puzzles-top" plain onPress={() => void backToPuzzles($)}>{`🧩 ${t.game.puzzles}`}</Button>
+        ) : g.isCorrespondence ? (
+          <Button key="games-top" plain onPress={() => void backToPuzzles($)}>{`☰ ${t.game.games}`}</Button>
+        ) : null}
+      </Box>
       <Box flexDirection="row" gap={2}>
         <Box borderStyle="round" borderDimColor paddingX={1}>
           {board(els, { fen: shown.fen, side: g.side, lastMove: shown.lastMove, selected: g.selected, isActive: isMyTurn(g) }, square => void gameMove($, x => clickGame(x, square)))}

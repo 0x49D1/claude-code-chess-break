@@ -25,7 +25,7 @@ export const awaitsReply = (a: Attempt) => a.status === 'playing' && turnOf(a.fe
 
 /** Started: a move, a mistake or some help. */
 export const isStarted = (a: Attempt | undefined) =>
-  !!a && a.status === 'playing' && (a.played.length > 0 || a.hadMistake || a.usedHelp)
+  !!a && a.status === 'playing' && (a.played.length > 0 || a.hadMistake || a.usedHelp || !!a.selected || !!a.promoting)
 
 /** Solved with no mistake and no help: what moves a puzzle up the review boxes. */
 export const isClean = (a: Attempt) => a.status === 'solved' && !a.hadMistake && !a.usedHelp

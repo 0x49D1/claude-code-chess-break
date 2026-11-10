@@ -67,11 +67,13 @@ export const register: Register = (on, options) => {
     // A subagent finishing is not Claude being done.
     if (e.agentId) return result
     const v = await update($, view, x => ({ ...x, isClaudeWorking: false }))
-    if (!(await $.ui.panes()).some(p => p.id === PANE)) return result
+    const pane = (await $.ui.panes()).find(p => p.id === PANE)
+    if (!pane) return result
     // A correspondence game has no clock to lose on: it never holds the pane.
     if ((v.game && isOn(v.game) && !v.game.isCorrespondence) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
-    else if (!v.game?.isCorrespondence && isStarted(v.attempt)) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
-    else await $.ui.close({ id: PANE })
+    else if (!v.game?.isCorrespondence && (isStarted(v.attempt) || (v.attempt?.status === 'playing' && !!v.typed))) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
+    // The person is in the pane: it stays until they leave it.
+    else if (!pane.isFocused) await $.ui.close({ id: PANE })
     return result
   })
 

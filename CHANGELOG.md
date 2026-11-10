@@ -2,6 +2,11 @@
 
 What each version added. The pane shows the latest ones under ℹ About.
 
+## 0.8.1 (2026-11-10)
+
+- The pane stays open when Claude is done if you're in it: a piece clicked, a move typed, or the keyboard in the pane.
+- A way back at the top of Progress, About, sign-in, a game's setup and a finished game, for a short terminal.
+
 ## 0.8.0 (2026-11-10)
 
 - Puzzles you solve cleanly aren't offered again; missed ones can still come back.
