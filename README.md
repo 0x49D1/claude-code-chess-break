@@ -19,7 +19,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
-The pane opens when Claude starts working and closes when Claude is done, unless you're in it: a piece clicked, a move typed or played, or the keyboard in the pane keeps it open. Screens with a way back (Progress, About, a game's setup, a finished game) have it at the top too, for a short terminal. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
+The pane opens when Claude starts working and closes when Claude is done, unless you're in the middle of something: a puzzle you've started (a piece clicked, a move typed or played), or, with the keyboard in the pane, a puzzle on, a sign-in or a game's setup. A solved puzzle closes with Claude, until you ask for the next one. Screens with a way back (Progress, About, a game's setup, a finished game) have it at the top too, for a short terminal. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
 
 ## Puzzle sources
 
@@ -129,7 +129,7 @@ Then, as a second command:
 | `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles and games |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
-In the pane: `h` hint, `s` solution, `n` next, `e` explain, `p` progress, `i` about, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc returns to the prompt.
+In the pane: `h` hint, `s` solution, `n` next, `e` explain, `p` progress, `i` about, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc steps back from Progress, About, sign-in, a game's setup or a finished game, and closes the pane from the puzzle (it comes back as it was); in a live game it only returns the keyboard to the prompt.
 
 ## Settings (`/config`)
 

@@ -2,6 +2,11 @@
 
 What each version added. The pane shows the latest ones under ℹ About.
 
+## 0.8.2 (2026-11-10)
+
+- A solved puzzle closes with Claude, even with the keyboard in the pane; the keyboard keeps the pane open only while a puzzle is on, or during a sign-in or a game's setup.
+- Esc goes back: from Progress, About, sign-in, a game's setup or a finished game to the puzzle, and from the puzzle it closes the pane. In a live game it only hands the keyboard back.
+
 ## 0.8.1 (2026-11-10)
 
 - The pane stays open when Claude is done if you're in it: a piece clicked, a move typed, or the keyboard in the pane.

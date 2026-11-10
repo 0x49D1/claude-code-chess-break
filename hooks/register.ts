@@ -3,6 +3,7 @@ import type { Register } from 'claude-code'
 
 import { restoreAccount } from './app/account'
 import { openForTurn, refreshDue } from './app/actions'
+import { stepBack } from './app/back'
 import { startRefresh } from './app/games'
 import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, ownManifest, settings, storedDaily, storedHistory, storedProgress, storedSource, storedTimes, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
@@ -72,9 +73,17 @@ export const register: Register = (on, options) => {
     // A correspondence game has no clock to lose on: it never holds the pane.
     if ((v.game && isOn(v.game) && !v.game.isCorrespondence) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
     else if (!v.game?.isCorrespondence && (isStarted(v.attempt) || (v.attempt?.status === 'playing' && !!v.typed))) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
-    // The person is in the pane: it stays until they leave it.
-    else if (!pane.isFocused) await $.ui.close({ id: PANE })
+    // The keyboard in the pane holds it while something would be lost: a puzzle on, a sign-in or a
+    // game's setup. A finished puzzle with no next one asked for closes.
+    else if (!(pane.isFocused && (v.attempt?.status === 'playing' || v.signIn || v.setup))) await $.ui.close({ id: PANE })
     return result
+  })
+
+  // Esc steps back from a screen over the puzzle, and closes the pane from the puzzle.
+  on('ui.close', async ($, e, next) => {
+    if (e.id !== PANE || e.origin.kind !== 'person' || !(await stepBack($))) return next(e)
+    // Answered here: the pane stays open.
+    return { value: undefined }
   })
 
   registerCommands(on)
