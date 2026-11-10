@@ -61,6 +61,8 @@ export const fr: Messages = {
     review: 'Révision',
     session: 'Séance',
     streak: (streak, best) => `Série ${streak} · record ${best}`,
+    today: (done, goal) => `Aujourd’hui ${done}/${goal}`,
+    dayStreak: days => `${days} ${days === 1 ? 'jour' : 'jours'} d’affilée`,
     dueCount: n => `${n} à réviser`,
     noneDue: 'Rien à réviser',
     hint: 'Indice',

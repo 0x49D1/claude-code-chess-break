@@ -4,7 +4,7 @@ import type { Register } from 'claude-code'
 import { restoreAccount } from './app/account'
 import { openForTurn, refreshDue } from './app/actions'
 import { startRefresh } from './app/games'
-import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedProgress, storedSource, storedTheme } from './app/state'
+import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedDaily, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
@@ -25,6 +25,7 @@ export const register: Register = (on, options) => {
   settings.promptLine = options.promptLine !== false
   settings.gameSound = options.gameSound === true
   settings.ratedPuzzles = options.ratedPuzzles !== false
+  settings.dailyGoal = typeof options.dailyGoal === 'number' && options.dailyGoal >= 0 ? Math.floor(options.dailyGoal) : 5
 
   on('session.start', async ($, e, next) => {
     const locale = await resolveLocale($)
@@ -33,7 +34,8 @@ export const register: Register = (on, options) => {
     const progress = await storedProgress($)
     const theme = await storedTheme($)
     const source = await storedSource($)
-    await update($, view, v => ({ ...v, locale, progress, theme, source, isRated: settings.ratedPuzzles }))
+    const daily = await storedDaily($)
+    await update($, view, v => ({ ...v, locale, progress, daily, theme, source, isRated: settings.ratedPuzzles }))
     await refreshDue($)
     await restoreAccount($)
     // The account's games come back, a live one on the pane; the session does not wait for them.

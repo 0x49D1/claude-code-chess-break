@@ -62,6 +62,8 @@ export const en: Messages = {
     review: 'Review',
     session: 'Session',
     streak: (streak, best) => `Streak ${streak} · best ${best}`,
+    today: (done, goal) => `Today ${done}/${goal}`,
+    dayStreak: days => `${plural(days, 'day', 'days')} in a row`,
     dueCount: n => `${plural(n, 'puzzle', 'puzzles')} to review`,
     noneDue: 'Nothing to review',
     hint: 'Hint',

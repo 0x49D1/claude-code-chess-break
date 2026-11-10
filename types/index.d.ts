@@ -66,6 +66,9 @@ export type Review = Record<string, ReviewCard>
 export type Tally = { solved: number; failed: number }
 export type Progress = { themes: Record<string, Tally>; streak: number; best: number }
 
+/** The daily goal's record: the local day counted (`2026-11-10`), its puzzles, the last day met, and the run of met days. */
+export type Daily = { day: string; done: number; metOn?: string; streak: number; best: number }
+
 /** A game to start: Lichess's Stockfish at a level, or a seek for a person; the clock as `minutes+increment`. */
 export type GameSettings =
   | { kind: 'ai'; level: number; clock: string; color: 'white' | 'black' | 'random' }
@@ -158,6 +161,7 @@ export type View = {
   typed?: string
   dueCount: number
   progress: Progress
+  daily: Daily
   /** The move a finished puzzle is replayed at: 0 its start, played.length its end; undefined the end. */
   replayPly?: number
   /** Claude's explanation of a finished puzzle: asked, given, or failed. */

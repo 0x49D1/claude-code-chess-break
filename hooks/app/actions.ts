@@ -10,9 +10,10 @@ import { refreshGames } from './games'
 import { explainFailure, explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
 import { awaiting, isOn } from '../training/game'
+import { recordDaily } from '../training/daily'
 import { recordProgress } from '../training/progress'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, PANE, TITLE, settings, storedProgress, storedReview } from './state'
+import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedProgress, storedReview } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -62,17 +63,20 @@ export async function loadNext($: $) {
   }
 }
 
-/** Counts a finished or abandoned attempt once: progress, and the review queue. */
+/** Counts a finished or abandoned attempt once: progress, the review queue, and the day's goal. */
 async function record($: $, attempt: Attempt, isWin: boolean) {
   if (attempt.isRecorded) return
   const now = await $.clock.now()
   const review = recordReview(await storedReview($), attempt.puzzle, isWin, now)
   const progress = recordProgress(await storedProgress($), attempt.puzzle.themes, isWin)
+  const daily = recordDaily(await storedDaily($), now, settings.dailyGoal)
   await $.store.set('review', review)
   await $.store.set('progress', progress)
+  await $.store.set('daily', daily)
   await update($, view, v => ({
     ...v,
     progress,
+    daily,
     session: [...v.session, isWin ? ('clean' as const) : ('missed' as const)],
     dueCount: dueIds(review, now).length,
     attempt: v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v.attempt, isRecorded: true } : v.attempt,

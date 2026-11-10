@@ -55,6 +55,8 @@ export const ka: Messages = {
     review: 'გამეორება',
     session: 'სესია',
     streak: (streak, best) => `სერია ${streak} · რეკორდი ${best}`,
+    today: (done, goal) => `დღეს ${done}/${goal}`,
+    dayStreak: days => `${days} დღე ზედიზედ`,
     dueCount: n => `${n} ამოცანა გასამეორებლად`,
     noneDue: 'გასამეორებელი არაფერია',
     hint: 'მინიშნება',

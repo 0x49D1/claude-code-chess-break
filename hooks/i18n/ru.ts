@@ -70,6 +70,8 @@ export const ru: Messages = {
     review: 'Повторение',
     session: 'Сессия',
     streak: (streak, best) => `Серия ${streak} · рекорд ${best}`,
+    today: (done, goal) => `Сегодня ${done}/${goal}`,
+    dayStreak: days => `${plural(days, 'день', 'дня', 'дней')} подряд`,
     dueCount: n => `${plural(n, 'задача', 'задачи', 'задач')} на повторение`,
     noneDue: 'Нечего повторять',
     hint: 'Подсказка',
