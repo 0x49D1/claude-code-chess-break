@@ -5,6 +5,7 @@ import type { Feedback, View } from '../../types'
 import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
 import { openSetup, showGame } from '../app/game'
+import { openAbout } from '../app/about'
 import { openProgress } from '../app/progress'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import type { $ } from '../app/state'
@@ -20,6 +21,7 @@ import { todayOf } from '../training/daily'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
+import { aboutPane } from './about'
 import { progressPane } from './progress'
 import { setupPane } from './setup'
 
@@ -91,6 +93,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
       ))}
+      <Button key="about" plain dimColor hotkey="i" onPress={() => void openAbout($)}>{`ℹ ${v.version ? `chess-break ${v.version}` : t.pane.about}`}</Button>
     </Box>
   )
 }
@@ -137,6 +140,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (v.setup && !isLiveOn && !v.seeking) return setupPane($, els, v.setup, v, t)
     if (v.game || v.seeking) return gamePane($, els, v, t)
     if (v.isProgressShown) return progressPane($, els, v, t, now)
+    if (v.about) return aboutPane($, els, v, t)
 
     if (!a) {
       return (

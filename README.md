@@ -12,6 +12,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **See your progress:** 📊 Progress in the pane (`p`) shows each theme's accuracy week by week over the last 4 weeks (`··▃█`), weakest first. Signed in to Lichess, each theme also shows Lichess's performance rating and first-try accuracy over 30 days. `/chess-break stats` gives the all-time numbers per theme with the same weekly bars, your streak and your weakest theme.
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as you type, and Enter plays the only one left.
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, reviews due 🔁 and your top themes' accuracy.
+- **What's new:** the version shows at the bottom of the sidebar. Click it (or `i`) for ℹ About: what the latest versions added, from [CHANGELOG.md](CHANGELOG.md), and a link to this page.
 - **A daily goal:** a few puzzles a day (5 by default), with today's count 🎯 and the days in a row you met it 📅.
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
@@ -126,7 +127,7 @@ Then, as a second command:
 | `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles and games |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
-In the pane: `h` hint, `s` solution, `n` next, `e` explain, `p` progress, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc returns to the prompt.
+In the pane: `h` hint, `s` solution, `n` next, `e` explain, `p` progress, `i` about, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc returns to the prompt.
 
 ## Settings (`/config`)
 
