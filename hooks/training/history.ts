@@ -6,17 +6,23 @@ import { skills } from './progress'
 const KEPT_DAYS = 84
 const WEEKS = 4
 
-/** Counts a finished puzzle under its day and trained themes, and drops days past the kept ones. */
+/**
+ * Counts a finished puzzle under its day and trained themes, and drops days older than the kept
+ * ones. A day after today is kept: the clock set back, or a time zone crossed westward, must not
+ * lose it.
+ */
 export function recordHistory(history: History, now: number, themes: string[], isClean: boolean): History {
   const kept = lastDays(now, KEPT_DAYS)
   const today = kept[0]!
+  const oldest = kept.at(-1)!
   const day = { ...history[today] }
   for (const theme of skills(themes)) {
     const { solved, failed } = day[theme] ?? { solved: 0, failed: 0 }
     day[theme] = isClean ? { solved: solved + 1, failed } : { solved, failed: failed + 1 }
   }
-  const next: History = { [today]: day }
-  for (const d of kept.slice(1)) if (history[d]) next[d] = history[d]
+  // Days are `2026-11-10` strings, so they compare as dates.
+  const next: History = Object.fromEntries(Object.entries(history).filter(([d]) => d >= oldest))
+  next[today] = day
   return next
 }
 

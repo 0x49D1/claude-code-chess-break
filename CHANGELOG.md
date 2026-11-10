@@ -3,6 +3,10 @@
 What each version added. The pane shows the latest ones under ℹ About.
 
 
+
+## 0.8.4 (2026-11-10)
+
+- 📊 Progress keeps its history when the computer's clock or time zone moves a day back, instead of dropping the later days.
 ## 0.8.3 (2026-11-10)
 
 - The sidebar shows the version again (`ℹ chess-break 0.8.3`), and About its changes: both are now built into the mod rather than read from its files, which failed in some installs.
