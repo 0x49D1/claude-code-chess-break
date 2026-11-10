@@ -164,7 +164,7 @@ claude --plugin-dir .
 
 Before changing code, read [`AGENTS.md`](AGENTS.md): how the code is laid out and written, and what done means. Claude Code reads it on its own.
 
-What comes next is in [`ROADMAP.md`](ROADMAP.md). A new version bumps `.claude-plugin/plugin.json` and adds its lines to [`CHANGELOG.md`](CHANGELOG.md): the pane's What's new reads them, and on the merge to `main` the release workflow tags `v<version>` and publishes them as its [GitHub release](https://github.com/0x49D1/claude-code-chess-break/releases).
+What comes next is in [`ROADMAP.md`](ROADMAP.md). A new version bumps `.claude-plugin/plugin.json`, adds its lines to [`CHANGELOG.md`](CHANGELOG.md), and runs `python3 scripts/release_ts.py`, which builds them into `hooks/release.ts` for the pane's What's new. On the merge to `main`, the release workflow tags `v<version>` and publishes the lines as its [GitHub release](https://github.com/0x49D1/claude-code-chess-break/releases).
 
 | Folder | What's in it |
 | --- | --- |
@@ -176,7 +176,7 @@ What comes next is in [`ROADMAP.md`](ROADMAP.md). A new version bumps `.claude-p
 | `hooks/i18n/` | every text, one file per language, typed by `Messages` |
 | `hooks/app/` | state and the actions that use `$`, the game streams through `curl` |
 | `hooks/ui/` | the board and the pane: puzzles, games, setup, Progress, About, a game's review |
-| `scripts/` | `pick_offline.py` builds the offline set; `terminal_svg.py` turns `tmux capture-pane -e` frames into the README's animation |
+| `scripts/` | `pick_offline.py` builds the offline set; `release_ts.py` builds the version and changes into `hooks/release.ts`; `terminal_svg.py` turns `tmux capture-pane -e` frames into the README's animation |
 | `openspec/` | each change's plan (proposal, spec, design, tasks), and the specs of what is built |
 | `.github/workflows/` | `release.yml`: a tag and GitHub release for each version in `CHANGELOG.md` |
 | `hooks/vendor/` | chess.js 1.4.0 (BSD-2-Clause, see `chess.js.LICENSE`), copied because a mod can only import its own files |

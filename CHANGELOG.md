@@ -2,6 +2,10 @@
 
 What each version added. The pane shows the latest ones under ℹ About.
 
+
+## 0.8.3 (2026-11-10)
+
+- The sidebar shows the version again (`ℹ chess-break 0.8.3`), and About its changes: both are now built into the mod rather than read from its files, which failed in some installs.
 ## 0.8.2 (2026-11-10)
 
 - A solved puzzle closes with Claude, even with the keyboard in the pane; the keyboard keeps the pane open only while a puzzle is on, or during a sign-in or a game's setup.
