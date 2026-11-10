@@ -1,0 +1,36 @@
+# A tag and GitHub release for each CHANGELOG.md version that has none, at the commit that set
+# that version in plugin.json, with the version's changelog lines as its notes.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Release each changelog version that has none
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Oldest first, so that the newest ends up as the latest release.
+          for version in $(sed -n 's/^## \([^ ]*\).*/\1/p' CHANGELOG.md | tac); do
+            tag="v$version"
+            if gh release view "$tag" >/dev/null 2>&1; then continue; fi
+            commit=$(git log --format=%H -S"\"version\": \"$version\"" -- .claude-plugin/plugin.json | tail -n 1)
+            if [ -z "$commit" ]; then
+              echo "::warning::$tag: no commit sets this version in plugin.json"
+              continue
+            fi
+            notes=$(awk -v v="$version" '$1 == "##" { on = ($2 == v); next } on' CHANGELOG.md | sed '/./,$!d')
+            gh release create "$tag" --target "$commit" --title "$tag" --notes "$notes"
+          done
