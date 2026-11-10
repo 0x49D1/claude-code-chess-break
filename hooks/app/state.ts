@@ -74,6 +74,19 @@ export async function storedDaily($: $): Promise<Daily> {
   return { day: x.day, done: x.done, streak: x.streak, best: x.best, ...(typeof x.metOn === 'string' ? { metOn: x.metOn } : {}) }
 }
 
+/** The mod's own version and home page, from its plugin.json; either undefined when the file can't be read or has none. */
+export async function ownManifest($: $): Promise<{ version?: string; homepage?: string }> {
+  try {
+    const manifest = JSON.parse(await $.fs.read(`${$.plugin.root}/.claude-plugin/plugin.json`)) as { version?: unknown; homepage?: unknown }
+    return {
+      ...(typeof manifest.version === 'string' ? { version: manifest.version } : {}),
+      ...(typeof manifest.homepage === 'string' ? { homepage: manifest.homepage } : {}),
+    }
+  } catch {
+    return {}
+  }
+}
+
 /** /chess-break source, else the setting. */
 export async function storedSource($: $): Promise<Source> {
   return asSource(await $.store.get('source')) ?? settings.source

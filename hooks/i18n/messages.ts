@@ -24,6 +24,10 @@ export type Messages = {
     lichessHead: string
     noRecent: string
     dashboardFailed: (why: string) => string
+    about: string
+    whatsNew: string
+    allChanges: string
+    changesUnread: string
     dueCount: (n: number) => string
     noneDue: string
     hint: string

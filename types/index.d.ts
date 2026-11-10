@@ -76,6 +76,9 @@ export type ThemeResult = { played: number; accuracy: number; performance: numbe
 /** Lichess's puzzle dashboard as last read for the progress screen, or why it could not be. */
 export type Dashboard = { themes: Record<string, ThemeResult> } | { failed: string }
 
+/** A version in CHANGELOG.md: its number, its date, and what it added. */
+export type Release = { version: string; date?: string; changes: string[] }
+
 export type Judgment = 'Inaccuracy' | 'Mistake' | 'Blunder'
 
 /** One of the person's moves Lichess's analysis judged: its index in the game's moves, and the pawns it lost (in centipawns). */
@@ -203,6 +206,11 @@ export type View = {
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
+  /** The mod's version and home page, from its plugin.json; undefined when it could not be read. */
+  version?: string
+  homepage?: string
+  /** The About screen is open, with CHANGELOG.md's versions, or none when it could not be read. */
+  about?: { releases: Release[] }
 }
 
 declare module 'claude-code' {

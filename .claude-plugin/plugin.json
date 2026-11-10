@@ -1,11 +1,13 @@
 {
   "name": "chess-break",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"
   },
   "license": "MIT",
+  "homepage": "https://github.com/0x49D1/claude-code-chess-break",
+  "repository": "https://github.com/0x49D1/claude-code-chess-break",
   "types": "./types/index.d.ts",
   "userConfig": {
     "autoOpen": {
