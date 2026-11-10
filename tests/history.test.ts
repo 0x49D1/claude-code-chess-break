@@ -20,8 +20,12 @@ test('days past 12 weeks are dropped', () => {
   expect(Object.keys(h).sort()).toEqual([...Object.keys(kept), '2026-11-10'].sort())
 })
 
+test('a day after today is kept when the clock goes back', () => {
+  const h = recordHistory(recordHistory({}, noon(11), ['fork'], true), noon(10), ['pin'], true)
+  expect(h).toEqual({ '2026-11-11': { fork: { solved: 1, failed: 0 } }, '2026-11-10': { pin: { solved: 1, failed: 0 } } })
+})
+
 test('weeks end today, oldest first; the weakest theme comes first', () => {
-  // Recorded in time order, as puzzles are: a day is counted from its own 12 weeks back.
   let h = recordHistory({}, noon(3), ['pin'], true)
   for (const isClean of [true, false, false, false]) h = recordHistory(h, noon(4), ['pin'], isClean)
   for (const isClean of [true, true]) h = recordHistory(h, noon(10), ['fork'], isClean)
