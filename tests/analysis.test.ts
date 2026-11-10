@@ -106,6 +106,14 @@ test('no mistakes found, and no review for an aborted game', async ($, on) => {
   await done()
 })
 
+test('back to puzzles from the top of a finished game', async ($, on) => {
+  const { ui, done } = await finishedGame($, on, 'e2e4 e7e5', { status: 'resign', winner: 'white' })
+  expect(await ui.find({ text: /🏁/ })).toBeDefined()
+  await ui.press({ key: 'puzzles-top' })
+  expect(await ui.find({ text: /🏁/ })).toBeUndefined()
+  await done()
+})
+
 test('an aborted game offers no review', async ($, on) => {
   const { ui, done } = await finishedGame($, on, '', { status: 'aborted' })
   expect(await ui.find({ key: 'review' })).toBeUndefined()

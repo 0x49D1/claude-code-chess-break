@@ -121,7 +121,11 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (v.signIn) {
       return (
         <Box flexDirection="column" gap={1}>
-          <Text bold>{`🔑 ${t.pane.signInTitle}`}</Text>
+          {/* Cancel at the top too: a short terminal may show only the top of the pane. */}
+          <Box flexDirection="row" gap={2}>
+            <Text bold>{`🔑 ${t.pane.signInTitle}`}</Text>
+            <Button key="cancel-login-top" plain onPress={() => void cancelSignIn($)}>{`✖ ${t.pane.cancel}`}</Button>
+          </Box>
           {v.signIn.url ? <Link href={v.signIn.url} label={t.pane.openLichess} /> : <Text dimColor>{t.pane.starting}</Text>}
           {Input && (
             <Box flexDirection="column">

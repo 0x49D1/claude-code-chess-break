@@ -14,7 +14,11 @@ export function aboutPane($: $, els: Elements[keyof Elements], v: View, t: Messa
   const releases = v.about?.releases ?? []
   return (
     <Box flexDirection="column" gap={1}>
-      <Text bold>{`ℹ chess-break${v.version ? ` ${v.version}` : ''}`}</Text>
+      {/* A way back at the top too: a short terminal may show only the top of the pane. */}
+      <Box flexDirection="row" gap={2}>
+        <Text bold>{`ℹ chess-break${v.version ? ` ${v.version}` : ''}`}</Text>
+        <Button key="about-back-top" plain onPress={() => void closeAbout($)}>{`← ${t.pane.back}`}</Button>
+      </Box>
       {v.homepage && <Link href={v.homepage} label="GitHub ↗" />}
       <Box flexDirection="column">
         <Text bold>{`✨ ${t.pane.whatsNew}`}</Text>

@@ -42,7 +42,11 @@ export function setupPane($: $, els: Elements[keyof Elements], setup: GameSettin
   const clocks = [...(setup.kind === 'ai' ? AI_CLOCKS : SEEK_CLOCKS), ...DAYS]
   return (
     <Box flexDirection="column" gap={1}>
-      <Text bold>{setup.kind === 'ai' ? `🤖 ${t.game.stockfish(setup.level)}` : `👤 ${t.game.person}`}</Text>
+      {/* Cancel at the top too: a short terminal may show only the top of the pane. */}
+      <Box flexDirection="row" gap={2}>
+        <Text bold>{setup.kind === 'ai' ? `🤖 ${t.game.stockfish(setup.level)}` : `👤 ${t.game.person}`}</Text>
+        <Button key="setup-cancel-top" plain onPress={cancel}>{`✖ ${t.pane.cancel}`}</Button>
+      </Box>
       {setup.kind === 'ai' &&
         row(t.game.level, 'level', [1, 2, 3, 4, 5, 6, 7, 8].map(n => ({ key: String(n), text: String(n), isChosen: setup.level === n, change: s => (s.kind === 'ai' ? { ...s, level: n } : s) })))}
       {row(t.game.clock, 'clock', clocks.map(c => ({ key: c, text: c, isChosen: setup.clock === c, change: s => ({ ...s, clock: c }) })))}

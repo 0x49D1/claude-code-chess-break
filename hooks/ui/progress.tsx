@@ -25,7 +25,11 @@ export function progressPane($: $, els: Elements[keyof Elements], v: View, t: Me
   const rows = progressRows(v.history, now, dashboard && 'themes' in dashboard ? dashboard.themes : undefined)
   return (
     <Box flexDirection="column">
-      <Text bold>{`📊 ${t.pane.progress}`}</Text>
+      {/* A way back at the top too: a short terminal may show only the top of the pane. */}
+      <Box flexDirection="row" gap={2}>
+        <Text bold>{`📊 ${t.pane.progress}`}</Text>
+        <Button key="progress-back-top" plain onPress={() => void closeProgress($)}>{`← ${t.pane.back}`}</Button>
+      </Box>
       <Text dimColor>{t.pane.progressHead}</Text>
       {v.times.all.count > 0 && <Text>{`⏱ ${t.pane.times(formatTime(averageMs(v.times.all)), formatTime(v.times.all.fastestMs))}`}</Text>}
       {dashboard && 'themes' in dashboard && <Text dimColor>{`⭐ ${t.pane.lichessHead}`}</Text>}

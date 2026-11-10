@@ -19,7 +19,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
-The pane opens when Claude starts working and closes when Claude is done, unless you're mid-puzzle. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
+The pane opens when Claude starts working and closes when Claude is done, unless you're in it: a piece clicked, a move typed or played, or the keyboard in the pane keeps it open. Screens with a way back (Progress, About, a game's setup, a finished game) have it at the top too, for a short terminal. While it's hidden, the end of the line under the prompt keeps the puzzle in view (theme, whose move, the last move, the streak), and you can answer from the prompt: `/chess-break Qxf7`, `/chess-break hint`.
 
 ## Puzzle sources
 
