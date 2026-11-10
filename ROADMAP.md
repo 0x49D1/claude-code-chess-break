@@ -16,7 +16,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [x] **Progress view** per theme, with Lichess's numbers: 0.4.0
 - [x] **Game review** from Lichess's computer analysis: 0.5.0
 - [x] **About** with what's new and the GitHub link: 0.6.0
-- [x] **Puzzle timer**, with average and fastest solve times in the statistics: 0.7.0
+- [x] **Puzzle timer**, with average and fastest solve times in the statistics: 0.7.0 (from the first move: 0.7.1)
+- [x] **No repeats** of puzzles solved cleanly: 0.8.0
 
 ## Releases
 
