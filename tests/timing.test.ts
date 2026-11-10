@@ -20,20 +20,26 @@ test('times read as minutes and seconds', () => {
   expect(formatTime(725_000)).toBe('12:05')
 })
 
-/** Scholar's mate to find: Qxf7#. */
+/** Scholar's mate to find: Qxf7#, one move. */
 const SCHOLAR = JSON.stringify({
   game: { pgn: 'e4 e5 Bc4 Nc6 Qf3 d6' },
   puzzle: { id: 'abc12', rating: 900, themes: ['mateIn1', 'short'], solution: ['f3f7'], initialPly: 5 },
 })
 
-/** Lichess answering the puzzle, the pane shown or not; resolves the clock to move. */
-function setup(on: On, isShown = false) {
+/** Three plies: Nxe5, the reply Qg5, then Nxf7. */
+const DEFLECT = JSON.stringify({
+  game: { pgn: 'e4 e5 Nf3 Nc6 Bc4 Nd4' },
+  puzzle: { id: 'deflect', themes: ['fork'], solution: ['f3e5', 'd8g5', 'e5f7'], initialPly: 5 },
+})
+
+/** Lichess answering with the puzzle, the pane shown or not; resolves the clock to move. */
+function setup(on: On, puzzle: string, isShown = false) {
   mock.store(on)
   const clock = mock.clock(on)
   on('ui.status', async () => ({ value: undefined }))
   on('ui.panes', async () => ({ value: (isShown ? [{ id: 'chess-break', isShown: true, isPlaced: true }] : []) as never }))
   on('ui.open', async () => ({ value: { isPlaced: true } as never }))
-  on('http.fetch', async () => ({ value: { status: 200, ok: true, headers: {}, text: SCHOLAR } }))
+  on('http.fetch', async () => ({ value: { status: 200, ok: true, headers: {}, text: puzzle } }))
   return clock
 }
 
@@ -41,13 +47,16 @@ function setup(on: On, isShown = false) {
 const titleOf = async (ui: Awaited<ReturnType<Engine['ui']['mount']>>) =>
   (await ui.findAll({ type: 'Text' })).map(e => e.text).find(text => text.startsWith('🧩 '))
 
-test('a solve’s time on the puzzle, then in Progress and stats', async ($, on) => {
-  const clock = setup(on)
+test('the clock starts with the first move; the solve’s time shows, then in Progress and stats', async ($, on) => {
+  const clock = setup(on, DEFLECT)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'retry' })
+  // The pane open in the background: a minute before the first move does not count.
+  await clock.advance(60_000)
   expect(await titleOf(ui)).toMatch(/  ·  ⏱ 0:00$/)
+  await ui.input({ key: 'move-deflect', text: 'Nxe5' })
   await clock.advance(42_000)
-  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  await ui.input({ key: 'move-deflect', text: 'Nxf7' })
   expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
   // Stopped at the solve.
   await clock.advance(30_000)
@@ -57,32 +66,36 @@ test('a solve’s time on the puzzle, then in Progress and stats', async ($, on)
   await ui.unmount()
   const stats = (await $.command.run(command('stats'))).text
   expect(stats).toContain('⏱ Clean solves: 0:42 on average, fastest 0:42')
-  expect(stats).toContain('Mate in 1: 1 ✓ 0 ✗ (100%) · ···█ · ⏱ 0:42')
+  expect(stats).toContain('Fork: 1 ✓ 0 ✗ (100%) · ···█ · ⏱ 0:42')
 })
 
-test('a missed puzzle’s time is not counted', async ($, on) => {
-  setup(on)
+test('a puzzle solved in one move has no time, and a miss is not counted', async ($, on) => {
+  setup(on, SCHOLAR)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'retry' })
+  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
+  expect(await titleOf(ui)).not.toMatch(/⏱/)
+  await ui.press({ key: 'next' })
   await ui.press({ key: 'reveal' })
   await ui.press({ key: 'progress' })
   expect(await ui.find({ text: /Clean solves/ })).toBeUndefined()
   await ui.unmount()
 })
 
-test('the clock moves while the pane is shown; reopened untouched, it starts again', async ($, on) => {
-  const clock = setup(on, true)
+test('a wrong first try starts the clock too, and it moves while the pane is shown', async ($, on) => {
+  const clock = setup(on, DEFLECT, true)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.press({ key: 'retry' })
+  await clock.advance(10_000)
+  expect(await titleOf(ui)).toMatch(/⏱ 0:00$/)
+  await ui.input({ key: 'move-deflect', text: 'Nxd4' })
   await clock.advance(5_000)
   expect(await titleOf(ui)).toMatch(/⏱ 0:05$/)
-  // The pane opened again by command, before any move: the time away does not count.
-  await clock.advance(60_000)
-  await $.command.run(command(''))
-  expect(await titleOf(ui)).toMatch(/⏱ 0:00$/)
-  await clock.advance(3_000)
-  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
-  expect(await titleOf(ui)).toMatch(/⏱ 0:03$/)
+  await ui.input({ key: 'move-deflect', text: 'Nxe5' })
+  await clock.advance(1_000)
+  await ui.input({ key: 'move-deflect', text: 'Nxf7' })
+  expect(await titleOf(ui)).toMatch(/⏱ 0:06$/)
   // Solved: the redraw stops at its next second.
   await clock.advance(1_000)
   await ui.unmount()

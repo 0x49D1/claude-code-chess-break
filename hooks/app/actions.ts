@@ -38,24 +38,13 @@ async function fetchPuzzle($: $, source: Source, theme: string): Promise<Puzzle>
   return readAnswer(await $.http.fetch(nextPuzzleUrl(theme, settings.difficulty), { method: 'GET', headers }))
 }
 
-/** The next puzzle, its clock started as it shows. */
-export async function loadNext($: $) {
-  await fetchNext($)
-  await startClock($)
-}
-
 /**
- * Starts the clock of a puzzle not yet touched, from now, and the redraw that moves it. A puzzle
- * shown again before any move starts afresh, so time with the pane closed does not count.
+ * Keeps the pane redrawn every second while a puzzle's clock runs and the pane is shown; stops
+ * itself otherwise, and opening the pane or a first move starts it again.
  */
-async function startClock($: $) {
-  const now = await $.clock.now()
-  const { attempt } = await update($, view, v => {
-    const a = v.attempt
-    const isUntouched = a?.status === 'playing' && !a.played.length && !a.hadMistake && !a.usedHelp
-    return isUntouched ? { ...v, attempt: { ...a, startedAt: now } } : v
-  })
-  if (puzzleTick || attempt?.status !== 'playing') return
+async function keepTicking($: $) {
+  const { attempt } = await read($, view)
+  if (puzzleTick || attempt?.status !== 'playing' || attempt.startedAt === undefined) return
   puzzleTick = $.clock.every(1000, () => {
     void (async () => {
       const v = await read($, view)
@@ -63,7 +52,6 @@ async function startClock($: $) {
       const panes = await $.ui.panes().catch(() => [])
       const isShown = panes.some(p => p.id === PANE && p.isShown)
       if (isShown && v.attempt?.status === 'playing' && !v.game && !v.seeking) return $.ui.invalidate('ui.render')
-      // Stopped; opening the pane starts it again.
       puzzleTick?.cancel()
       puzzleTick = undefined
     })().catch(() => undefined)
@@ -74,7 +62,7 @@ async function startClock($: $) {
  * The next puzzle: one due for review first, kept whole; else a new one from the chosen source.
  * When Lichess or Chess.com cannot be reached, the offline set keeps the training going.
  */
-async function fetchNext($: $) {
+export async function loadNext($: $) {
   const before = await read($, view)
   if (before.isLoading) return
   await update($, view, v => ({ ...v, isLoading: true, typed: undefined, replayPly: undefined }))
@@ -129,10 +117,21 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
   await sendResult($, attempt, isWin, (await read($, view)).theme)
 }
 
-/** Applies a change to the attempt, then plays the opponent's reply or records the end. */
+/**
+ * Applies a change to the attempt, then plays the opponent's reply or records the end. The first
+ * move tried, right or wrong, starts the puzzle's clock: the pane may sit open unwatched until then.
+ * A puzzle that ends with that move has no time.
+ */
 export async function change($: $, fn: (a: Attempt) => Attempt): Promise<Attempt | undefined> {
-  const { attempt } = await update($, view, v => (v.attempt ? { ...v, attempt: fn(v.attempt) } : v))
+  const now = await $.clock.now()
+  const { attempt } = await update($, view, v => {
+    if (!v.attempt) return v
+    const a = fn(v.attempt)
+    const isFirstMove = a.startedAt === undefined && a.status === 'playing' && (a.played.length > 0 || a.tried.length > 0)
+    return { ...v, attempt: isFirstMove ? { ...a, startedAt: now } : a }
+  })
   if (!attempt) return undefined
+  await keepTicking($)
   if (awaitsReply(attempt)) {
     $.clock.after(400, () => {
       void update($, view, v => (v.attempt?.puzzle.id === attempt.puzzle.id ? { ...v, attempt: reply(v.attempt) } : v))
@@ -178,7 +177,7 @@ export async function openPane($: $, focus = false) {
   // A game or a seek holds the pane: puzzles wait behind it.
   if (v.game || v.seeking) return
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
-  else await startClock($)
+  else await keepTicking($)
 }
 
 /**

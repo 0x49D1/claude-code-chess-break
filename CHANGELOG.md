@@ -2,6 +2,10 @@
 
 What each version added. The pane shows the latest ones under ℹ About.
 
+## 0.7.1 (2026-11-10)
+
+- ⏱ The puzzle clock starts with your first move, not when the puzzle shows, since the pane can sit open in the background. A puzzle solved in one move has no time.
+
 ## 0.7.0 (2026-11-10)
 
 - ⏱ A clock on each puzzle; time with the pane closed doesn't count.
