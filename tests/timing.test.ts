@@ -43,13 +43,15 @@ function setup(on: On, puzzle: string, isShown = false) {
   return clock
 }
 
+const mount = ($: Engine) => $.ui.mount({ ...PANE, surface: 'terminal' })
+
 /** The puzzle's title line alone: a Text keeps no key once drawn. */
-const titleOf = async (ui: Awaited<ReturnType<Engine['ui']['mount']>>) =>
+const titleOf = async (ui: Awaited<ReturnType<typeof mount>>) =>
   (await ui.findAll({ type: 'Text' })).map(e => e.text).find(text => text.startsWith('🧩 '))
 
 test('the clock starts with the first move; the solve’s time shows, then in Progress and stats', async ($, on) => {
   const clock = setup(on, DEFLECT)
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const ui = await mount($)
   await ui.press({ key: 'retry' })
   // The pane open in the background: a minute before the first move does not count.
   await clock.advance(60_000)
@@ -71,7 +73,7 @@ test('the clock starts with the first move; the solve’s time shows, then in Pr
 
 test('a puzzle solved in one move has no time, and a miss is not counted', async ($, on) => {
   setup(on, SCHOLAR)
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const ui = await mount($)
   await ui.press({ key: 'retry' })
   await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
   expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
@@ -85,7 +87,7 @@ test('a puzzle solved in one move has no time, and a miss is not counted', async
 
 test('a wrong first try starts the clock too, and it moves while the pane is shown', async ($, on) => {
   const clock = setup(on, DEFLECT, true)
-  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const ui = await mount($)
   await ui.press({ key: 'retry' })
   await clock.advance(10_000)
   expect(await titleOf(ui)).toMatch(/⏱ 0:00$/)

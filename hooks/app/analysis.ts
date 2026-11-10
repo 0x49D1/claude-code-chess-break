@@ -28,10 +28,10 @@ export async function checkAnalysis($: $, id: string): Promise<boolean> {
   try {
     const mistakes = readAnalysis(await $.http.fetch(exportUrl(id), { method: 'GET', headers: { Accept: 'application/json' } }), game.side)
     if (!mistakes) return false
-    await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'ready', mistakes } } : v))
+    await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'ready' as const, mistakes } } : v))
   } catch (err) {
     const why = err instanceof Error ? err.message : String(err)
-    await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'failed', why } } : v))
+    await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'failed' as const, why } } : v))
   }
   return true
 }
@@ -42,7 +42,7 @@ export async function reviewGame($: $) {
   if (!game) return
   const id = game.id
   stopPolling()
-  await update($, view, v => ({ ...v, analysis: { gameId: id, state: 'waiting' } }))
+  await update($, view, v => ({ ...v, analysis: { gameId: id, state: 'waiting' as const } }))
   if (await checkAnalysis($, id)) return
   let left = POLLS
   poller = $.clock.every(POLL_MS, () => {
@@ -51,7 +51,7 @@ export async function reviewGame($: $) {
       if (await checkAnalysis($, id)) return stopPolling()
       if (left > 0) return
       stopPolling()
-      await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'gaveUp' } } : v))
+      await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'gaveUp' as const } } : v))
     })().catch(() => undefined)
   })
 }

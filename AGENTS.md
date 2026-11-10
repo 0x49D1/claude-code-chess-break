@@ -17,6 +17,8 @@ claude --plugin-dir .      # try it for real
 
 The engine's types live in `.claude-plugin/types/` (gitignored, written by the engine). Read `.claude-plugin/types/claude-code/index.d.ts` for the API: `$.http`, `$.process`, `$.clock`, `$.store`, `$.ui`, events. Don't guess.
 
+Where the engine has not loaded the mod (a cloud session, CI), the folder is missing and `tsc` fails on `claude-code`. Load the `plugin-authoring` skill: it writes this build's types to a path it names (`.../plugin-authoring/types/claude-code.d.ts`). Copy that file to `.claude-plugin/types/claude-code/index.d.ts`, and write `.claude-plugin/types/tsconfig.json` with the options in that file's header and `"include": ["./", "../../hooks", "../../types", "../../tests"]`. Then `npx -p typescript tsc --noEmit -p .` runs as on a machine with the mod loaded.
+
 ## Engine rules the code must follow
 
 - A file that reads or updates the pane's state declares the `view` atom itself: `atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)`.

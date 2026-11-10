@@ -90,7 +90,7 @@ export function lichess(on: On, answers: Record<string, { status: number; text: 
     return { value: { code: 0, signal: null } }
   })
   on('http.fetch', async (_$, e) => {
-    const call = { method: e.init?.method ?? 'GET', url: e.url, auth: e.init?.headers?.Authorization, body: e.init?.body }
+    const call = { method: e.init?.method ?? 'GET', url: e.url, auth: e.init?.headers?.Authorization, body: typeof e.init?.body === 'string' ? e.init.body : undefined }
     calls.push(call)
     const key = Object.keys(answers).find(k => e.url.endsWith(k))
     const a = key ? answers[key]! : { status: 200, text: '{"ok":true}' }
