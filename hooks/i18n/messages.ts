@@ -18,6 +18,12 @@ export type Messages = {
     streak: (streak: number, best: number) => string
     today: (done: number, goal: number) => string
     dayStreak: (days: number) => string
+    progress: string
+    back: string
+    progressHead: string
+    lichessHead: string
+    noRecent: string
+    dashboardFailed: (why: string) => string
     dueCount: (n: number) => string
     noneDue: string
     hint: string

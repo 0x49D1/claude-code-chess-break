@@ -6,13 +6,15 @@ import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
 import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './app/game'
 import { refreshGames } from './app/games'
-import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedProgress, storedReview } from './app/state'
+import { refreshDashboard } from './app/progress'
+import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview } from './app/state'
 import { completions } from './chess/position'
 import { LOCALES, asLocale, gameLine, messagesFor } from './i18n'
 import { AI_CLOCKS, DAYS, SEEK_CLOCKS } from './lichess/game'
 import { hint, play, reveal, solverOf } from './training/attempt'
 import { awaiting, isOn, playTyped, readSettings } from './training/game'
 import { learnLinks, readExplanation } from './training/explain'
+import { progressRows, spark } from './training/history'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
 import { THEME_GROUPS, findTheme } from './training/themes'
@@ -82,12 +84,19 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const progress = await storedProgress($)
         const lines = themeLines(progress)
         if (!lines.length) return { text: t.command.noStats }
-        const due = dueIds(await storedReview($), await $.clock.now()).length
+        const now = await $.clock.now()
+        const due = dueIds(await storedReview($), now).length
         const weak = weakest(progress)
+        // The last 4 weeks' bars, and Lichess's rating when signed in, after each all-time line.
+        const rows = new Map(progressRows(await storedHistory($), now, await refreshDashboard($)).map(r => [r.theme, r]))
+        const trend = (theme: string) => {
+          const row = rows.get(theme)
+          return `${row?.accuracy === undefined ? '' : ` · ${spark(row.weeks)}`}${row?.lichess ? ` · ⭐ ${row.lichess.performance}` : ''}`
+        }
         return {
           text: [
             t.command.statsHead(progress.streak, progress.best, due ? t.pane.dueCount(due) : t.pane.noneDue),
-            ...lines.map(l => `${t.theme(l.theme)}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)`),
+            ...lines.map(l => `${t.theme(l.theme)}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)${trend(l.theme)}`),
             ...(weak ? [t.command.weakest(t.theme(weak.theme), weak.theme)] : []),
           ].join('\n'),
         }

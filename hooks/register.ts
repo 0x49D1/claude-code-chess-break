@@ -4,7 +4,7 @@ import type { Register } from 'claude-code'
 import { restoreAccount } from './app/account'
 import { openForTurn, refreshDue } from './app/actions'
 import { startRefresh } from './app/games'
-import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedDaily, storedProgress, storedSource, storedTheme } from './app/state'
+import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedDaily, storedHistory, storedProgress, storedSource, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
@@ -35,7 +35,8 @@ export const register: Register = (on, options) => {
     const theme = await storedTheme($)
     const source = await storedSource($)
     const daily = await storedDaily($)
-    await update($, view, v => ({ ...v, locale, progress, daily, theme, source, isRated: settings.ratedPuzzles }))
+    const history = await storedHistory($)
+    await update($, view, v => ({ ...v, locale, progress, daily, history, theme, source, isRated: settings.ratedPuzzles }))
     await refreshDue($)
     await restoreAccount($)
     // The account's games come back, a live one on the pane; the session does not wait for them.

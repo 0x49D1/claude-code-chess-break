@@ -1,6 +1,6 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Daily, Progress, Review, Source, View } from '../../types'
+import type { Daily, History, Progress, Review, Source, Tally, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_DAILY } from '../training/daily'
@@ -21,6 +21,7 @@ export const INITIAL_VIEW: View = {
   dueCount: 0,
   progress: NO_PROGRESS,
   daily: NO_DAILY,
+  history: {},
   session: [],
   isClaudeWorking: false,
   isRated: true,
@@ -50,6 +51,20 @@ export async function storedReview($: $): Promise<Review> {
 
 export async function storedProgress($: $): Promise<Progress> {
   return ((await $.store.get('progress')) as Progress | undefined) ?? NO_PROGRESS
+}
+
+const isTally = (x: unknown): x is Tally =>
+  typeof x === 'object' && x !== null && typeof (x as Partial<Tally>).solved === 'number' && typeof (x as Partial<Tally>).failed === 'number'
+
+/** Puzzles by day and theme; a day or tally that isn't one is left out. */
+export async function storedHistory($: $): Promise<History> {
+  const x = (await $.store.get('history')) as Record<string, Record<string, unknown> | undefined> | undefined
+  const history: History = {}
+  for (const [day, themes] of Object.entries(typeof x === 'object' && x !== null ? x : {})) {
+    if (typeof themes !== 'object' || themes === null) continue
+    history[day] = Object.fromEntries(Object.entries(themes).filter((e): e is [string, Tally] => isTally(e[1])))
+  }
+  return history
 }
 
 /** The daily goal's record, each field checked; a missing or broken one starts afresh. */

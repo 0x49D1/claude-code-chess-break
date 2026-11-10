@@ -16,6 +16,13 @@ function dayBefore(day: string) {
   return dayOf(new Date(year, month - 1, date - 1, 12).getTime())
 }
 
+/** The last `n` local days, today first. */
+export function lastDays(now: number, n: number) {
+  const days = [dayOf(now)]
+  while (days.length < n) days.push(dayBefore(days.at(-1)!))
+  return days
+}
+
 /** Counts one finished puzzle for today; reaching the goal meets the day, after yesterday's streak or anew. */
 export function recordDaily(daily: Daily, now: number, goal: number): Daily {
   const today = dayOf(now)

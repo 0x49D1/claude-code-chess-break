@@ -67,6 +67,15 @@ export type Tally = { solved: number; failed: number }
 export type Progress = { themes: Record<string, Tally>; streak: number; best: number }
 
 /** The daily goal's record: the local day counted (`2026-11-10`), its puzzles, the last day met, and the run of met days. */
+/** Puzzles by local day (`2026-11-10`), then by trained theme. */
+export type History = Record<string, Record<string, Tally>>
+
+/** A theme on Lichess's puzzle dashboard: puzzles played, first-try accuracy in percent, performance rating. */
+export type ThemeResult = { played: number; accuracy: number; performance: number }
+
+/** Lichess's puzzle dashboard as last read for the progress screen, or why it could not be. */
+export type Dashboard = { themes: Record<string, ThemeResult> } | { failed: string }
+
 export type Daily = { day: string; done: number; metOn?: string; streak: number; best: number }
 
 /** A game to start: Lichess's Stockfish at a level, or a seek for a person; the clock as `minutes+increment`. */
@@ -162,6 +171,10 @@ export type View = {
   dueCount: number
   progress: Progress
   daily: Daily
+  history: History
+  /** The progress screen is open. */
+  isProgressShown?: boolean
+  dashboard?: Dashboard
   /** The move a finished puzzle is replayed at: 0 its start, played.length its end; undefined the end. */
   replayPly?: number
   /** Claude's explanation of a finished puzzle: asked, given, or failed. */
