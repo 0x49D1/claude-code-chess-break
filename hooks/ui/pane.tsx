@@ -5,6 +5,7 @@ import type { Feedback, View } from '../../types'
 import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/account'
 import { change, explain, loadNext, next } from '../app/actions'
 import { openSetup, showGame } from '../app/game'
+import { openProgress } from '../app/progress'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
@@ -19,6 +20,7 @@ import { todayOf } from '../training/daily'
 import { themeLines } from '../training/progress'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
+import { progressPane } from './progress'
 import { setupPane } from './setup'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -84,6 +86,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       <Text>{marks || '·'}</Text>
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
       {settings.dailyGoal > 0 && <Text>{goalLine}</Text>}
+      <Button key="progress" plain hotkey="p" onPress={() => void openProgress($)}>{`📊 ${t.pane.progress}`}</Button>
       <Text>{`🔁 ${v.dueCount ? t.pane.dueCount(v.dueCount) : t.pane.noneDue}`}</Text>
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
@@ -133,6 +136,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     const isLiveOn = !!v.game && isOn(v.game) && !v.game.isCorrespondence
     if (v.setup && !isLiveOn && !v.seeking) return setupPane($, els, v.setup, v, t)
     if (v.game || v.seeking) return gamePane($, els, v, t)
+    if (v.isProgressShown) return progressPane($, els, v, t, now)
 
     if (!a) {
       return (
