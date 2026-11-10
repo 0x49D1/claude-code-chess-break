@@ -150,6 +150,16 @@ export const ru: Messages = {
     awaitingCount: n => `${plural(n, 'партия ждёт', 'партии ждут', 'партий ждут')} твоего хода`,
     opponentPlayed: (name, san) => `${name}: ход ${san}`,
     yourMoveAgainst: name => `Твой ход: ${name}.`,
+    review: 'Разбор',
+    analysisOnLichess: 'Анализ делается на Lichess: открой партию там и нажми «Запросить компьютерный анализ». Ходы для разбора появятся здесь, когда он будет готов.',
+    openOnLichess: 'Открыть партию на Lichess ↗',
+    waitingAnalysis: 'Ждём анализ Lichess…',
+    analysisNotYet: 'У Lichess пока нет анализа этой партии.',
+    checkAgain: 'Проверить снова',
+    analysisFailed: why => `Не удалось прочитать анализ Lichess (${why}).`,
+    noMistakes: 'Lichess не нашёл ошибок в твоих ходах.',
+    costliest: 'Твои самые дорогие ходы по анализу Lichess:',
+    mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'Неточность', Mistake: 'Ошибка', Blunder: 'Зевок' }[judgment]} · лучше ${best} · −${pawns}`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Для партий нужен аккаунт Lichess: /chess-break login.'

@@ -209,7 +209,7 @@ export async function leaveGame($: $) {
   tick?.cancel()
   tick = undefined
   await stop('game', 'seek', 'events')
-  await update($, view, v => ({ ...v, game: undefined, seeking: undefined, gameNote: undefined, replayPly: undefined }))
+  await update($, view, v => ({ ...v, game: undefined, seeking: undefined, gameNote: undefined, replayPly: undefined, analysis: undefined }))
 }
 
 /** Shows a game of the list, its stream followed in place of the game shown. */

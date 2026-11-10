@@ -141,6 +141,16 @@ export const fr: Messages = {
     awaitingCount: n => `${n} partie${n > 1 ? 's' : ''} attend${n > 1 ? 'ent' : ''} ton coup`,
     opponentPlayed: (name, san) => `${name} a joué ${san}`,
     yourMoveAgainst: name => `À toi de jouer contre ${name}.`,
+    review: 'Analyse',
+    analysisOnLichess: 'L’analyse se fait sur Lichess : ouvre la partie et appuie sur « Demander une analyse par ordinateur ». Les coups à revoir s’affichent ici une fois qu’elle est faite.',
+    openOnLichess: 'Ouvrir la partie sur Lichess ↗',
+    waitingAnalysis: 'En attente de l’analyse de Lichess…',
+    analysisNotYet: 'Lichess n’a pas encore d’analyse de cette partie.',
+    checkAgain: 'Vérifier à nouveau',
+    analysisFailed: why => `L’analyse de Lichess n’a pas pu être lue (${why}).`,
+    noMistakes: 'Lichess n’a trouvé aucune erreur dans tes coups.',
+    costliest: 'Tes coups les plus coûteux, selon l’analyse de Lichess :',
+    mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'Imprécision', Mistake: 'Erreur', Blunder: 'Gaffe' }[judgment]} · mieux ${best} · −${pawns}`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Les parties demandent un compte Lichess : /chess-break login.'

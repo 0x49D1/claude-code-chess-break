@@ -142,6 +142,16 @@ export const en: Messages = {
     awaitingCount: n => `${n} game${n === 1 ? '' : 's'} await${n === 1 ? 's' : ''} your move`,
     opponentPlayed: (name, san) => `${name} played ${san}`,
     yourMoveAgainst: name => `Your move against ${name}.`,
+    review: 'Review',
+    analysisOnLichess: 'The analysis happens on Lichess: open the game there and press “Request a computer analysis”. The moves to look at show here when it is done.',
+    openOnLichess: 'Open the game on Lichess ↗',
+    waitingAnalysis: 'Waiting for Lichess’s analysis…',
+    analysisNotYet: 'Lichess has no analysis of this game yet.',
+    checkAgain: 'Check again',
+    analysisFailed: why => `Lichess’s analysis could not be read (${why}).`,
+    noMistakes: 'Lichess found no mistakes in your moves.',
+    costliest: 'Your costliest moves, by Lichess’s analysis:',
+    mistake: (move, judgment, best, pawns) => `${move} ${judgment} · better ${best} · −${pawns}`,
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Games need a Lichess account: /chess-break login.'

@@ -12,6 +12,7 @@ import { playerName } from '../i18n'
 import type { Messages } from '../i18n'
 import { gameUrl } from '../lichess/game'
 import { canAbort, clickGame, clockLeft, endingOf, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
+import { reviewSection } from './analysis'
 import { board, glyphOf } from './board'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -140,6 +141,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
       ) : suggestions.length > 0 ? (
         <Text dimColor>{`  ${suggestions.slice(0, 10).join('  ')}${suggestions.length > 10 ? '  …' : ''}`}</Text>
       ) : null}
+      {!isPlaying && endingOf(g.status) !== 'aborted' && reviewSection($, els, g, v, t, goTo)}
       {isPlaying ? (
         <Box flexDirection="row" gap={2}>
           <Button key="resign" plain onPress={() => void resign($)}>{`🏳 ${t.game.resign}`}</Button>

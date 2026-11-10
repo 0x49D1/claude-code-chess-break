@@ -60,6 +60,7 @@ Or press 🤖 or 👤 in the pane: a setup screen offers the level, the clock or
 - **The live game outlives Claude's turn:** the pane stays open, the line under the prompt shows the opponent, both clocks and whose move it is, and puzzles wait. A live game still on when a new session starts comes back.
 - **The opponent moved:** when the pane is hidden, a toast names the move (`♞ Stockfish level 3 played Nf6`). With **Game sounds** on in `/config`, a short sound plays too.
 - **At the end:** the result, the moves to replay (click one, or `j` / `k`), a link to the game on Lichess, 🔄 another game with the same settings, or 🧩 back to puzzles. Games don't count in puzzle progress.
+- **🔍 Review:** after a game (not an aborted one), see the moves that lost the most, with the better move. The analysis happens on Lichess: its API can't start one, so the pane links to the game, where you press Lichess's "Request a computer analysis" once. The pane checks every 5 seconds for 3 minutes and shows your (not the opponent's) up to 3 costliest moves, such as `14. Qxb7?? Blunder · better Nf3 · −3.2`. Click one to see the position before it. After 3 minutes, 🔄 Check again.
 - A sign-in made before games existed has no `board:play`: the first game asks you to sign in again.
 
 ### Correspondence games
