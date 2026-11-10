@@ -2,6 +2,11 @@
 
 What each version added. The pane shows the latest ones under ℹ About.
 
+## 0.7.0 (2026-11-10)
+
+- ⏱ A clock on each puzzle; time with the pane closed doesn't count.
+- 📊 Progress and `/chess-break stats` show your average and fastest clean solve, and stats each theme's average time.
+
 ## 0.6.0 (2026-11-10)
 
 - ℹ About in the pane: the version, what's new, and a link to the project on GitHub.

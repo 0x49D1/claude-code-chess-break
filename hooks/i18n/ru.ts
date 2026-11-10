@@ -82,6 +82,7 @@ export const ru: Messages = {
     whatsNew: 'Что нового',
     allChanges: 'Все изменения',
     changesUnread: 'Не удалось прочитать список изменений.',
+    times: (average, fastest) => `Чистые решения: в среднем ${average}, быстрее всего ${fastest}`,
     dueCount: n => `${plural(n, 'задача', 'задачи', 'задач')} на повторение`,
     noneDue: 'Нечего повторять',
     hint: 'Подсказка',

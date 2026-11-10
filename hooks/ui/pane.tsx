@@ -19,6 +19,7 @@ import { learnLinks, readExplanation } from '../training/explain'
 import { awaiting, isOn } from '../training/game'
 import { todayOf } from '../training/daily'
 import { themeLines } from '../training/progress'
+import { formatTime } from '../training/timing'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
@@ -167,6 +168,8 @@ export const registerPane = (on: Parameters<Register>[0]) => {
       ...(a.isReview ? [`🔁 ${t.pane.review}`] : []),
       ...(a.puzzle.rating ? [`⭐ ${a.puzzle.rating}`] : []),
       t.pane.toPlay(solverOf(a)),
+      // The clock moves while the puzzle is played, and stops at its time once it ends.
+      ...(a.startedAt === undefined ? [] : [`⏱ ${formatTime(a.elapsedMs ?? now - a.startedAt)}`]),
     ].join('  ·  ')
 
     return (

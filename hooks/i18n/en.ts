@@ -74,6 +74,7 @@ export const en: Messages = {
     whatsNew: 'What’s new',
     allChanges: 'All changes',
     changesUnread: 'The list of changes could not be read.',
+    times: (average, fastest) => `Clean solves: ${average} on average, fastest ${fastest}`,
     dueCount: n => `${plural(n, 'puzzle', 'puzzles')} to review`,
     noneDue: 'Nothing to review',
     hint: 'Hint',

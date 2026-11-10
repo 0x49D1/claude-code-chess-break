@@ -1,6 +1,6 @@
 {
   "name": "chess-break",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"
@@ -45,7 +45,7 @@
     "source": {
       "type": "string",
       "title": "Puzzles from",
-      "description": "lichess (by theme, needs the network), chesscom (Chess.com's daily puzzles, no themes) or offline (1,469 puzzles shipped with the mod)",
+      "description": "lichess (by theme, needs the network), chesscom (Chess.com's daily puzzles, no themes) or offline (500+ puzzles shipped with the mod)",
       "options": [
         "lichess",
         "chesscom",

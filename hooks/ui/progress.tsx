@@ -5,6 +5,7 @@ import { closeProgress } from '../app/progress'
 import type { $ } from '../app/state'
 import type { Messages } from '../i18n'
 import { progressRows, spark } from '../training/history'
+import { averageMs, formatTime } from '../training/timing'
 import type { ProgressRow } from '../training/history'
 
 /** Rows the screen has room for; /chess-break stats lists them all. */
@@ -26,6 +27,7 @@ export function progressPane($: $, els: Elements[keyof Elements], v: View, t: Me
     <Box flexDirection="column">
       <Text bold>{`📊 ${t.pane.progress}`}</Text>
       <Text dimColor>{t.pane.progressHead}</Text>
+      {v.times.all.count > 0 && <Text>{`⏱ ${t.pane.times(formatTime(averageMs(v.times.all)), formatTime(v.times.all.fastestMs))}`}</Text>}
       {dashboard && 'themes' in dashboard && <Text dimColor>{`⭐ ${t.pane.lichessHead}`}</Text>}
       {dashboard && 'failed' in dashboard && <Text color="error">{t.pane.dashboardFailed(dashboard.failed)}</Text>}
       {rows.length ? rows.slice(0, SHOWN_ROWS).map(row => <Text key={`row-${row.theme}`}>{rowLine(row, t)}</Text>) : <Text>{t.pane.noRecent}</Text>}
