@@ -9,6 +9,7 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
+- [ ] **Puzzle timer:** each puzzle's time shown while solving, and kept: average and fastest times in 📊 Progress and `/chess-break stats`.
 
 ## Done
 
