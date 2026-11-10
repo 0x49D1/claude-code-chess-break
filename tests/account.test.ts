@@ -40,7 +40,7 @@ function lichess(on: On) {
   on('ui.panes', async () => ({ value: [] }))
   on('ui.open', async () => ({ value: { isPlaced: true } as never }))
   on('http.fetch', async (_$, e) => {
-    const call = { method: e.init?.method ?? 'GET', url: e.url, auth: e.init?.headers?.Authorization, body: e.init?.body }
+    const call = { method: e.init?.method ?? 'GET', url: e.url, auth: e.init?.headers?.Authorization, body: typeof e.init?.body === 'string' ? e.init.body : undefined }
     calls.push(call)
     const ok = (text: string) => ({ value: { status: 200, ok: true, headers: {}, text } })
     if (e.url.endsWith('/api/account')) {

@@ -26,7 +26,7 @@ test('the person’s judged moves, the costliest first', () => {
   ])
   // Black's moves were not judged.
   expect(readAnalysis(ok(FOOLS_MATE), 'b')).toEqual([])
-  expect(readAnalysis(ok(FOOLS_MATE), 'w', 1).map(m => m.san)).toEqual(['g4'])
+  expect(readAnalysis(ok(FOOLS_MATE), 'w', 1)?.map(m => m.san)).toEqual(['g4'])
 })
 
 test('no analysis yet, the better move from best, and errors', () => {
