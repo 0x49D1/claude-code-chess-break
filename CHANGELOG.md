@@ -5,6 +5,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.9.1 (2026-11-11)
+
+- Typing a move with the keyboard on the board no longer skips the puzzle: while a puzzle is played, n (next), h (hint) and c (rated) aren't shortcuts, since moves use those letters. n and c come back once the puzzle is over.
 ## 0.9.0 (2026-11-11)
 
 - 🧩 Puzzles from your own games: the moves the game review shows come back the next day as puzzles, from the position before your move, with the better move to find, until learned.

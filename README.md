@@ -129,7 +129,7 @@ Then, as a second command:
 | `/chess-break login` / `logout` / `account` | Lichess account, for rated puzzles and games |
 | `/chess-break lang auto` / `en` / `fr` / `ru` / `ka` | language |
 
-In the pane: `h` hint, `s` solution, `n` next, `e` explain, `p` progress, `i` about, `l` sign in, `c` rated or casual (signed in), `r` retry when a puzzle didn't load, `j` / `k` replay of a finished puzzle or game (outside the move field). Esc steps back from Progress, About, sign-in, a game's setup or a finished game, and closes the pane from the puzzle (it comes back as it was); in a live game it only returns the keyboard to the prompt.
+In the pane, outside the move field: `s` solution, `p` progress, `i` about, `l` sign in. Once a puzzle is over: `n` next, `e` explain, `j` / `k` replay of the puzzle or a game, `c` rated or casual (signed in); `r` retry when a puzzle didn't load. While a puzzle is played, no key a move uses (the pieces, the files, `x`, `o`) is a shortcut, so typing `Nf3` with the keyboard on the board never skips the puzzle: 💡 Hint and ⏩ Skip are clicked then. Esc steps back from Progress, About, sign-in, a game's setup or a finished game, and closes the pane from the puzzle (it comes back as it was); in a live game it only returns the keyboard to the prompt.
 
 ## Settings (`/config`)
 
