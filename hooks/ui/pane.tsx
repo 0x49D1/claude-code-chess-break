@@ -68,7 +68,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       {v.account ? (
         <Box flexDirection="row" gap={1}>
           <Text>{`👤 ${v.account.username}${v.account.rating ? ` · ⭐ ${v.account.rating}${diff}` : ''}`}</Text>
-          <Button key="rated" plain dimColor hotkey="c" onPress={() => void switchRated($).catch(() => undefined)}>{v.isRated ? t.game.rated : t.game.casual}</Button>
+          <Button key="rated" plain dimColor {...(v.attempt?.status === 'playing' ? {} : { hotkey: 'c' })} onPress={() => void switchRated($).catch(() => undefined)}>{v.isRated ? t.game.rated : t.game.casual}</Button>
           <Button key="logout" plain dimColor onPress={() => void signOut($)}>{t.pane.signOut}</Button>
         </Box>
       ) : (
@@ -261,12 +261,13 @@ export const registerPane = (on: Parameters<Register>[0]) => {
           <Text color="error">{`  ${t.pane.noMove}`}</Text>
         ) : null}
         <Box flexDirection="row" gap={2}>
-          {isPlaying && <Button key="hint" plain hotkey="h" onPress={() => void change($, hint)}>{`💡 ${t.pane.hint}`}</Button>}
+          {/* While a puzzle is played, no key a move can contain (pieces, files, x, o, French letters) is a shortcut: with the keyboard on the board, typing Nf3 would press it. */}
+          {isPlaying && <Button key="hint" plain onPress={() => void change($, hint)}>{`💡 ${t.pane.hint}`}</Button>}
           {isPlaying && <Button key="reveal" plain hotkey="s" onPress={() => void change($, reveal)}>{`👀 ${t.pane.show}`}</Button>}
           {!isPlaying && !explanation?.text && (
             <Button key="explain" plain hotkey="e" onPress={() => void explain($).catch(() => undefined)}>{`🧠 ${t.pane.explain}`}</Button>
           )}
-          <Button key="next" plain hotkey="n" onPress={() => void next($)}>{`⏩ ${t.pane.skip}`}</Button>
+          <Button key="next" plain {...(isPlaying ? {} : { hotkey: 'n' })} onPress={() => void next($)}>{`⏩ ${t.pane.skip}`}</Button>
           {a.puzzle.url && <Link href={a.puzzle.url} label={a.puzzle.source === 'chesscom' ? 'Chess.com ↗' : 'Lichess ↗'} />}
           {!isPlaying && <Link href={analysisUrl(a.puzzle.fen, solverOf(a))} label={`🔍 ${t.pane.analyse} ↗`} />}
         </Box>
