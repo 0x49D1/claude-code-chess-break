@@ -99,6 +99,8 @@ export type Messages = {
     noMistakes: string
     costliest: string
     mistake: (move: string, judgment: Judgment, best: string, pawns: string) => string
+    fromGame: (opponent: string) => string
+    comeBack: string
     note: (n: GameNote) => string
   }
   command: {

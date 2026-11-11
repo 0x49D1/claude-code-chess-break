@@ -148,6 +148,8 @@ export const ka: Messages = {
     noMistakes: 'Lichess-მა შენს სვლებში შეცდომა ვერ იპოვა.',
     costliest: 'შენი ყველაზე ძვირი სვლები, Lichess-ის ანალიზით:',
     mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'უზუსტობა', Mistake: 'შეცდომა', Blunder: 'უხეში შეცდომა' }[judgment]} · უკეთესი ${best} · −${pawns}`,
+    fromGame: opponent => `შენი პარტია: ${opponent}`,
+    comeBack: 'ეს სვლები ხვალ ამოცანებად დაბრუნდება.',
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'პარტიებისთვის Lichess-ის ანგარიშია საჭირო: /chess-break login.'

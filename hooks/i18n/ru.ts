@@ -163,6 +163,8 @@ export const ru: Messages = {
     noMistakes: 'Lichess не нашёл ошибок в твоих ходах.',
     costliest: 'Твои самые дорогие ходы по анализу Lichess:',
     mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'Неточность', Mistake: 'Ошибка', Blunder: 'Зевок' }[judgment]} · лучше ${best} · −${pawns}`,
+    fromGame: opponent => `Твоя партия против ${opponent}`,
+    comeBack: 'Эти ходы вернутся задачами завтра.',
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Для партий нужен аккаунт Lichess: /chess-break login.'

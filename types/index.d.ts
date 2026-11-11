@@ -5,10 +5,11 @@ export type Source = 'lichess' | 'chesscom' | 'offline'
 
 export type Puzzle = {
   id: string
-  source: Source
+  /** Where it came from: a puzzle source, or the person's own game, from its review. */
+  source: Source | 'game'
   /** Its page, for a puzzle that has one. */
   url?: string
-  /** Chess.com names its daily puzzles. */
+  /** Chess.com names its daily puzzles; a game's puzzle says whose game it is. */
   title?: string
   /** The position the solver plays from. */
   fen: string

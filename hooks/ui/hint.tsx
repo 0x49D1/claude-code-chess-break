@@ -31,7 +31,7 @@ export function hintTail(v: View): string | undefined {
   }
   const last = a.played.at(-1) ?? a.puzzle.lastMove?.san
   return [
-    `♞ ${a.puzzle.source === 'chesscom' ? a.puzzle.title ?? t.pane.dailyPuzzle : t.theme(v.theme)}`,
+    `♞ ${a.puzzle.title ?? (a.puzzle.source === 'chesscom' ? t.pane.dailyPuzzle : t.theme(v.theme))}`,
     t.pane.toPlay(solverOf(a)),
     ...(last ? [`⏮ ${last}`] : []),
     ...(v.progress.streak ? [`🔥 ${v.progress.streak}`] : []),

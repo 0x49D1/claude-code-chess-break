@@ -4,6 +4,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.9.0 (2026-11-11)
+
+- 🧩 Puzzles from your own games: the moves the game review shows come back the next day as puzzles, from the position before your move, with the better move to find, until learned.
 ## 0.8.4 (2026-11-10)
 
 - 📊 Progress keeps its history when the computer's clock or time zone moves a day back, instead of dropping the later days.

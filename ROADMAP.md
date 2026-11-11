@@ -5,6 +5,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
 ## This list (agreed 2026-11-10)
 
 - [ ] **Puzzles from my own games:** the mistakes the game review finds become puzzles that come back like missed puzzles.
+  - [x] Slice 1, 0.9.0: the review's costliest moves come back as one-move puzzles, through the review queue.
+  - [ ] Left: puzzles from correspondence and Chess.com games; a setting to turn it off; a longer line where the engine's is forced.
 - [ ] **Opening trainer:** pick a few openings; it quizzes the next move, and misses come back until learned.
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.

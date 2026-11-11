@@ -30,6 +30,7 @@ export function reviewSection($: $, els: Elements[keyof Elements], g: Game, v: V
             {t.game.mistake(moveText(m), m.judgment, m.best, (m.loss / 100).toFixed(1))}
           </Button>
         ))}
+        <Text dimColor>{`🔁 ${t.game.comeBack}`}</Text>
       </Box>
     )
   }
