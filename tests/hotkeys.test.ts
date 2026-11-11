@@ -39,3 +39,21 @@ test('while a puzzle is played, no key a move can hold is a shortcut; once over,
   // The sign-in's own work, run apart from the press, settles before the file ends.
   for (let i = 0; i < 5; i++) await clock.advance(1)
 })
+
+test('the moves a typed start can become are buttons with no hotkey; pressing one plays it', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  lichess(on, { 'difficulty=normal': { status: 200, text: DEFLECT } })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'retry' })
+  await ui.input({ key: 'move-deflect', text: 'N', kind: 'change' })
+  const chips = ((await ui.findAll({ type: 'Button' })) as unknown as Drawn[]).filter(b => b.key?.startsWith('suggest-deflect-'))
+  expect(chips.map(b => b.key?.replace('suggest-deflect-', ''))).toEqual(expect.arrayContaining(['Nxe5', 'Nxd4', 'Ng5']))
+  expect(chips.filter(b => b.props.hotkey)).toEqual([])
+  // Several left: Enter's label stays the default.
+  expect(JSON.stringify(await ui.find({ key: 'move-deflect' }))).not.toContain('submitLabel')
+  await ui.press({ key: 'suggest-deflect-Nxe5' })
+  expect(await ui.find({ key: 'suggest-deflect-Nxe5' })).toBeUndefined()
+  expect(await ui.find({ text: /Nxe5/ })).toBeDefined()
+  await ui.unmount()
+})
