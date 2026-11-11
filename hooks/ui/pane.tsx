@@ -171,7 +171,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     const explanation = v.explanation?.puzzleId === a.puzzle.id ? v.explanation : undefined
     const suggestions = isPlaying && v.typed ? completions(a.fen, v.typed) : []
     const title = [
-      a.puzzle.source === 'chesscom' ? `🧩 ${a.puzzle.title ?? t.pane.dailyPuzzle}` : `🧩 ${t.theme(v.theme)}`,
+      `🧩 ${a.puzzle.title ?? (a.puzzle.source === 'chesscom' ? t.pane.dailyPuzzle : t.theme(v.theme))}`,
       ...(a.isReview ? [`🔁 ${t.pane.review}`] : []),
       ...(a.puzzle.rating ? [`⭐ ${a.puzzle.rating}`] : []),
       t.pane.toPlay(solverOf(a)),

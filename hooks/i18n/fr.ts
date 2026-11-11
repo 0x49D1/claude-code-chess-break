@@ -154,6 +154,8 @@ export const fr: Messages = {
     noMistakes: 'Lichess n’a trouvé aucune erreur dans tes coups.',
     costliest: 'Tes coups les plus coûteux, selon l’analyse de Lichess :',
     mistake: (move, judgment, best, pawns) => `${move} ${{ Inaccuracy: 'Imprécision', Mistake: 'Erreur', Blunder: 'Gaffe' }[judgment]} · mieux ${best} · −${pawns}`,
+    fromGame: opponent => `Ta partie contre ${opponent}`,
+    comeBack: 'Ces coups reviennent en problèmes demain.',
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Les parties demandent un compte Lichess : /chess-break login.'

@@ -155,6 +155,8 @@ export const en: Messages = {
     noMistakes: 'Lichess found no mistakes in your moves.',
     costliest: 'Your costliest moves, by Lichess’s analysis:',
     mistake: (move, judgment, best, pawns) => `${move} ${judgment} · better ${best} · −${pawns}`,
+    fromGame: opponent => `Your game against ${opponent}`,
+    comeBack: 'These moves come back as puzzles tomorrow.',
     note(n) {
       switch (n.kind) {
         case 'signIn': return 'Games need a Lichess account: /chess-break login.'

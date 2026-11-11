@@ -3,25 +3,27 @@ import type { Engine } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
 import { readAnalysis } from '../hooks/lichess/analysis'
+import { mistakePuzzles } from '../hooks/training/mistakes'
+import type { Game } from '../types'
 import { AI, PANE, command, full, lichess, signedIn, state } from './fixtures/fake'
 
 const ok = (body: object) => ({ ok: true, status: 200, text: JSON.stringify(body) })
 
-/** The fool's mate, as Lichess's analysis judges it: white's 1. f3 and 2. g4 lose. */
+/** The fool's mate, as Lichess's analysis judges it: white's 1. f3 and 2. g4 lose; e4 and Nc3 were better. */
 const FOOLS_MATE = {
   id: 'g4m3',
   moves: 'f3 e5 g4 Qh4#',
   analysis: [
     { eval: -55, best: 'e2e4', variation: 'e4 e5 Nf3', judgment: { name: 'Inaccuracy', comment: 'Inaccuracy. e4 was best.' } },
     { eval: -40 },
-    { mate: -1, best: 'g1f3', variation: 'Nf3 d5', judgment: { name: 'Blunder', comment: 'Checkmate is now unavoidable. Nf3 was best.' } },
+    { mate: -1, best: 'b1c3', variation: 'Nc3 d5', judgment: { name: 'Blunder', comment: 'Checkmate is now unavoidable. Nc3 was best.' } },
     {},
   ],
 }
 
 test('the person’s judged moves, the costliest first', () => {
   expect(readAnalysis(ok(FOOLS_MATE), 'w')).toEqual([
-    { ply: 2, san: 'g4', judgment: 'Blunder', best: 'Nf3', loss: 960 },
+    { ply: 2, san: 'g4', judgment: 'Blunder', best: 'Nc3', loss: 960 },
     { ply: 0, san: 'f3', judgment: 'Inaccuracy', best: 'e4', loss: 70 },
   ])
   // Black's moves were not judged.
@@ -39,7 +41,8 @@ test('no analysis yet, the better move from best, and errors', () => {
 
 /** A game against Stockfish, played as white to the given end; resolves the answers Lichess gives, to change. */
 async function finishedGame($: Engine, on: On, moves: string, end: object) {
-  const settle = signedIn(on)
+  const store: Record<string, unknown> = {}
+  const settle = signedIn(on, 'lip_good', store)
   const answers: Record<string, { status: number; text: string }> = { ...AI, 'opening=false': { status: 200, text: JSON.stringify({ id: 'g4m3', moves: '' }) } }
   const fake = lichess(on, answers)
   await $.command.run(command('play stockfish'))
@@ -56,7 +59,7 @@ async function finishedGame($: Engine, on: On, moves: string, end: object) {
     fake.endAll()
     await settle(() => false, 1)
   }
-  return { ui, answers, settle, calls: fake.calls, done }
+  return { ui, answers, settle, calls: fake.calls, store, done }
 }
 
 test('a review waits for Lichess’s analysis, then shows the costliest moves', async ($, on) => {
@@ -73,7 +76,7 @@ test('a review waits for Lichess’s analysis, then shows the costliest moves', 
   await settle(() => false, 5000, 1)
   await settle(() => false, 1)
   expect(await ui.find({ text: /^🔍 Your costliest moves/ })).toBeDefined()
-  expect(JSON.stringify(await ui.find({ key: 'mistake-2' }))).toContain('2. g4?? Blunder · better Nf3 · −9.6')
+  expect(JSON.stringify(await ui.find({ key: 'mistake-2' }))).toContain('2. g4?? Blunder · better Nc3 · −9.6')
   expect(JSON.stringify(await ui.find({ key: 'mistake-0' }))).toContain('1. f3?! Inaccuracy · better e4 · −0.7')
   // The position before 2. g4: the g-pawn still home, no queen on h4.
   await ui.press({ key: 'mistake-2' })
@@ -117,5 +120,43 @@ test('back to puzzles from the top of a finished game', async ($, on) => {
 test('an aborted game offers no review', async ($, on) => {
   const { ui, done } = await finishedGame($, on, '', { status: 'aborted' })
   expect(await ui.find({ key: 'review' })).toBeUndefined()
+  await done()
+})
+
+test('the person’s mistakes as puzzles: the position before, the better move, the move before it', () => {
+  const game = { id: 'g4m3', side: 'w', moves: ['f2f3', 'e7e5', 'g2g4', 'd8h4'] } as unknown as Game
+  const mistakes = readAnalysis(ok(FOOLS_MATE), 'w') ?? []
+  expect(mistakePuzzles(game, mistakes, 'Your game against Stockfish level 3')).toEqual([
+    {
+      id: 'game-g4m3-2', source: 'game', url: 'https://lichess.org/g4m3#2', title: 'Your game against Stockfish level 3',
+      fen: 'rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2', solution: ['b1c3'], themes: [],
+      lastMove: { uci: 'e7e5', san: 'e5' },
+    },
+    {
+      id: 'game-g4m3-0', source: 'game', url: 'https://lichess.org/g4m3#0', title: 'Your game against Stockfish level 3',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', solution: ['e2e4'], themes: [],
+    },
+  ])
+  // A better move that is not legal there is left out.
+  expect(mistakePuzzles(game, [{ ply: 2, san: 'g4', judgment: 'Blunder', best: 'Qh5', loss: 900 }], 'x')).toEqual([])
+})
+
+test('the reviewed mistakes come back the next day as puzzles of the game', async ($, on) => {
+  const { ui, answers, settle, calls, store, done } = await finishedGame($, on, 'f2f3 e7e5 g2g4 d8h4', { status: 'mate', winner: 'black' })
+  answers['opening=false'] = { status: 200, text: JSON.stringify(FOOLS_MATE) }
+  await ui.press({ key: 'review' })
+  expect(await ui.find({ text: /^🔁 These moves come back as puzzles tomorrow\.$/ })).toBeDefined()
+  expect(Object.keys(store.review as object).sort()).toEqual(['game-g4m3-0', 'game-g4m3-2'])
+  await ui.press({ key: 'puzzles-top' })
+  await settle(() => false, 86_400_000, 1)
+  expect((await $.command.run(command('review'))).text).toBe('2 puzzles to review: the next puzzles are those.')
+  const title = (await ui.findAll({ type: 'Text' })).map(e => e.text).find(text => text.startsWith('🧩 '))
+  expect(title).toMatch(/^🧩 Your game against Stockfish level 3  ·  🔁 Review  ·  White to play/)
+  const posted = calls.length
+  await ui.input({ key: 'move-game-g4m3-2', text: 'Nc3' })
+  expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
+  // Solved, it moves up the review boxes, and nothing goes to Lichess's puzzle API.
+  expect((store.review as Record<string, { box: number }>)['game-g4m3-2']?.box).toBe(1)
+  expect(calls.slice(posted).some(c => c.url.includes('/api/puzzle/'))).toBe(false)
   await done()
 })
