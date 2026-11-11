@@ -6,6 +6,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.10.0 (2026-11-11)
+
+- Faster moves: as you type, the moves that fit are buttons under the field; ↓ reaches them, ← → walk them, Enter or a click plays one. With one move left, the field shows ▶ and the move, and Enter plays it.
 ## 0.9.1 (2026-11-11)
 
 - Typing a move with the keyboard on the board no longer skips the puzzle: while a puzzle is played, n (next), h (hint) and c (rated) aren't shortcuts, since moves use those letters. n and c come back once the puzzle is over.

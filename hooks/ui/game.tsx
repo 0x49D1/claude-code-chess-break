@@ -14,6 +14,7 @@ import { gameUrl } from '../lichess/game'
 import { canAbort, clickGame, clockLeft, endingOf, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
 import { reviewSection } from './analysis'
 import { board, glyphOf } from './board'
+import { submitLabelOf, suggestionRow } from './suggestions'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
@@ -130,6 +131,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
           label="›"
           placeholder={t.pane.moveField}
           autoFocus
+          {...submitLabelOf(suggestions)}
           onInput={value => void update($, view, x => ({ ...x, typed: value }))}
           onSubmit={value => {
             void update($, view, x => ({ ...x, typed: undefined }))
@@ -147,7 +149,10 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
           ))}
         </Box>
       ) : suggestions.length > 0 ? (
-        <Text dimColor>{`  ${suggestions.slice(0, 10).join('  ')}${suggestions.length > 10 ? '  …' : ''}`}</Text>
+        suggestionRow(els, `game-suggest-${g.id}`, suggestions, san => {
+          void update($, view, x => ({ ...x, typed: undefined }))
+          void gameMove($, x => playTyped(x, san))
+        })
       ) : null}
       {!isPlaying && endingOf(g.status) !== 'aborted' && reviewSection($, els, g, v, t, goTo)}
       {isPlaying ? (

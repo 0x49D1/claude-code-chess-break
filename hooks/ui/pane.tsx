@@ -26,6 +26,7 @@ import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
 import { progressPane } from './progress'
+import { submitLabelOf, suggestionRow } from './suggestions'
 import { setupPane } from './setup'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -239,6 +240,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
             label="›"
             placeholder={t.pane.moveField}
             autoFocus
+            {...submitLabelOf(suggestions)}
             onInput={value => void update($, view, x => ({ ...x, typed: value }))}
             onSubmit={value => {
               void update($, view, x => ({ ...x, typed: undefined }))
@@ -256,7 +258,10 @@ export const registerPane = (on: Parameters<Register>[0]) => {
             ))}
           </Box>
         ) : suggestions.length > 0 ? (
-          <Text dimColor>{`  ${suggestions.slice(0, 10).join('  ')}${suggestions.length > 10 ? '  …' : ''}`}</Text>
+          suggestionRow(els, `suggest-${a.puzzle.id}`, suggestions, san => {
+            void update($, view, x => ({ ...x, typed: undefined }))
+            void change($, x => play(x, san))
+          })
         ) : v.typed && isPlaying ? (
           <Text color="error">{`  ${t.pane.noMove}`}</Text>
         ) : null}

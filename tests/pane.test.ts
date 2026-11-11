@@ -82,7 +82,9 @@ test('a puzzle on the chosen theme, solved by typing', async ($, on) => {
   }
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   await ui.input({ key: 'move-abc12', text: 'qxf', kind: 'change' })
-  expect(await ui.find({ text: /^  Qxf7#$/ })).toBeDefined()
+  // One move left: a button for it, and Enter's label beside the field says it plays it.
+  expect(await ui.find({ key: 'suggest-abc12-Qxf7#' })).toBeDefined()
+  expect(JSON.stringify(await ui.find({ key: 'move-abc12' }))).toContain('"submitLabel":"▶ Qxf7#"')
   await ui.input({ key: 'move-abc12', text: 'qxf' })
   expect(await ui.find({ text: /🎉 Solved!/ })).toBeDefined()
   expect(JSON.stringify(await ui.find({ key: 'ply-1' }))).toContain('4. Qxf7#')
