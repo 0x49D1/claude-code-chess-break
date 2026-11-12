@@ -24,6 +24,13 @@ Each such puzzle SHALL join the review queue as a missed puzzle, due the next da
 - **WHEN** the person presses Check again on a game already reviewed
 - **THEN** no puzzle is added twice, and none under review starts over
 
+### Requirement: A setting turns it off
+The mod SHALL have a **Puzzles from my games** setting, on by default. Off, the review SHALL still show the costliest moves, and SHALL neither queue them nor say they come back.
+
+#### Scenario: Off
+- **WHEN** the setting is off and a review shows two mistakes
+- **THEN** the review queue is unchanged, and no "come back as puzzles" line shows
+
 ### Requirement: Kept apart from Lichess puzzles
 A game's puzzle SHALL NOT be sent to Lichess as a puzzle result.
 

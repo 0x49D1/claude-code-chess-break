@@ -63,7 +63,7 @@ Or press 🤖 or 👤 in the pane: a setup screen offers the level, the clock or
 - **The live game outlives Claude's turn:** the pane stays open, the line under the prompt shows the opponent, both clocks and whose move it is, and puzzles wait. A live game still on when a new session starts comes back.
 - **The opponent moved:** when the pane is hidden, a toast names the move (`♞ Stockfish level 3 played Nf6`). With **Game sounds** on in `/config`, a short sound plays too.
 - **At the end:** the result, the moves to replay (click one, or `j` / `k`), a link to the game on Lichess, 🔄 another game with the same settings, or 🧩 back to puzzles. Games don't count in puzzle progress.
-- **🔍 Review:** after a game (not an aborted one), see the moves that lost the most, with the better move. The analysis happens on Lichess: its API can't start one, so the pane links to the game, where you press Lichess's "Request a computer analysis" once. The pane checks every 5 seconds for 3 minutes and shows your (not the opponent's) up to 3 costliest moves, such as `14. Qxb7?? Blunder · better Nf3 · −3.2`. Click one to see the position before it. After 3 minutes, 🔄 Check again. The moves it shows come back as puzzles the next day ("🧩 Your game against …"), from the position before your move, with the better move to find, and return after 3 and 7 days like missed puzzles.
+- **🔍 Review:** after a game (not an aborted one), see the moves that lost the most, with the better move. The analysis happens on Lichess: its API can't start one, so the pane links to the game, where you press Lichess's "Request a computer analysis" once. The pane checks every 5 seconds for 3 minutes and shows your (not the opponent's) up to 3 costliest moves, such as `14. Qxb7?? Blunder · better Nf3 · −3.2`. Click one to see the position before it. After 3 minutes, 🔄 Check again. The moves it shows come back as puzzles the next day ("🧩 Your game against …"), from the position before your move, with the better move to find, and return after 3 and 7 days like missed puzzles (**Puzzles from my games** in `/config` turns that off).
 - A sign-in made before games existed has no `board:play`: the first game asks you to sign in again.
 
 ### Correspondence games
@@ -137,6 +137,7 @@ In the pane, outside the move field: `s` solution, `p` progress, `i` about, `l` 
 - **Puzzle line under the prompt** (on by default)
 - **Game sounds** (off by default): in a Lichess game, a sound when the opponent moves while the pane is hidden, and one beep when your clock drops under 30 seconds; macOS and the desktop app only
 - **Rated puzzles** (on by default): signed in to Lichess, puzzles count for your rating; off, they are casual
+- **Puzzles from my games** (on by default): after a game's review, the moves it shows come back the next day as puzzles
 - **Daily goal** (5 by default): puzzles a day to aim for, solved or missed; the pane shows `🎯 Today 3/5 · 📅 4 days in a row`, with ✅ once today is met. 0 turns it off
 - **Puzzles from**: lichess, chesscom, offline
 - **Difficulty**: easiest → hardest, for new Lichess puzzles

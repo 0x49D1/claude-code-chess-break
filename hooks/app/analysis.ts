@@ -5,7 +5,7 @@ import { playerName } from '../i18n'
 import { exportUrl, readAnalysis } from '../lichess/analysis'
 import { mistakePuzzles } from '../training/mistakes'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, messagesOf, storedReview } from './state'
+import { INITIAL_VIEW, messagesOf, settings, storedReview } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -44,7 +44,7 @@ export async function checkAnalysis($: $, id: string): Promise<boolean> {
   try {
     const mistakes = readAnalysis(await $.http.fetch(exportUrl(id), { method: 'GET', headers: { Accept: 'application/json' } }), game.side)
     if (!mistakes) return false
-    await queueMistakes($, game, mistakes)
+    if (settings.gamePuzzles) await queueMistakes($, game, mistakes)
     await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'ready' as const, mistakes } } : v))
   } catch (err) {
     const why = err instanceof Error ? err.message : String(err)
