@@ -26,6 +26,7 @@ export const register: Register = (on, options) => {
   settings.promptLine = options.promptLine !== false
   settings.gameSound = options.gameSound === true
   settings.ratedPuzzles = options.ratedPuzzles !== false
+  settings.gamePuzzles = options.gamePuzzles !== false
   settings.dailyGoal = typeof options.dailyGoal === 'number' && options.dailyGoal >= 0 ? Math.floor(options.dailyGoal) : 5
 
   on('session.start', async ($, e, next) => {

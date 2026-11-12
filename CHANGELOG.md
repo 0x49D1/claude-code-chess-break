@@ -7,6 +7,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.11.0 (2026-11-12)
+
+- A **Puzzles from my games** setting in `/config`, on by default: off, a game's review still shows the costliest moves, but they don't come back as puzzles.
 ## 0.10.0 (2026-11-11)
 
 - Faster moves: as you type, the moves that fit are buttons under the field; ↓ reaches them, ← → walk them, Enter or a click plays one. With one move left, the field shows ▶ and the move, and Enter plays it.

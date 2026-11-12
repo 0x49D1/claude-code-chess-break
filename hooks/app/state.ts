@@ -39,6 +39,8 @@ export const settings = {
   /** Sounds in a game: the opponent's move when the pane is hidden, and low time. */
   gameSound: false,
   ratedPuzzles: true,
+  /** A reviewed game's costliest moves come back as puzzles. */
+  gamePuzzles: true,
   /** Puzzles a day for the daily goal; 0 turns it off. */
   dailyGoal: 5,
 }

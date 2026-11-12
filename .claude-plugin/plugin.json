@@ -1,6 +1,6 @@
 {
   "name": "chess-break",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A Claude Code mod for chess tactics training while Claude works: Lichess puzzles by theme, missed ones reviewed until learned, progress per theme",
   "author": {
     "name": "Dima Pursanov"
@@ -32,6 +32,12 @@
       "type": "boolean",
       "title": "Rated puzzles",
       "description": "Signed in to Lichess, puzzles count for your puzzle rating. Off, they are casual: Lichess still marks them as played. c in the pane switches it",
+      "default": true
+    },
+    "gamePuzzles": {
+      "type": "boolean",
+      "title": "Puzzles from my games",
+      "description": "After a game's review, the moves it shows come back the next day as puzzles, until learned",
       "default": true
     },
     "dailyGoal": {

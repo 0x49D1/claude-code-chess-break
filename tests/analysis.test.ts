@@ -160,3 +160,13 @@ test('the reviewed mistakes come back the next day as puzzles of the game', asyn
   expect(calls.slice(posted).some(c => c.url.includes('/api/puzzle/'))).toBe(false)
   await done()
 })
+
+test('with Puzzles from my games off, the review shows the moves and queues none', { options: { gamePuzzles: false } }, async ($, on) => {
+  const { ui, answers, store, done } = await finishedGame($, on, 'f2f3 e7e5 g2g4 d8h4', { status: 'mate', winner: 'black' })
+  answers['opening=false'] = { status: 200, text: JSON.stringify(FOOLS_MATE) }
+  await ui.press({ key: 'review' })
+  expect(await ui.find({ key: 'mistake-2' })).toBeDefined()
+  expect(await ui.find({ text: /come back as puzzles/ })).toBeUndefined()
+  expect(store.review).toBeUndefined()
+  await done()
+})

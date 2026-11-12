@@ -2,6 +2,7 @@ import type { Elements } from 'claude-code'
 
 import type { Game, Judgment, Mistake, View } from '../../types'
 import { reviewGame } from '../app/analysis'
+import { settings } from '../app/state'
 import type { $ } from '../app/state'
 import type { Messages } from '../i18n'
 import { gameUrl } from '../lichess/game'
@@ -30,7 +31,7 @@ export function reviewSection($: $, els: Elements[keyof Elements], g: Game, v: V
             {t.game.mistake(moveText(m), m.judgment, m.best, (m.loss / 100).toFixed(1))}
           </Button>
         ))}
-        <Text dimColor>{`🔁 ${t.game.comeBack}`}</Text>
+        {settings.gamePuzzles && <Text dimColor>{`🔁 ${t.game.comeBack}`}</Text>}
       </Box>
     )
   }
