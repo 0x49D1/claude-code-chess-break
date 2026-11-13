@@ -6,6 +6,7 @@ import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
 import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './app/game'
 import { refreshGames } from './app/games'
+import { startOpening } from './app/openings'
 import { refreshDashboard } from './app/progress'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
@@ -18,6 +19,7 @@ import { progressRows, spark } from './training/history'
 import { averageMs, formatTime } from './training/timing'
 import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
+import { OPENINGS, findOpening } from './training/openings'
 import { THEME_GROUPS, findTheme } from './training/themes'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -76,6 +78,18 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const { source } = await read($, view)
         const note = source === 'chesscom' ? `\n${t.command.noThemesOnChesscom}` : ''
         return { text: t.command.themeSet(t.theme(theme)) + note }
+      }
+      case 'opening': {
+        const name = [arg, ...rest].filter(Boolean).join(' ')
+        const opening = name ? findOpening(name) : undefined
+        if (!opening) {
+          const list = OPENINGS.map(o => `${o.key}: ${o.name} · ${t.side(o.side)}`)
+          return { text: [name ? t.command.noOpening(name) : t.command.openingsList, ...list].join('\n') }
+        }
+        // The opening first: the pane then opens on it, with no puzzle fetched to be dropped.
+        await startOpening($, opening.key)
+        await openPane($, true)
+        return { text: t.command.openingStarted(opening.name, t.side(opening.side)) }
       }
       case 'themes':
         return {

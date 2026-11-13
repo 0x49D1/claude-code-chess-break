@@ -8,6 +8,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.12.0 (2026-11-13)
+
+- 📖 Openings: drill eight main lines (Italian, Ruy Lopez, Queen's Gambit Declined, London as White; Najdorf, French Winawer, Caro-Kann, King's Indian as Black) as puzzles, from the sidebar or `/chess-break opening <name>`. A miss brings the opening back until learned.
 ## 0.11.0 (2026-11-12)
 
 - A **Puzzles from my games** setting in `/config`, on by default: off, a game's review still shows the costliest moves, but they don't come back as puzzles.

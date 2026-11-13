@@ -25,6 +25,8 @@ export type Messages = {
     noRecent: string
     dashboardFailed: (why: string) => string
     whatsNew: string
+    openings: string
+    openingsHead: string
     allChanges: string
     times: (average: string, fastest: string) => string
     dueCount: (n: number) => string
@@ -111,6 +113,9 @@ export type Messages = {
     noPuzzle: string
     explainLater: string
     themeSet: (name: string) => string
+    openingsList: string
+    openingStarted: (name: string, side: string) => string
+    noOpening: (name: string) => string
     unknownTheme: (typed: string) => string
     themesTitle: string
     statsHead: (streak: number, best: number, due: string) => string

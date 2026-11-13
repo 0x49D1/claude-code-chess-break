@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 
 import { screenOf } from '../training/screen'
 import { closeAbout } from './about'
+import { closeOpenings } from './openings'
 import { cancelSignIn } from './account'
 import { backToPuzzles } from './actions'
 import { closeProgress } from './progress'
@@ -22,6 +23,7 @@ export async function stepBack($: $): Promise<boolean> {
     case 'game': await backToPuzzles($); return true
     case 'progress': await closeProgress($); return true
     case 'about': await closeAbout($); return true
+    case 'openings': await closeOpenings($); return true
     case 'puzzle': return false
   }
 }
