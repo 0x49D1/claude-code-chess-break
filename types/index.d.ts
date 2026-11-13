@@ -5,8 +5,8 @@ export type Source = 'lichess' | 'chesscom' | 'offline'
 
 export type Puzzle = {
   id: string
-  /** Where it came from: a puzzle source, or the person's own game, from its review. */
-  source: Source | 'game'
+  /** Where it came from: a puzzle source, the person's own game (from its review), or an opening's line. */
+  source: Source | 'game' | 'opening'
   /** Its page, for a puzzle that has one. */
   url?: string
   /** Chess.com names its daily puzzles; a game's puzzle says whose game it is. */
@@ -217,6 +217,8 @@ export type View = {
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
+  /** The openings to drill are listed. */
+  isOpeningsShown?: boolean
   /** The About screen is open. */
   isAboutShown?: boolean
 }

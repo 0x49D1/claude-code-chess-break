@@ -6,6 +6,7 @@ import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/acc
 import { change, explain, loadNext, next } from '../app/actions'
 import { openSetup, showGame } from '../app/game'
 import { openAbout } from '../app/about'
+import { openOpenings } from '../app/openings'
 import { openProgress } from '../app/progress'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import type { $ } from '../app/state'
@@ -25,6 +26,7 @@ import { formatTime } from '../training/timing'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
+import { openingsPane } from './openings'
 import { progressPane } from './progress'
 import { submitLabelOf, suggestionRow } from './suggestions'
 import { setupPane } from './setup'
@@ -93,6 +95,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
       {settings.dailyGoal > 0 && <Text>{goalLine}</Text>}
       <Button key="progress" plain hotkey="p" onPress={() => void openProgress($)}>{`📊 ${t.pane.progress}`}</Button>
+      <Button key="openings" plain onPress={() => void openOpenings($)}>{`📖 ${t.pane.openings}`}</Button>
       <Text>{`🔁 ${v.dueCount ? t.pane.dueCount(v.dueCount) : t.pane.noneDue}`}</Text>
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
@@ -150,6 +153,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'liveGame' || screen === 'game') return gamePane($, els, v, t)
     if (screen === 'progress') return progressPane($, els, v, t, now)
     if (screen === 'about') return aboutPane($, els, t)
+    if (screen === 'openings') return openingsPane($, els, t)
 
     if (!a) {
       return (

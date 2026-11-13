@@ -7,8 +7,10 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [ ] **Puzzles from my own games:** the mistakes the game review finds become puzzles that come back like missed puzzles.
   - [x] Slice 1, 0.9.0: the review's costliest moves come back as one-move puzzles, through the review queue.
   - [x] Slice 2, 0.11.0: the **Puzzles from my games** setting, on by default. Correspondence games were already covered: a finished one gets the same review.
-  - [ ] Left: Chess.com games (after the `chesscom-account` change shows them); a longer line where the engine's is forced.
+  - [ ] Left, both waiting: Chess.com games (after the `chesscom-account` change shows them); a longer line where the engine's is forced (Lichess's analysis doesn't say which lines are).
 - [ ] **Opening trainer:** pick a few openings; it quizzes the next move, and misses come back until learned.
+  - [x] Slice 1, 0.12.0: eight built-in main lines, picked from 📖 Openings or `/chess-break opening <name>`, played as puzzles; a miss comes back through the review queue.
+  - [ ] Left: choosing a set to rotate through; more lines and side variations; accepting transpositions.
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
