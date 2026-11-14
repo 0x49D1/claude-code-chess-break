@@ -9,6 +9,11 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.13.0 (2026-11-14)
+
+- 📖 Your opening set: mark openings with ☑, then ▶ Drill my set (or `/chess-break opening next`) plays them in turn.
+- 🧠 Explain on an opening speaks of its plans and history, not of a tactic's defence.
 ## 0.12.0 (2026-11-13)
 
 - 📖 Openings: drill eight main lines (Italian, Ruy Lopez, Queen's Gambit Declined, London as White; Najdorf, French Winawer, Caro-Kann, King's Indian as Black) as puzzles, from the sidebar or `/chess-break opening <name>`. A miss brings the opening back until learned.

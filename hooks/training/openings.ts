@@ -22,6 +22,12 @@ export function findOpening(text: string): Opening | undefined {
   return OPENINGS.find(o => o.key === typed || o.name.toLowerCase().replace(/['’]/g, '').replace(/\s+/g, '-') === typed)
 }
 
+/** The opening of the set to drill after `last`, in the set's order and round again; the first when `last` is gone from it. */
+export function nextInSet(set: string[], last: string | undefined): string | undefined {
+  const at = last === undefined ? -1 : set.indexOf(last)
+  return set[(at + 1) % Math.max(1, set.length)]
+}
+
 /**
  * An opening as a puzzle: as White from the start, as Black from after White's first move, the
  * rest of the line its solution, so replies, mistakes, help and review work as for any puzzle.

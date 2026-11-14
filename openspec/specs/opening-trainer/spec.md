@@ -24,6 +24,20 @@ The sidebar SHALL offer `📖 Openings`, a screen that lists each opening with t
 - **WHEN** the person runs `/chess-break opening dragon`
 - **THEN** the answer says there is no such opening and lists the names
 
+### Requirement: A set drilled in turn
+The openings screen SHALL let the person mark openings for their set, kept across sessions in the list's order. `▶ Drill my set` and `/chess-break opening next` SHALL start the set's opening after the one drilled last, round again after the last; with an empty set, the command SHALL say how to make one.
+
+#### Scenario: Two in the set
+- **WHEN** the set holds the Italian Game and the Caro-Kann, and the Italian was drilled last
+- **THEN** the next drill is the Caro-Kann, and the one after it the Italian again
+
+### Requirement: Explain speaks of the opening
+Explain on an opening SHALL ask for the plans and ideas behind the person's moves in that opening, and a fact about the opening, not about a tactic's defence.
+
+#### Scenario: Caro-Kann
+- **WHEN** the person asks to explain the Caro-Kann line
+- **THEN** Claude is asked about the plans of the Caro-Kann's moves
+
 ### Requirement: Played and reviewed as a puzzle
 An opening SHALL play as a puzzle: the person's side's moves are asked, the other side's are played, a wrong move counts as a mistake. A miss SHALL bring it back through the review queue until learned. It SHALL count under the Opening theme, and SHALL NOT be sent to Lichess.
 

@@ -40,11 +40,22 @@ export function explainRequest(a: Attempt, locale: Locale) {
       ...facts,
       '',
       `Answer in ${LANGUAGES[locale]}, in exactly these lines, each tag kept in English:`,
-      'WHY: in 2 or 3 short sentences, the idea behind the first move and why the best defence fails; ' +
-        'if the player tried a wrong move, why it fails.',
-      'TIP: one practical rule to remember for positions like this one.',
-      'FACT: one true, interesting fact about this tactic or pattern (its name, its history, a famous game). ' +
-        'Leave this line out if you are not sure of it.',
+      // An opening's line is a plan, not a tactic with a defence that fails.
+      ...(a.puzzle.source === 'opening'
+        ? [
+            `WHY: in 2 or 3 short sentences, the plans and ideas behind the player's moves in this line of the ${a.puzzle.title ?? ''}; ` +
+              'if the player tried a wrong move, why the line prefers another.',
+            'TIP: one practical rule to remember when playing this opening.',
+            'FACT: one true, interesting fact about this opening (its name, its history, a famous player or game). ' +
+              'Leave this line out if you are not sure of it.',
+          ]
+        : [
+            'WHY: in 2 or 3 short sentences, the idea behind the first move and why the best defence fails; ' +
+              'if the player tried a wrong move, why it fails.',
+            'TIP: one practical rule to remember for positions like this one.',
+            'FACT: one true, interesting fact about this tactic or pattern (its name, its history, a famous game). ' +
+              'Leave this line out if you are not sure of it.',
+          ]),
     ].join('\n'),
   }
 }

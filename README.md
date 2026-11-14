@@ -16,7 +16,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, today's goal 🎯, 📊 Progress, reviews due 🔁, your top themes' accuracy, and the version.
 - **What's new:** the version shows at the bottom of the sidebar. Click it (or `i`) for ℹ About: what the latest versions added, from [CHANGELOG.md](CHANGELOG.md), and a link to this page.
 - **A daily goal:** a few puzzles a day (5 by default), with today's count 🎯 and the days in a row you met it 📅.
-- **Drill openings:** 📖 Openings in the sidebar (or `/chess-break opening <name>`) plays an opening's main line as a puzzle: your side's moves, the other side's answered for you. Eight are built in: Italian Game, Ruy Lopez, Queen's Gambit Declined and London System as White; Sicilian Najdorf, French Winawer, Caro-Kann and King's Indian as Black. A miss brings it back until learned.
+- **Drill openings:** 📖 Openings in the sidebar (or `/chess-break opening <name>`) plays an opening's main line as a puzzle: your side's moves, the other side's answered for you. Eight are built in: Italian Game, Ruy Lopez, Queen's Gambit Declined and London System as White; Sicilian Najdorf, French Winawer, Caro-Kann and King's Indian as Black. A miss brings it back until learned. Mark a few with ☑ to make your set: ▶ Drill my set (or `/chess-break opening next`) plays them in turn.
 - **Play a game on Lichess:** against Stockfish or a person, with clocks, in the same pane. See [Games](#games).
 - **English, French, Russian and Georgian**, following Claude Code's language setting, then your system locale. The Georgian theme names are partly in English until a native speaker checks them.
 
@@ -121,7 +121,7 @@ Then, as a second command:
 | `/chess-break next` (or `skip`) | next puzzle (a puzzle left after a mistake or help counts as missed) |
 | `/chess-break theme <name>` | train a theme: `fork`, `back-rank-mate`, `mix`… |
 | `/chess-break themes` | list the themes |
-| `/chess-break opening [<name>]` | list the openings, or drill one: `italian`, `najdorf`, `caro-kann`… |
+| `/chess-break opening [<name>\|next]` | list the openings, drill one (`italian`, `najdorf`, `caro-kann`…), or the next of your set |
 | `/chess-break source lichess` / `chesscom` / `offline` | where puzzles come from |
 | `/chess-break stats` | progress per theme |
 | `/chess-break review` | play the puzzles due for review |

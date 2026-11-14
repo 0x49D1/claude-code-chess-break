@@ -5,6 +5,7 @@ import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_DAILY } from '../training/daily'
 import { NO_PROGRESS } from '../training/progress'
+import { OPENINGS } from '../training/openings'
 import { NO_TIMES } from '../training/timing'
 import { MIX } from '../training/themes'
 
@@ -24,6 +25,7 @@ export const INITIAL_VIEW: View = {
   daily: NO_DAILY,
   history: {},
   times: NO_TIMES,
+  openingSet: [],
   session: [],
   isClaudeWorking: false,
   isRated: true,
@@ -69,6 +71,12 @@ export async function storedHistory($: $): Promise<History> {
     history[day] = Object.fromEntries(Object.entries(themes).filter((e): e is [string, Tally] => isTally(e[1])))
   }
   return history
+}
+
+/** The openings chosen to drill, by key; a key no opening has any more is left out. */
+export async function storedOpeningSet($: $): Promise<string[]> {
+  const x = await $.store.get('openingSet')
+  return Array.isArray(x) ? x.filter((key): key is string => typeof key === 'string' && OPENINGS.some(o => o.key === key)) : []
 }
 
 /** The ids of puzzles solved cleanly, oldest first; anything else in the store is left out. */
