@@ -27,6 +27,8 @@ export type Messages = {
     whatsNew: string
     openings: string
     openingsHead: string
+    setHead: string
+    drillSet: (count: number) => string
     allChanges: string
     times: (average: string, fastest: string) => string
     dueCount: (n: number) => string
@@ -116,6 +118,7 @@ export type Messages = {
     openingsList: string
     openingStarted: (name: string, side: string) => string
     noOpening: (name: string) => string
+    noOpeningSet: string
     unknownTheme: (typed: string) => string
     themesTitle: string
     statsHead: (streak: number, best: number, due: string) => string

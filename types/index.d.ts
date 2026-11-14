@@ -219,6 +219,8 @@ export type View = {
   isClaudeWorking: boolean
   /** The openings to drill are listed. */
   isOpeningsShown?: boolean
+  /** The openings chosen to drill in turn, by key. */
+  openingSet: string[]
   /** The About screen is open. */
   isAboutShown?: boolean
 }

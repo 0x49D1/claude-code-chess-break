@@ -1,7 +1,9 @@
 import { expect, mock, test } from 'claude-code/testing'
 
 import { START, line, turnOf } from '../hooks/chess/position'
-import { OPENINGS, findOpening, openingPuzzle } from '../hooks/training/openings'
+import { reveal, start } from '../hooks/training/attempt'
+import { explainRequest } from '../hooks/training/explain'
+import { OPENINGS, findOpening, nextInSet, openingPuzzle } from '../hooks/training/openings'
 import { PANE, command, lichess } from './fixtures/fake'
 
 test('every line is legal and ends on the side played', () => {
@@ -64,5 +66,51 @@ test('a wrong move brings the opening back the next day; the command lists, star
   await ui.input({ key: 'move-opening-italian', text: 'Bb5' })
   await ui.press({ key: 'reveal' })
   expect(Object.keys(store.review as object)).toEqual(['opening-italian'])
+  await ui.unmount()
+})
+
+test('Explain asks about an opening’s plans, not a tactic’s defence', () => {
+  const ask = explainRequest(reveal(start(openingPuzzle(findOpening('caro-kann')!), false)), 'en')
+  expect(ask.prompt).toContain('the plans and ideas behind the player’s moves in this line of the Caro-Kann'.replace('’', "'"))
+  expect(ask.prompt).toContain('fact about this opening')
+  expect(ask.prompt).not.toContain('best defence fails')
+})
+
+test('the set is drilled in turn, from the one after the last, round again at the end', () => {
+  expect(nextInSet(['italian', 'najdorf', 'london'], undefined)).toBe('italian')
+  expect(nextInSet(['italian', 'najdorf', 'london'], 'najdorf')).toBe('london')
+  expect(nextInSet(['italian', 'najdorf', 'london'], 'london')).toBe('italian')
+  // The last one taken out of the set since: start again from the first.
+  expect(nextInSet(['italian', 'najdorf'], 'london')).toBe('italian')
+  expect(nextInSet([], 'london')).toBeUndefined()
+})
+
+test('a set marked in the screen is stored and drilled in turn', async ($, on) => {
+  const store: Record<string, unknown> = {}
+  on('store.get', async (_$, e) => ({ value: store[e.key] }))
+  on('store.set', async (_$, e) => ((store[e.key] = e.value), { value: undefined }))
+  on('store.delete', async (_$, e) => (delete store[e.key], { value: undefined }))
+  on('store.keys', async () => ({ value: Object.keys(store) }))
+  mock.clock(on)
+  lichess(on)
+  expect((await $.command.run(command('opening next'))).text).toBe('No openings in your set yet: mark some with ☑ in 📖 Openings.')
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'openings' })
+  expect(await ui.find({ key: 'drill-set' })).toBeUndefined()
+  // Marked out of order, kept in the list's order.
+  await ui.press({ key: 'pick-caro-kann' })
+  await ui.press({ key: 'pick-italian' })
+  expect(store.openingSet).toEqual(['italian', 'caro-kann'])
+  expect(JSON.stringify(await ui.find({ key: 'pick-italian' }))).toContain('☑')
+  expect(JSON.stringify(await ui.find({ key: 'drill-set' }))).toContain('Drill my set (2)')
+  await ui.press({ key: 'drill-set' })
+  expect(await ui.find({ key: 'move-opening-italian' })).toBeDefined()
+  expect((await $.command.run(command('opening next'))).text).toBe('Caro-Kann · Black: in the pane.')
+  expect(await ui.find({ key: 'move-opening-caro-kann' })).toBeDefined()
+  expect((await $.command.run(command('opening next'))).text).toBe('Italian Game · White: in the pane.')
+  // Taken out again.
+  await ui.press({ key: 'openings' })
+  await ui.press({ key: 'pick-italian' })
+  expect(store.openingSet).toEqual(['caro-kann'])
   await ui.unmount()
 })

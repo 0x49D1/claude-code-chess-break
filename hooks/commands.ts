@@ -6,7 +6,7 @@ import { cancelSignIn, signIn, signOut } from './app/account'
 import { change, explain, loadNext, next, openPane, refreshDue } from './app/actions'
 import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './app/game'
 import { refreshGames } from './app/games'
-import { startOpening } from './app/openings'
+import { drillSet, startOpening } from './app/openings'
 import { refreshDashboard } from './app/progress'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
@@ -81,6 +81,13 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       }
       case 'opening': {
         const name = [arg, ...rest].filter(Boolean).join(' ')
+        if (name.toLowerCase() === 'next') {
+          const key = await drillSet($)
+          const drilled = key ? findOpening(key) : undefined
+          if (!drilled) return { text: t.command.noOpeningSet }
+          await openPane($, true)
+          return { text: t.command.openingStarted(drilled.name, t.side(drilled.side)) }
+        }
         const opening = name ? findOpening(name) : undefined
         if (!opening) {
           const list = OPENINGS.map(o => `${o.key}: ${o.name} · ${t.side(o.side)}`)
