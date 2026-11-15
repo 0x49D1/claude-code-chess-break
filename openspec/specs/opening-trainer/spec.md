@@ -7,7 +7,7 @@ Lets the person drill opening main lines, their own side's moves, with misses co
 ## Requirements
 
 ### Requirement: Built-in openings
-The mod SHALL carry eight openings, each a legal main line that ends on the person's move: Italian Game, Ruy Lopez, Queen's Gambit Declined and London System as White; Sicilian Najdorf, French Winawer, Caro-Kann and King's Indian as Black.
+The mod SHALL carry sixteen openings, each a legal line that ends on the person's move: eight main lines and, beside each, its most common deviation. As White: Italian Game and Two Knights, Ruy Lopez and Berlin, Queen's Gambit Declined and Accepted, London System and against a King's Indian setup. As Black: Sicilian Najdorf and Alapin, French Winawer and Advance, Caro-Kann and Advance, King's Indian and Fianchetto. Keys and names SHALL each be one of a kind.
 
 #### Scenario: Every line is legal
 - **WHEN** each opening's line is replayed from the start

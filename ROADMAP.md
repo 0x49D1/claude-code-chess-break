@@ -11,7 +11,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [ ] **Opening trainer:** pick a few openings; it quizzes the next move, and misses come back until learned.
   - [x] Slice 1, 0.12.0: eight built-in main lines, picked from 📖 Openings or `/chess-break opening <name>`, played as puzzles; a miss comes back through the review queue.
   - [x] Slice 2, 0.13.0: a set marked with ☑, drilled in turn (▶ Drill my set, `/chess-break opening next`); Explain asks about an opening's plans.
-  - [ ] Left: more lines and side variations; accepting transpositions.
+  - [x] Slice 3, 0.14.0: each main line's most common deviation, sixteen openings in all.
+  - [ ] Left: accepting transpositions (another move order to the same position).
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.

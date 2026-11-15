@@ -6,7 +6,10 @@ import { explainRequest } from '../hooks/training/explain'
 import { OPENINGS, findOpening, nextInSet, openingPuzzle } from '../hooks/training/openings'
 import { PANE, command, lichess } from './fixtures/fake'
 
-test('every line is legal and ends on the side played', () => {
+test('every line is legal and ends on the side played; keys and names are each one of a kind', () => {
+  expect(OPENINGS.length).toBe(16)
+  expect(new Set(OPENINGS.map(o => o.key)).size).toBe(16)
+  expect(new Set(OPENINGS.map(o => o.name)).size).toBe(16)
   for (const o of OPENINGS) {
     const moves = line(START, o.moves)
     expect(moves?.length).toBe(o.moves.length)
