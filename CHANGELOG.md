@@ -10,6 +10,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.14.0 (2026-11-15)
+
+- 📖 Eight more openings: each main line's most common deviation (Two Knights, Berlin, Queen's Gambit Accepted, London against a King's Indian setup; Alapin, French and Caro-Kann Advance, King's Indian Fianchetto), sixteen in all.
 ## 0.13.0 (2026-11-14)
 
 - 📖 Your opening set: mark openings with ☑, then ▶ Drill my set (or `/chess-break opening next`) plays them in turn.
