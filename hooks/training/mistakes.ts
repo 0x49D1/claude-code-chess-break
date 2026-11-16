@@ -1,6 +1,7 @@
 import type { Game, Mistake, Puzzle } from '../../types'
-import { START, line, readMove, uciOf } from '../chess/position'
+import { line, readMove, uciOf } from '../chess/position'
 import { gameUrl } from '../lichess/game'
+import { startOf } from './game'
 
 /**
  * The person's mistakes in a game, as puzzles: from the position before each, the better move
@@ -9,7 +10,7 @@ import { gameUrl } from '../lichess/game'
  * is left out.
  */
 export function mistakePuzzles(game: Game, mistakes: Mistake[], title: string): Puzzle[] {
-  const moves = line(START, game.moves) ?? []
+  const moves = line(startOf(game), game.moves) ?? []
   return mistakes.flatMap(m => {
     const played = moves[m.ply]
     const better = played && readMove(played.before, m.best)

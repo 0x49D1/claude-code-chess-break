@@ -104,7 +104,8 @@ export type Daily = { day: string; done: number; metOn?: string; streak: number;
 
 /** A game to start: Lichess's Stockfish at a level, or a seek for a person; the clock as `minutes+increment`. */
 export type GameSettings =
-  | { kind: 'ai'; level: number; clock: string; color: 'white' | 'black' | 'random' }
+  /** `fen`: a position to start from instead of the initial one, as an endgame drill does. */
+  | { kind: 'ai'; level: number; clock: string; color: 'white' | 'black' | 'random'; fen?: string }
   | { kind: 'seek'; clock: string; rated: boolean }
 
 /** A player as Lichess names them; Stockfish has a level and no name. */
@@ -145,6 +146,8 @@ export type Game = {
   isRated: boolean
   /** Days per move rather than a clock: such a game never holds the pane. */
   isCorrespondence: boolean
+  /** The position the game started from, when not the initial one. */
+  initialFen?: string
   /** Every move as UCI, as Lichess holds them. */
   moves: string[]
   /** The position shown: Lichess's, or after the person's pending move. */
@@ -217,6 +220,8 @@ export type View = {
   /** How each puzzle of this session went, in order. */
   session: ('clean' | 'missed')[]
   isClaudeWorking: boolean
+  /** The endgames to convert are listed. */
+  isEndgamesShown?: boolean
   /** The openings to drill are listed. */
   isOpeningsShown?: boolean
   /** The openings chosen to drill in turn, by key. */

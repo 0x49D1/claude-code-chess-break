@@ -6,6 +6,7 @@ import { cancelSignIn, signIn, signOut, switchRated, useToken } from '../app/acc
 import { change, explain, loadNext, next } from '../app/actions'
 import { openSetup, showGame } from '../app/game'
 import { openAbout } from '../app/about'
+import { openEndgames } from '../app/endgames'
 import { openOpenings } from '../app/openings'
 import { openProgress } from '../app/progress'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
@@ -26,6 +27,7 @@ import { formatTime } from '../training/timing'
 import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
+import { endgamesPane } from './endgames'
 import { openingsPane } from './openings'
 import { progressPane } from './progress'
 import { submitLabelOf, suggestionRow } from './suggestions'
@@ -81,6 +83,7 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       <Box flexDirection="row" gap={1}>
         <Button key="play-stockfish" plain onPress={() => void openSetup($, 'ai')}>{'🤖 Stockfish'}</Button>
         <Button key="play-human" plain onPress={() => void openSetup($, 'seek')}>{`👤 ${t.game.person}`}</Button>
+        <Button key="play-endgame" plain onPress={() => void openEndgames($)}>{`🏆 ${t.pane.endgames}`}</Button>
       </Box>
       {v.gameNote && <Text color={v.gameNote.kind === 'seekPosted' ? undefined : 'error'}>{t.game.note(v.gameNote)}</Text>}
       {games.map(g => (
@@ -154,6 +157,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'progress') return progressPane($, els, v, t, now)
     if (screen === 'about') return aboutPane($, els, t)
     if (screen === 'openings') return openingsPane($, els, v, t)
+    if (screen === 'endgames') return endgamesPane($, els, t)
 
     if (!a) {
       return (

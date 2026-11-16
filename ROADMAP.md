@@ -8,12 +8,14 @@ The agreed feature list, in order. A daily run ships one version: code review an
   - [x] Slice 1, 0.9.0: the review's costliest moves come back as one-move puzzles, through the review queue.
   - [x] Slice 2, 0.11.0: the **Puzzles from my games** setting, on by default. Correspondence games were already covered: a finished one gets the same review.
   - [ ] Left, both waiting: Chess.com games (after the `chesscom-account` change shows them); a longer line where the engine's is forced (Lichess's analysis doesn't say which lines are).
-- [ ] **Opening trainer:** pick a few openings; it quizzes the next move, and misses come back until learned.
+- [x] **Opening trainer:** pick a few openings; it quizzes the next move, and misses come back until learned.
   - [x] Slice 1, 0.12.0: eight built-in main lines, picked from 📖 Openings or `/chess-break opening <name>`, played as puzzles; a miss comes back through the review queue.
   - [x] Slice 2, 0.13.0: a set marked with ☑, drilled in turn (▶ Drill my set, `/chess-break opening next`); Explain asks about an opening's plans.
   - [x] Slice 3, 0.14.0: each main line's most common deviation, sixteen openings in all.
-  - [ ] Left: accepting transpositions (another move order to the same position).
+  - [x] Done for now: accepting transpositions is left out. A drill's line fixes the other side's replies, so another move order has no reply in it to play: that needs a tree of moves per opening, a change of its own if wanted.
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
+  - [x] Slice 1, 0.15.0: four won positions (KQ v K, KR v K, KP v K with the king in front, Lucena) played against Stockfish level 8 from the position, as casual Lichess games; 🔄 replays one.
+  - [ ] Left: keeping which drills were converted, and bringing back the ones not yet; more positions (Philidor to hold a draw, opposition, rook endgames).
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
 

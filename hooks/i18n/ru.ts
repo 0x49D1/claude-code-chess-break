@@ -40,6 +40,7 @@ export const ru: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'офлайн-набор'),
   piece: p => PIECES[p] ?? 'фигурой',
   theme: key => THEMES[key] ?? humanize(key),
+  endgame: key => ({ kq: 'Король и ферзь против короля', kr: 'Король и ладья против короля', kp: 'Король и пешка: король впереди', lucena: 'Позиция Лусены: ладья и пешка' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = solver === 'w' ? 'белых' : 'чёрных'
@@ -83,6 +84,8 @@ export const ru: Messages = {
     openingsHead: 'Сыграй главную линию дебюта — ходы своей стороны. Ошибка вернёт её на повторение, пока не выучишь.',
     setHead: '☑ добавляет дебют в набор; ▶ тренирует набор по очереди.',
     drillSet: n => `Тренировать мой набор (${n})`,
+    endgames: 'Эндшпили',
+    endgamesHead: 'Доведи до победы против Stockfish на максимальной силе: товарищеская партия на Lichess из позиции, за белых. Нужен вход.',
     allChanges: 'Все изменения',
     times: (average, fastest) => `Чистые решения: в среднем ${average}, быстрее всего ${fastest}`,
     dueCount: n => `${plural(n, 'задача', 'задачи', 'задач')} на повторение`,

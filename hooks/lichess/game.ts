@@ -34,7 +34,7 @@ export function gameForm(settings: GameSettings): string {
   const clock = readClock(settings.clock)
   if (settings.kind === 'ai') {
     const time: Record<string, string> = 'days' in clock ? { days: String(clock.days) } : { 'clock.limit': String(clock.minutes * 60), 'clock.increment': String(clock.increment) }
-    return new URLSearchParams({ level: String(settings.level), ...time, color: settings.color }).toString()
+    return new URLSearchParams({ level: String(settings.level), ...time, color: settings.color, ...(settings.fen ? { fen: settings.fen } : {}) }).toString()
   }
   const time: Record<string, string> = 'days' in clock ? { days: String(clock.days) } : { time: String(clock.minutes), increment: String(clock.increment) }
   return new URLSearchParams({ rated: String(settings.rated), ...time, variant: 'standard' }).toString()
@@ -54,7 +54,7 @@ export type GameState = {
 }
 
 export type GameEvent =
-  | { type: 'full'; id: string; white: Player & { id?: string }; black: Player & { id?: string }; isRated: boolean; isCorrespondence: boolean; state: GameState }
+  | { type: 'full'; id: string; white: Player & { id?: string }; black: Player & { id?: string }; isRated: boolean; isCorrespondence: boolean; initialFen?: string; state: GameState }
   | { type: 'state'; state: GameState }
   | { type: 'start'; gameId: string }
 
@@ -80,7 +80,7 @@ function readState(s: RawState): GameState {
  * for (keep-alive blank lines, chat, the opponent gone, errors).
  */
 export function readGameEvent(line: string): GameEvent | undefined {
-  let json: { type?: string; id?: string; speed?: string; white?: RawPlayer; black?: RawPlayer; rated?: boolean; state?: RawState; game?: { gameId?: string; id?: string } } & RawState
+  let json: { type?: string; id?: string; speed?: string; initialFen?: string; white?: RawPlayer; black?: RawPlayer; rated?: boolean; state?: RawState; game?: { gameId?: string; id?: string } } & RawState
   try {
     json = JSON.parse(line)
   } catch {
@@ -89,7 +89,12 @@ export function readGameEvent(line: string): GameEvent | undefined {
   switch (json.type) {
     case 'gameFull':
       if (!json.id || !json.state) return undefined
-      return { type: 'full', id: json.id, white: readPlayer(json.white), black: readPlayer(json.black), isRated: !!json.rated, isCorrespondence: json.speed === 'correspondence', state: readState(json.state) }
+      return {
+        type: 'full', id: json.id, white: readPlayer(json.white), black: readPlayer(json.black), isRated: !!json.rated, isCorrespondence: json.speed === 'correspondence',
+        // Lichess says `startpos` for the initial position.
+        ...(typeof json.initialFen === 'string' && json.initialFen !== 'startpos' ? { initialFen: json.initialFen } : {}),
+        state: readState(json.state),
+      }
     case 'gameState':
       return { type: 'state', state: readState(json) }
     case 'gameStart': {

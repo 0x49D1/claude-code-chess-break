@@ -1,11 +1,11 @@
 import { atom, read, update } from 'claude-code'
 
 import type { Game, GameNote, GameSettings } from '../../types'
-import { START, line } from '../chess/position'
+import { line } from '../chess/position'
 import { playerName } from '../i18n'
 import { AI_URL, EVENT_URL, SEEK_URL, actionUrl, drawUrl, gameForm, moveUrl, readGameEvent, streamUrl, takebackUrl } from '../lichess/game'
 import { beep } from '../training/beep'
-import { GAME_DEFAULTS, applyState, canAbort, clockLeft, fromFull, isCorrespondence, isMyTurn, isOn, rollBack } from '../training/game'
+import { GAME_DEFAULTS, applyState, canAbort, clockLeft, fromFull, isCorrespondence, isMyTurn, isOn, rollBack, startOf, toMove } from '../training/game'
 import { storedAccount, storedToken } from './account'
 import { hasCurl, stop, streamLines } from './curl'
 import { INITIAL_VIEW, PANE, messagesOf, settings as options } from './state'
@@ -74,9 +74,9 @@ async function answerState($: $, before: Game, after: Game) {
   const opponent = before.side === 'w' ? 'b' : 'w'
   const theirs = after.side === 'w' ? after.black : after.white
   if (after.takebackOffer === opponent && before.takebackOffer !== opponent && !theirs.aiLevel) await send($, takebackUrl(after.id, false))
-  const moved = after.moves.length > before.moves.length && (after.moves.length % 2 === 1 ? 'w' : 'b') === opponent
+  const moved = after.moves.length > before.moves.length && toMove(after) !== opponent
   if (!moved || (await $.ui.panes()).some(p => p.id === PANE && p.isShown)) return
-  const san = line(START, after.moves)?.at(-1)?.san ?? after.moves.at(-1) ?? ''
+  const san = line(startOf(after), after.moves)?.at(-1)?.san ?? after.moves.at(-1) ?? ''
   const v = await read($, view)
   $.ui.toast(`♞ ${messagesOf(v).game.opponentPlayed(playerName(messagesOf(v), theirs), san)}`)
   if (options.gameSound) void sound($, 660)
@@ -163,7 +163,8 @@ export async function startGame($: $, settings: GameSettings): Promise<GameNote 
   const isLiveOn = !!game && isOn(game) && !game.isCorrespondence
   if (isLiveOn && !slow) return noted($, { kind: 'finishLiveFirst' })
   if (!slow && !(await hasCurl($))) return noted($, { kind: 'needsCurl' })
-  await $.store.set('gameChoices', { ...(await storedChoices($)), [settings.kind]: settings })
+  // A drill's position is not a choice for the next game's setup.
+  if (!(settings.kind === 'ai' && settings.fen)) await $.store.set('gameChoices', { ...(await storedChoices($)), [settings.kind]: settings })
   if (settings.kind === 'seek' && slow) {
     const note = refusal(await post($, SEEK_URL, token, gameForm(settings)))
     return noted($, note ?? { kind: 'seekPosted' })
