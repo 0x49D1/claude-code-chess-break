@@ -31,6 +31,7 @@ export const fr: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'les puzzles hors ligne'),
   piece: p => PIECES[p] ?? 'la pièce',
   theme: key => THEMES[key] ?? humanize(key),
+  endgame: key => ({ kq: 'Roi et dame contre roi', kr: 'Roi et tour contre roi', kp: 'Roi et pion : le roi devant', lucena: 'Position de Lucena : tour et pion' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = fr.side(solver)
@@ -74,6 +75,8 @@ export const fr: Messages = {
     openingsHead: 'Joue la ligne principale d’une ouverture, les coups de ton camp. Une erreur la fait revenir jusqu’à ce qu’elle soit apprise.',
     setHead: '☑ ajoute une ouverture à ta sélection ; ▶ les révise à tour de rôle.',
     drillSet: n => `Réviser ma sélection (${n})`,
+    endgames: 'Finales',
+    endgamesHead: 'Gagne-la contre Stockfish à sa force maximale : une partie amicale sur Lichess depuis la position, avec les Blancs. Il faut être connecté.',
     allChanges: 'Tous les changements',
     times: (average, fastest) => `Réussites sans faute : ${average} en moyenne, record ${fastest}`,
     dueCount: n => `${n} à réviser`,

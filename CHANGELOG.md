@@ -11,6 +11,11 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.15.0 (2026-11-16)
+
+- 🏆 Endgame drills: convert a won position against Stockfish at its strongest, from king and queen against king to the Lucena position, as a casual Lichess game. Under ⚔ New game; needs the sign-in.
+- Games can start from any position: the board, clocks, moves and review follow it.
 ## 0.14.0 (2026-11-15)
 
 - 📖 Eight more openings: each main line's most common deviation (Two Knights, Berlin, Queen's Gambit Accepted, London against a King's Indian setup; Alapin, French and Caro-Kann Advance, King's Indian Fianchetto), sixteen in all.

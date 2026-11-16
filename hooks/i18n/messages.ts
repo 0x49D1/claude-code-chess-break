@@ -1,4 +1,5 @@
 import type { ExplainFailure, Feedback, GameNote, Judgment, Source } from '../../types'
+import type { EndgameKey } from '../training/endgames'
 import type { Ending } from '../training/game'
 
 export type Side = 'w' | 'b'
@@ -9,6 +10,7 @@ export type Messages = {
   source: (source: Source) => string
   piece: (letter: string) => string
   theme: (key: string) => string
+  endgame: (key: EndgameKey) => string
   group: (key: string) => string
   feedback: (f: Feedback, solver: Side) => string
   pane: {
@@ -29,6 +31,8 @@ export type Messages = {
     openingsHead: string
     setHead: string
     drillSet: (count: number) => string
+    endgames: string
+    endgamesHead: string
     allChanges: string
     times: (average: string, fastest: string) => string
     dueCount: (n: number) => string

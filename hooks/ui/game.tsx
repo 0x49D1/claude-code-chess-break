@@ -11,7 +11,7 @@ import { completions } from '../chess/position'
 import { playerName } from '../i18n'
 import type { Messages } from '../i18n'
 import { gameUrl } from '../lichess/game'
-import { canAbort, clickGame, clockLeft, endingOf, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
+import { canAbort, clickGame, clockLeft, endingOf, toMove, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
 import { reviewSection } from './analysis'
 import { board, glyphOf } from './board'
 import { submitLabelOf, suggestionRow } from './suggestions'
@@ -48,7 +48,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
   const isPlaying = isOn(g)
   const opponent = g.side === 'w' ? 'b' : 'w'
   // Whose clock runs is Lichess's word, not the pending move's.
-  const toMove = g.moves.length % 2 === 0 ? 'w' : 'b'
+  const sideToMove = toMove(g)
   const left = clockLeft(g)
   const counts = material(g.fen)
   const clockLine = (side: 'w' | 'b') => {
@@ -57,8 +57,8 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
     const taken = captured.map(p => glyphOf(side === 'w' ? p : p.toUpperCase())).join('')
     const isLow = isPlaying && side === g.side && !g.isCorrespondence && ms < 30_000
     return (
-      <Text key={`clock-${side}`} bold={isPlaying && toMove === side} color={isLow ? 'error' : undefined}>
-        {`${isPlaying && toMove === side ? '▶' : ' '} ⏱ ${formatClock(ms, g.isCorrespondence)}  ${nameOf(g, side, t)}${taken ? `  ${taken}` : ''}${lead ? ` +${lead}` : ''}`}
+      <Text key={`clock-${side}`} bold={isPlaying && sideToMove === side} color={isLow ? 'error' : undefined}>
+        {`${isPlaying && sideToMove === side ? '▶' : ' '} ⏱ ${formatClock(ms, g.isCorrespondence)}  ${nameOf(g, side, t)}${taken ? `  ${taken}` : ''}${lead ? ` +${lead}` : ''}`}
       </Text>
     )
   }

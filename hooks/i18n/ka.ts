@@ -25,6 +25,7 @@ export const ka: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'ოფლაინ ნაკრები'),
   piece: p => PIECES[p] ?? 'ფიგურით',
   theme: key => THEMES[key] ?? EN_THEMES[key] ?? humanize(key),
+  endgame: key => ({ kq: 'მეფე და ლაზიერი მეფის წინააღმდეგ', kr: 'მეფე და ეტლი მეფის წინააღმდეგ', kp: 'მეფე და პაიკი: მეფე წინ', lucena: 'ლუსენას პოზიცია: ეტლი და პაიკი' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const forMe = solver === 'w' ? 'თეთრებისთვის' : 'შავებისთვის'
@@ -68,6 +69,8 @@ export const ka: Messages = {
     openingsHead: 'ითამაშე დებიუტის მთავარი ვარიანტი, შენი მხარის სვლები. შეცდომა მას დააბრუნებს, სანამ არ ისწავლი.',
     setHead: '☑ დებიუტს ნაკრებში ამატებს; ▶ ნაკრებს რიგრიგობით ავარჯიშებს.',
     drillSet: n => `ჩემი ნაკრების ვარჯიში (${n})`,
+    endgames: 'ენდშპილები',
+    endgamesHead: 'მოიგე Stockfish-ის წინააღმდეგ მის სრულ ძალაზე: ამხანაგური პარტია Lichess-ზე ამ პოზიციიდან, თეთრებით. საჭიროა შესვლა.',
     allChanges: 'ყველა ცვლილება',
     times: (average, fastest) => `სუფთა ამოხსნები: საშუალოდ ${average}, ყველაზე სწრაფი ${fastest}`,
     dueCount: n => `${n} ამოცანა გასამეორებლად`,

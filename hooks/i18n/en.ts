@@ -32,6 +32,7 @@ export const en: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'the offline set'),
   piece: p => PIECES[p] ?? 'the piece',
   theme: key => EN_THEMES[key] ?? humanize(key),
+  endgame: key => ({ kq: 'King and queen against king', kr: 'King and rook against king', kp: 'King and pawn: the king in front', lucena: 'Lucena position: rook and pawn' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = en.side(solver)
@@ -75,6 +76,8 @@ export const en: Messages = {
     openingsHead: 'Play an opening’s main line, your side’s moves. A miss brings it back until learned.',
     setHead: '☑ puts an opening in your set; ▶ drills the set in turn.',
     drillSet: n => `Drill my set (${n})`,
+    endgames: 'Endgames',
+    endgamesHead: 'Convert it against Stockfish at its strongest: a casual Lichess game from the position, as White. Needs the sign-in.',
     allChanges: 'All changes',
     times: (average, fastest) => `Clean solves: ${average} on average, fastest ${fastest}`,
     dueCount: n => `${plural(n, 'puzzle', 'puzzles')} to review`,

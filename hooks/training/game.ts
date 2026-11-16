@@ -12,6 +12,13 @@ export const isMyTurn = (g: Game) => isOn(g) && !g.pending && turnOf(g.fen) === 
 export const canAbort = (g: Game) => isOn(g) && g.moves.length < 2
 
 /** A game from the first line of its stream; the person's side found by their account's id. */
+/** The position a game started from: its own, or the initial one. */
+export const startOf = (g: { initialFen?: string }) => g.initialFen ?? START
+
+/** Whose move it is after the game's moves, counted from the side to move at its start. */
+export const toMove = (g: { initialFen?: string; moves: string[] }): 'w' | 'b' =>
+  (g.moves.length % 2 === 0) === (turnOf(startOf(g)) === 'w') ? 'w' : 'b'
+
 export function fromFull(e: Extract<GameEvent, { type: 'full' }>, username: string, settings: GameSettings | undefined, now: number): Game {
   const side = e.black.id === username.toLowerCase() ? 'b' : 'w'
   const game: Game = {
@@ -22,8 +29,9 @@ export function fromFull(e: Extract<GameEvent, { type: 'full' }>, username: stri
     black: { name: e.black.name, rating: e.black.rating, aiLevel: e.black.aiLevel },
     isRated: e.isRated,
     isCorrespondence: e.isCorrespondence,
+    ...(e.initialFen ? { initialFen: e.initialFen } : {}),
     moves: [],
-    fen: START,
+    fen: e.initialFen ?? START,
     clock: { white: 0, black: 0, at: now },
     now,
     status: 'started',
@@ -33,7 +41,7 @@ export function fromFull(e: Extract<GameEvent, { type: 'full' }>, username: stri
 
 /** Lichess's word on the game: its moves and clocks replace whatever the pane guessed. */
 export function applyState(g: Game, s: GameState, now: number): Game {
-  const played = replay(s.moves)
+  const played = replay(s.moves, startOf(g))
   return {
     ...g,
     moves: s.moves,
@@ -53,8 +61,8 @@ export function applyState(g: Game, s: GameState, now: number): Game {
 
 /** A move Lichess refused: the board goes back to its moves. */
 export function rollBack(g: Game): Game {
-  const played = replay(g.moves)
-  return { ...g, fen: played?.fen ?? START, lastMove: played?.last ? uciOf(played.last) : undefined, pending: undefined, selected: undefined, promoting: undefined }
+  const played = replay(g.moves, startOf(g))
+  return { ...g, fen: played?.fen ?? startOf(g), lastMove: played?.last ? uciOf(played.last) : undefined, pending: undefined, selected: undefined, promoting: undefined }
 }
 
 /** Each side's time left at `g.now`, in ms: the side to move's runs once both sides have moved, as on Lichess. */
@@ -63,7 +71,7 @@ export function clockLeft(g: Game): { white: number; black: number } {
   if (!isOn(g) || g.moves.length < 2) return { white, black }
   const spent = Math.max(0, g.now - at)
   // The clock of the side to move by Lichess's moves, not by a pending move of the person's.
-  return g.moves.length % 2 === 0 ? { white: Math.max(0, white - spent), black } : { white, black: Math.max(0, black - spent) }
+  return toMove(g) === 'w' ? { white: Math.max(0, white - spent), black } : { white, black: Math.max(0, black - spent) }
 }
 
 /** A game with days per move rather than a clock. */
@@ -89,7 +97,7 @@ export function playGame(g: Game, text: string): { game: Game; uci?: string; not
   if (!isMyTurn(g)) return { game: g, note: { kind: 'notYourTurn' } }
   const move = readMove(g.fen, text)
   if (!move) return { game: g, note: { kind: 'illegal', text: text.trim() } }
-  const played = replay([...g.moves, uciOf(move)])
+  const played = replay([...g.moves, uciOf(move)], startOf(g))
   return {
     game: { ...g, fen: played?.fen ?? g.fen, lastMove: uciOf(move), pending: uciOf(move), selected: undefined, promoting: undefined },
     uci: uciOf(move),
@@ -165,7 +173,7 @@ export function readSettings(words: string[]): GameSettings | SettingsError {
 }
 
 /** The game's moves as SAN, from the start. */
-export const sanMoves = (g: Game) => (line(START, g.moves) ?? []).map(m => m.san)
+export const sanMoves = (g: Game) => (line(startOf(g), g.moves) ?? []).map(m => m.san)
 
 /** A row of the move list: its number, the ply of its first move, and one or two moves. */
 export type MoveRow = { number: number; ply: number; sans: string[] }
@@ -179,8 +187,8 @@ export function moveRows(sans: string[], max = 8): { isCut: boolean; rows: MoveR
 
 /** The game as it stood after `ply` of its moves, to replay it once ended. */
 export function gameAtPly(g: Game, ply: number): Game {
-  const played = replay(g.moves.slice(0, Math.max(0, ply)))
-  return { ...g, fen: played?.fen ?? START, lastMove: played?.last ? uciOf(played.last) : undefined, selected: undefined, promoting: undefined }
+  const played = replay(g.moves.slice(0, Math.max(0, ply)), startOf(g))
+  return { ...g, fen: played?.fen ?? startOf(g), lastMove: played?.last ? uciOf(played.last) : undefined, selected: undefined, promoting: undefined }
 }
 
 const VALUES: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 }
