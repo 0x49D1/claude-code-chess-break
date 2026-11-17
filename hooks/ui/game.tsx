@@ -11,7 +11,7 @@ import { completions } from '../chess/position'
 import { playerName } from '../i18n'
 import type { Messages } from '../i18n'
 import { gameUrl } from '../lichess/game'
-import { canAbort, clickGame, clockLeft, endingOf, toMove, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
+import { canAbort, clickGame, clockLeft, endingOf, startOf, toMove, formatClock, gameAtPly, isMyTurn, isOn, material, moveRows, outcomeOf, playGame, playTyped, sanMoves } from '../training/game'
 import { reviewSection } from './analysis'
 import { board, glyphOf } from './board'
 import { submitLabelOf, suggestionRow } from './suggestions'
@@ -50,7 +50,7 @@ export function gamePane($: $, els: Elements[keyof Elements], v: View, t: Messag
   // Whose clock runs is Lichess's word, not the pending move's.
   const sideToMove = toMove(g)
   const left = clockLeft(g)
-  const counts = material(g.fen)
+  const counts = material(g.fen, startOf(g))
   const clockLine = (side: 'w' | 'b') => {
     const ms = side === 'w' ? left.white : left.black
     const { captured, lead } = counts[side]

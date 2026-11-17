@@ -55,6 +55,9 @@ test('a drill from the pane: Stockfish from the position, the board on it, the s
   expect(JSON.stringify(await ui.find({ key: 'sq-a1' }))).toContain('♖')
   expect(JSON.stringify(await ui.find({ key: 'sq-e5' }))).toContain('♚')
   expect(await ui.find({ text: /👉 Your move/ })).toBeDefined()
+  // Nothing was captured yet: the pieces the position never had are not counted as taken.
+  const mine = (await ui.findAll({ type: 'Text' })).map(e => e.text).find(text => text.includes('magnus (1500)'))
+  expect(mine).toMatch(/magnus \(1500\) \+5$/)
   await ui.unmount()
   fake.endAll()
   await settle(() => false, 1)

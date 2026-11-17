@@ -192,18 +192,24 @@ export function gameAtPly(g: Game, ply: number): Game {
 }
 
 const VALUES: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 }
-const FULL_SET: Record<string, number> = { q: 1, r: 2, b: 2, n: 2, p: 8 }
+const LETTERS = ['q', 'r', 'b', 'n', 'p']
 
 /**
- * Each side's captures, as piece letters (`q r b n p`), and its material lead, from the position.
+ * Each side's captures, as piece letters (`q r b n p`), and its material lead: what the game's
+ * starting position had and the position has not. A game from an endgame starts with few pieces,
+ * and the rest were never captured.
  * shortcut: a promoted piece counts as an extra and its pawn as captured, clamped at none; fine for a sidebar.
  */
-export function material(fen: string): Record<'w' | 'b', { captured: string[]; lead: number }> {
-  const board = fen.split(' ')[0] ?? ''
-  const count = (letter: string) => [...board].filter(c => c === letter).length
+export function material(fen: string, from: string): Record<'w' | 'b', { captured: string[]; lead: number }> {
+  const countIn = (position: string) => (letter: string) => [...(position.split(' ')[0] ?? '')].filter(c => c === letter).length
+  const now = countIn(fen)
+  const before = countIn(from)
   const missing = (upper: boolean) =>
-    Object.keys(FULL_SET).flatMap(p => Array<string>(Math.max(0, FULL_SET[p]! - count(upper ? p.toUpperCase() : p))).fill(p))
-  const worth = (upper: boolean) => Object.keys(VALUES).reduce((sum, p) => sum + VALUES[p]! * count(upper ? p.toUpperCase() : p), 0)
+    LETTERS.flatMap(p => {
+      const letter = upper ? p.toUpperCase() : p
+      return Array<string>(Math.max(0, before(letter) - now(letter))).fill(p)
+    })
+  const worth = (upper: boolean) => LETTERS.reduce((sum, p) => sum + VALUES[p]! * now(upper ? p.toUpperCase() : p), 0)
   const lead = worth(true) - worth(false)
   return { w: { captured: missing(false), lead: Math.max(0, lead) }, b: { captured: missing(true), lead: Math.max(0, -lead) } }
 }

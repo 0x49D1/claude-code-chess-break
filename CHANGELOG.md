@@ -12,6 +12,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.15.1 (2026-11-17)
+
+- In an endgame drill, the clock lines no longer list every piece the position never had as captured: captures count from the game's own start.
 ## 0.15.0 (2026-11-16)
 
 - 🏆 Endgame drills: convert a won position against Stockfish at its strongest, from king and queen against king to the Lucena position, as a casual Lichess game. Under ⚔ New game; needs the sign-in.

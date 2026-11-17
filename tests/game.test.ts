@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
+import { START } from '../hooks/chess/position'
 import { SCOPES, TOKEN_PAGE } from '../hooks/lichess/auth'
 import { gameForm, readGameEvent, readPlaying } from '../hooks/lichess/game'
 import type { GameEvent } from '../hooks/lichess/game'
@@ -177,12 +178,16 @@ describe('the move list, the replay and the material', () => {
   })
 
   test('captures and the lead', () => {
-    expect(material('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toEqual({ w: { captured: [], lead: 0 }, b: { captured: [], lead: 0 } })
-    expect(material('r1bqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toEqual({ w: { captured: ['n'], lead: 3 }, b: { captured: [], lead: 0 } })
+    expect(material('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', START)).toEqual({ w: { captured: [], lead: 0 }, b: { captured: [], lead: 0 } })
+    expect(material('r1bqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', START)).toEqual({ w: { captured: ['n'], lead: 3 }, b: { captured: [], lead: 0 } })
     // White promoted a pawn to a second queen: no count goes below zero.
-    const promoted = material('rnbqkbnQ/ppppppp1/8/8/8/8/1PPPPPPP/RNBQKBNR b KQq - 0 1')
+    const promoted = material('rnbqkbnQ/ppppppp1/8/8/8/8/1PPPPPPP/RNBQKBNR b KQq - 0 1', START)
     expect(promoted.w).toEqual({ captured: ['r', 'p'], lead: 14 })
     expect(promoted.b).toEqual({ captured: ['p'], lead: 0 })
+    // From an endgame: only what that position had and lost was captured.
+    const lucena = '1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1'
+    expect(material(lucena, lucena)).toEqual({ w: { captured: [], lead: 1 }, b: { captured: [], lead: 0 } })
+    expect(material('1K6/1P1k4/8/8/8/8/8/2R5 w - - 0 1', lucena)).toEqual({ w: { captured: ['r'], lead: 6 }, b: { captured: [], lead: 0 } })
   })
 })
 
