@@ -157,7 +157,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'progress') return progressPane($, els, v, t, now)
     if (screen === 'about') return aboutPane($, els, t)
     if (screen === 'openings') return openingsPane($, els, v, t)
-    if (screen === 'endgames') return endgamesPane($, els, t)
+    if (screen === 'endgames') return endgamesPane($, els, v, t)
 
     if (!a) {
       return (

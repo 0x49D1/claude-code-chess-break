@@ -1,6 +1,6 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Daily, History, Progress, Review, Source, Tally, Times, Timing, View } from '../../types'
+import type { Daily, DrillResult, History, Progress, Review, Source, Tally, Times, Timing, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_DAILY } from '../training/daily'
@@ -26,6 +26,7 @@ export const INITIAL_VIEW: View = {
   history: {},
   times: NO_TIMES,
   openingSet: [],
+  drillResults: {},
   session: [],
   isClaudeWorking: false,
   isRated: true,
@@ -71,6 +72,12 @@ export async function storedHistory($: $): Promise<History> {
     history[day] = Object.fromEntries(Object.entries(themes).filter((e): e is [string, Tally] => isTally(e[1])))
   }
   return history
+}
+
+/** Each endgame drill's result, by key; anything else in the store is left out. */
+export async function storedDrills($: $): Promise<Record<string, DrillResult>> {
+  const x = (await $.store.get('drills')) as Record<string, unknown> | undefined
+  return Object.fromEntries(Object.entries(typeof x === 'object' && x !== null ? x : {}).filter((e): e is [string, DrillResult] => e[1] === 'converted' || e[1] === 'tried'))
 }
 
 /** The openings chosen to drill, by key; a key no opening has any more is left out. */

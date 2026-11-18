@@ -13,6 +13,13 @@ Lets the person practise converting won endgames against Stockfish, from the pos
 - **WHEN** a signed-in person presses King and rook against king
 - **THEN** Lichess is asked for a game against Stockfish level 8 with that position, and the board shows it, White to move
 
+### Requirement: Results kept
+When a drill's game ends, its result SHALL be kept across sessions: converted when won, tried when drawn or lost, and converted stays converted. An aborted game SHALL NOT count. 🏆 Endgames SHALL mark each drill ✅ converted or ⏳ tried, and list the ones not yet converted first.
+
+#### Scenario: Won
+- **WHEN** the person wins the king-and-rook drill
+- **THEN** it is kept as converted, and the list shows it last, marked ✅
+
 ### Requirement: Games from a position
 A game SHALL start from Lichess's `initialFen` when it gives one other than `startpos`. Its board, whose move it is, clocks, move list, replay and the review's puzzles SHALL follow from that position.
 

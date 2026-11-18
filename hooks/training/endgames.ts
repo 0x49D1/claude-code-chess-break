@@ -1,4 +1,4 @@
-import type { GameSettings } from '../../types'
+import type { DrillResult, Game, GameSettings } from '../../types'
 
 export type EndgameKey = 'kq' | 'kr' | 'kp' | 'lucena'
 
@@ -16,3 +16,15 @@ export const ENDGAMES: Endgame[] = [
 
 /** Stockfish at its strongest, with time to think: a drill is won by technique, not by the clock. */
 export const drillSettings = (e: Endgame): GameSettings => ({ kind: 'ai', level: 8, clock: '15+10', color: 'white', fen: e.fen })
+
+/** The drill a game is, from the position it started in; undefined for any other game. */
+export const drillOf = (game: Game): Endgame | undefined => ENDGAMES.find(e => e.fen === game.initialFen)
+
+/** A drill's result kept: converted stays converted, a draw or a loss is a try. */
+export function recordDrill(results: Record<string, DrillResult>, key: string, isWin: boolean): Record<string, DrillResult> {
+  return { ...results, [key]: isWin || results[key] === 'converted' ? 'converted' : 'tried' }
+}
+
+/** The drills as the list shows them: the ones not yet converted first, each in its own order. */
+export const drillOrder = (results: Record<string, DrillResult>) =>
+  [...ENDGAMES].sort((a, b) => Number(results[a.key] === 'converted') - Number(results[b.key] === 'converted'))

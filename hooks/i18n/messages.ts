@@ -33,6 +33,7 @@ export type Messages = {
     drillSet: (count: number) => string
     endgames: string
     endgamesHead: string
+    endgamesMarks: string
     allChanges: string
     times: (average: string, fastest: string) => string
     dueCount: (n: number) => string

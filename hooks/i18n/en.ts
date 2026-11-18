@@ -78,6 +78,7 @@ export const en: Messages = {
     drillSet: n => `Drill my set (${n})`,
     endgames: 'Endgames',
     endgamesHead: 'Convert it against Stockfish at its strongest: a casual Lichess game from the position, as White. Needs the sign-in.',
+    endgamesMarks: '✅ converted · ⏳ tried, not yet won: those come first.',
     allChanges: 'All changes',
     times: (average, fastest) => `Clean solves: ${average} on average, fastest ${fastest}`,
     dueCount: n => `${plural(n, 'puzzle', 'puzzles')} to review`,

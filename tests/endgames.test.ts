@@ -2,7 +2,8 @@ import { expect, test } from 'claude-code/testing'
 
 import { legal, turnOf } from '../hooks/chess/position'
 import { gameForm, readGameEvent } from '../hooks/lichess/game'
-import { ENDGAMES, drillSettings } from '../hooks/training/endgames'
+import { ENDGAMES, drillOf, drillOrder, drillSettings, recordDrill } from '../hooks/training/endgames'
+import type { Game } from '../types'
 import { toMove } from '../hooks/training/game'
 import { AI, PANE, lichess, signedIn } from './fixtures/fake'
 
@@ -58,6 +59,48 @@ test('a drill from the pane: Stockfish from the position, the board on it, the s
   // Nothing was captured yet: the pieces the position never had are not counted as taken.
   const mine = (await ui.findAll({ type: 'Text' })).map(e => e.text).find(text => text.includes('magnus (1500)'))
   expect(mine).toMatch(/magnus \(1500\) \+5$/)
+  await ui.unmount()
+  fake.endAll()
+  await settle(() => false, 1)
+})
+
+test('a drill’s result: a win converts it for good, a draw or loss is a try; not yet converted first', () => {
+  let r = recordDrill({}, 'kr', false)
+  expect(r).toEqual({ kr: 'tried' })
+  r = recordDrill(r, 'kr', true)
+  r = recordDrill(r, 'kr', false)
+  expect(r).toEqual({ kr: 'converted' })
+  expect(drillOrder({ kq: 'converted', kp: 'tried' }).map(e => e.key)).toEqual(['kr', 'kp', 'lucena', 'kq'])
+  expect(drillOf({ initialFen: ENDGAMES[3]!.fen } as Game)?.key).toBe('lucena')
+  expect(drillOf({} as Game)).toBeUndefined()
+})
+
+test('a drill won is kept as converted, and the list shows it last, marked', async ($, on) => {
+  const store: Record<string, unknown> = {}
+  const settle = signedIn(on, 'lip_good', store)
+  const fake = lichess(on, AI)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'play-endgame' })
+  await ui.press({ key: 'endgame-kr' })
+  await settle(() => fake.streams('/stream/g4m3').length > 0)
+  const curl = fake.streams('/stream/g4m3')[0]!
+  const full = (status: string, extra: object = {}) => JSON.stringify({
+    type: 'gameFull', id: 'g4m3', rated: false, initialFen: ENDGAMES[1]!.fen,
+    white: { id: 'magnus', name: 'magnus', rating: 1500 }, black: { aiLevel: 8 },
+    clock: { initial: 900000, increment: 10000 },
+    state: { type: 'gameState', moves: '', wtime: 900000, btime: 900000, status, ...extra },
+  })
+  curl.feed.line(full('started'))
+  await settle(() => false, 1)
+  curl.feed.line(JSON.stringify({ type: 'gameState', moves: 'a1a7', wtime: 890000, btime: 900000, status: 'mate', winner: 'white' }))
+  curl.feed.end()
+  await settle(() => false, 1)
+  expect(store.drills).toEqual({ kr: 'converted' })
+  await ui.press({ key: 'puzzles-top' })
+  await ui.press({ key: 'play-endgame' })
+  const drills = (await ui.findAll({ type: 'Button' })).map(b => (b as unknown as { key?: string; text: string })).filter(b => b.key?.startsWith('endgame-'))
+  expect(drills.at(-1)).toMatchObject({ key: 'endgame-kr', text: expect.stringMatching(/^✅ King and rook against king$/) })
+  expect(drills[0]?.text).toMatch(/^· /)
   await ui.unmount()
   fake.endAll()
   await settle(() => false, 1)

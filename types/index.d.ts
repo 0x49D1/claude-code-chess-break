@@ -89,6 +89,9 @@ export type Dashboard = { themes: Record<string, ThemeResult> } | { failed: stri
 /** A version in CHANGELOG.md: its number, its date, and what it added. */
 export type Release = { version: string; date?: string; changes: string[] }
 
+/** How an endgame drill went: won, or played and not yet won. */
+export type DrillResult = 'converted' | 'tried'
+
 export type Judgment = 'Inaccuracy' | 'Mistake' | 'Blunder'
 
 /** One of the person's moves Lichess's analysis judged: its index in the game's moves, and the pawns it lost (in centipawns). */
@@ -222,6 +225,8 @@ export type View = {
   isClaudeWorking: boolean
   /** The endgames to convert are listed. */
   isEndgamesShown?: boolean
+  /** Each endgame drill's result so far, by key. */
+  drillResults: Record<string, DrillResult>
   /** The openings to drill are listed. */
   isOpeningsShown?: boolean
   /** The openings chosen to drill in turn, by key. */
