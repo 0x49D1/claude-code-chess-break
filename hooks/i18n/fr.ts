@@ -77,6 +77,7 @@ export const fr: Messages = {
     drillSet: n => `Réviser ma sélection (${n})`,
     endgames: 'Finales',
     endgamesHead: 'Gagne-la contre Stockfish à sa force maximale : une partie amicale sur Lichess depuis la position, avec les Blancs. Il faut être connecté.',
+    endgamesMarks: '✅ gagnée · ⏳ essayée, pas encore gagnée : celles-ci d’abord.',
     allChanges: 'Tous les changements',
     times: (average, fastest) => `Réussites sans faute : ${average} en moyenne, record ${fastest}`,
     dueCount: n => `${n} à réviser`,

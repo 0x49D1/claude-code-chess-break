@@ -71,6 +71,7 @@ export const ka: Messages = {
     drillSet: n => `ჩემი ნაკრების ვარჯიში (${n})`,
     endgames: 'ენდშპილები',
     endgamesHead: 'მოიგე Stockfish-ის წინააღმდეგ მის სრულ ძალაზე: ამხანაგური პარტია Lichess-ზე ამ პოზიციიდან, თეთრებით. საჭიროა შესვლა.',
+    endgamesMarks: '✅ მოგებული · ⏳ ნაცადი, ჯერ არ მოგებული: ესენი პირველად.',
     allChanges: 'ყველა ცვლილება',
     times: (average, fastest) => `სუფთა ამოხსნები: საშუალოდ ${average}, ყველაზე სწრაფი ${fastest}`,
     dueCount: n => `${n} ამოცანა გასამეორებლად`,

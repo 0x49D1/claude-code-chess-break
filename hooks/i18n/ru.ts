@@ -86,6 +86,7 @@ export const ru: Messages = {
     drillSet: n => `Тренировать мой набор (${n})`,
     endgames: 'Эндшпили',
     endgamesHead: 'Доведи до победы против Stockfish на максимальной силе: товарищеская партия на Lichess из позиции, за белых. Нужен вход.',
+    endgamesMarks: '✅ выиграно · ⏳ пробовал, ещё не выиграно: такие сначала.',
     allChanges: 'Все изменения',
     times: (average, fastest) => `Чистые решения: в среднем ${average}, быстрее всего ${fastest}`,
     dueCount: n => `${plural(n, 'задача', 'задачи', 'задач')} на повторение`,

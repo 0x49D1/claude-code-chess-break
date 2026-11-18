@@ -15,7 +15,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
   - [x] Done for now: accepting transpositions is left out. A drill's line fixes the other side's replies, so another move order has no reply in it to play: that needs a tree of moves per opening, a change of its own if wanted.
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
   - [x] Slice 1, 0.15.0: four won positions (KQ v K, KR v K, KP v K with the king in front, Lucena) played against Stockfish level 8 from the position, as casual Lichess games; 🔄 replays one.
-  - [ ] Left: keeping which drills were converted, and bringing back the ones not yet; more positions (Philidor to hold a draw, opposition, rook endgames). A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
+  - [x] Slice 2, 0.16.0: each drill's result kept (✅ converted, ⏳ tried), and the ones not yet converted listed first.
+  - [ ] Left: more positions (Philidor to hold a draw, opposition, rook endgames). A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
 

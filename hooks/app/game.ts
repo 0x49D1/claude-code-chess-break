@@ -5,10 +5,11 @@ import { line } from '../chess/position'
 import { playerName } from '../i18n'
 import { AI_URL, EVENT_URL, SEEK_URL, actionUrl, drawUrl, gameForm, moveUrl, readGameEvent, streamUrl, takebackUrl } from '../lichess/game'
 import { beep } from '../training/beep'
-import { GAME_DEFAULTS, applyState, canAbort, clockLeft, fromFull, isCorrespondence, isMyTurn, isOn, rollBack, startOf, toMove } from '../training/game'
+import { drillOf, recordDrill } from '../training/endgames'
+import { GAME_DEFAULTS, applyState, canAbort, clockLeft, endingOf, fromFull, isCorrespondence, isMyTurn, isOn, outcomeOf, rollBack, startOf, toMove } from '../training/game'
 import { storedAccount, storedToken } from './account'
 import { hasCurl, stop, streamLines } from './curl'
-import { INITIAL_VIEW, PANE, messagesOf, settings as options } from './state'
+import { INITIAL_VIEW, PANE, messagesOf, settings as options, storedDrills } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -66,11 +67,21 @@ function sound($: $, frequency: number) {
   return $.audio.play({ base64: beep(frequency, 150), mime: 'audio/wav' }).catch(() => undefined)
 }
 
+/** A drill's end kept: won, it is converted; drawn or lost, tried. An aborted one is not counted. */
+async function recordDrillEnd($: $, game: Game) {
+  const drill = drillOf(game)
+  if (!drill || endingOf(game.status) === 'aborted') return
+  const drillResults = recordDrill(await storedDrills($), drill.key, outcomeOf(game) === 'win')
+  await $.store.set('drills', drillResults)
+  await update($, view, v => ({ ...v, drillResults }))
+}
+
 /**
  * What a new state of the game shown asks of the mod: the opponent's move told when the pane is
  * hidden, and a person's takeback request declined, once per request.
  */
 async function answerState($: $, before: Game, after: Game) {
+  if (isOn(before) && !isOn(after)) await recordDrillEnd($, after)
   const opponent = before.side === 'w' ? 'b' : 'w'
   const theirs = after.side === 'w' ? after.black : after.white
   if (after.takebackOffer === opponent && before.takebackOffer !== opponent && !theirs.aiLevel) await send($, takebackUrl(after.id, false))
