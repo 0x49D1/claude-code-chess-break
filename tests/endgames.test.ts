@@ -105,3 +105,30 @@ test('a drill won is kept as converted, and the list shows it last, marked', asy
   fake.endAll()
   await settle(() => false, 1)
 })
+
+test('a drill that ended while the stream was down is kept when the whole game comes back', async ($, on) => {
+  const store: Record<string, unknown> = {}
+  const settle = signedIn(on, 'lip_good', store)
+  const fake = lichess(on, AI)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'play-endgame' })
+  await ui.press({ key: 'endgame-kq' })
+  await settle(() => fake.streams('/stream/g4m3').length > 0)
+  const curl = fake.streams('/stream/g4m3')[0]!
+  const full = (state: object) => JSON.stringify({
+    type: 'gameFull', id: 'g4m3', rated: false, initialFen: ENDGAMES[0]!.fen,
+    white: { id: 'magnus', name: 'magnus', rating: 1500 }, black: { aiLevel: 8 },
+    clock: { initial: 900000, increment: 10000 },
+    state: { type: 'gameState', wtime: 900000, btime: 900000, ...state },
+  })
+  curl.feed.line(full({ moves: '', status: 'started' }))
+  await settle(() => false, 1)
+  // The game's first line again, as after a reconnect, and over: drawn by stalemate.
+  curl.feed.line(full({ moves: 'd1d7', status: 'stalemate' }))
+  curl.feed.end()
+  await settle(() => false, 1)
+  expect(store.drills).toEqual({ kq: 'tried' })
+  await ui.unmount()
+  fake.endAll()
+  await settle(() => false, 1)
+})

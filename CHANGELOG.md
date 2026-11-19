@@ -14,6 +14,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.16.1 (2026-11-19)
+
+- A drill that ended while the game's connection was down now counts as ✅ or ⏳ too, once the game comes back.
 ## 0.16.0 (2026-11-18)
 
 - 🏆 Endgame drills remember how they went: ✅ converted, ⏳ tried and not yet won. The ones not yet converted come first in the list.
