@@ -81,7 +81,6 @@ async function recordDrillEnd($: $, game: Game) {
  * hidden, and a person's takeback request declined, once per request.
  */
 async function answerState($: $, before: Game, after: Game) {
-  if (isOn(before) && !isOn(after)) await recordDrillEnd($, after)
   const opponent = before.side === 'w' ? 'b' : 'w'
   const theirs = after.side === 'w' ? after.black : after.white
   if (after.takebackOffer === opponent && before.takebackOffer !== opponent && !theirs.aiLevel) await send($, takebackUrl(after.id, false))
@@ -119,7 +118,11 @@ export async function follow($: $, id: string, settings?: GameSettings) {
         // The list knows the move is made before its next read.
         return { ...x, gameNote: undefined, game, games: x.games?.map(s => (s.id === id ? { ...s, isMyTurn: isMyTurn(game) } : s)) }
       })
-      if (e.type === 'state' && before?.id === id && v.game?.id === id) await answerState($, before, v.game)
+      if (before?.id === id && v.game?.id === id) {
+        // A game can end between a dropped stream and its reconnect, whose first line is the whole game.
+        if (isOn(before) && !isOn(v.game)) await recordDrillEnd($, v.game)
+        if (e.type === 'state') await answerState($, before, v.game)
+      }
     })
     if (followed !== id) return
     const { game } = await read($, view)
