@@ -32,7 +32,7 @@ export const en: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'the offline set'),
   piece: p => PIECES[p] ?? 'the piece',
   theme: key => EN_THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'King and queen against king', kr: 'King and rook against king', kp: 'King and pawn: the king in front', lucena: 'Lucena position: rook and pawn' })[key],
+  endgame: key => ({ kq: 'King and queen against king', kr: 'King and rook against king', kp: 'King and pawn: the king in front', lucena: 'Lucena position: rook and pawn', kbb: 'Two bishops against king', kbn: 'Bishop and knight against king', kqkr: 'Queen against rook' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = en.side(solver)

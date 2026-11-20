@@ -1,6 +1,6 @@
 import type { DrillResult, Game, GameSettings } from '../../types'
 
-export type EndgameKey = 'kq' | 'kr' | 'kp' | 'lucena'
+export type EndgameKey = 'kq' | 'kr' | 'kp' | 'lucena' | 'kbb' | 'kbn' | 'kqkr'
 
 /** A position to convert against Stockfish: White to move, and winning. */
 export type Endgame = { key: EndgameKey; fen: string }
@@ -12,6 +12,11 @@ export const ENDGAMES: Endgame[] = [
   { key: 'kp', fen: '4k3/8/4K3/4P3/8/8/8/8 w - - 0 1' },
   // Won by building a bridge: Rd1+, then Rd4.
   { key: 'lucena', fen: '1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1' },
+  { key: 'kbb', fen: '8/8/8/4k3/8/8/8/2B1KB2 w - - 0 1' },
+  // The hardest basic mate: the king is driven to a corner of the bishop's colour, within fifty moves.
+  { key: 'kbn', fen: '8/8/8/4k3/8/8/8/2B1KN2 w - - 0 1' },
+  // Won in theory, and famously hard against a computer's defence.
+  { key: 'kqkr', fen: '8/8/8/4k3/8/8/r7/3QK3 w - - 0 1' },
 ]
 
 /** Stockfish at its strongest, with time to think: a drill is won by technique, not by the clock. */

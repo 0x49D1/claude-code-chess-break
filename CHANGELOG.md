@@ -15,6 +15,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.17.0 (2026-11-20)
+
+- 🏆 Three more endgame drills: two bishops against king, bishop and knight against king, and queen against rook.
 ## 0.16.1 (2026-11-19)
 
 - A drill that ended while the game's connection was down now counts as ✅ or ⏳ too, once the game comes back.

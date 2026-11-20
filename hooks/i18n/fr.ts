@@ -31,7 +31,7 @@ export const fr: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'les puzzles hors ligne'),
   piece: p => PIECES[p] ?? 'la pièce',
   theme: key => THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'Roi et dame contre roi', kr: 'Roi et tour contre roi', kp: 'Roi et pion : le roi devant', lucena: 'Position de Lucena : tour et pion' })[key],
+  endgame: key => ({ kq: 'Roi et dame contre roi', kr: 'Roi et tour contre roi', kp: 'Roi et pion : le roi devant', lucena: 'Position de Lucena : tour et pion', kbb: 'Deux fous contre roi', kbn: 'Fou et cavalier contre roi', kqkr: 'Dame contre tour' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = fr.side(solver)
