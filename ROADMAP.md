@@ -16,7 +16,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
   - [x] Slice 1, 0.15.0: four won positions (KQ v K, KR v K, KP v K with the king in front, Lucena) played against Stockfish level 8 from the position, as casual Lichess games; 🔄 replays one.
   - [x] Slice 2, 0.16.0: each drill's result kept (✅ converted, ⏳ tried), and the ones not yet converted listed first.
-  - [ ] Left: more positions (Philidor to hold a draw, opposition, rook endgames). A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
+  - [x] Slice 3, 0.17.0: three more won positions: two bishops, bishop and knight, queen against rook.
+  - [ ] Left: drills to hold a draw (Philidor) or played as Black, which need a drill's goal and the review's mistake reader to count from Black. A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
 

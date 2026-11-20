@@ -7,7 +7,7 @@ Lets the person practise converting won endgames against Stockfish, from the pos
 ## Requirements
 
 ### Requirement: Endgame drills
-🏆 Endgames SHALL list four positions, each legal, White to move and won: king and queen against king, king and rook against king, king and pawn with the king in front, the Lucena position. A press SHALL start a casual Lichess game against Stockfish level 8 from the position, as White, and SHALL NOT change the person's remembered setup choices. Esc and `← Back` SHALL leave the list.
+🏆 Endgames SHALL list seven positions, each legal (Black, not to move, not in check), White to move and won: king and queen against king, king and rook against king, king and pawn with the king in front, the Lucena position, two bishops against king, bishop and knight against king, queen against rook. A press SHALL start a casual Lichess game against Stockfish level 8 from the position, as White, and SHALL NOT change the person's remembered setup choices. Esc and `← Back` SHALL leave the list.
 
 #### Scenario: King and rook
 - **WHEN** a signed-in person presses King and rook against king

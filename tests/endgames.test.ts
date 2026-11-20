@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { legal, turnOf } from '../hooks/chess/position'
+import { isCheck, legal, turnOf } from '../hooks/chess/position'
 import { gameForm, readGameEvent } from '../hooks/lichess/game'
 import { ENDGAMES, drillOf, drillOrder, drillSettings, recordDrill } from '../hooks/training/endgames'
 import type { Game } from '../types'
@@ -8,9 +8,12 @@ import { toMove } from '../hooks/training/game'
 import { AI, PANE, lichess, signedIn } from './fixtures/fake'
 
 test('every drill is a legal position, White to move, with the game still on', () => {
+  expect(ENDGAMES.map(e => e.key)).toEqual(['kq', 'kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr'])
   for (const e of ENDGAMES) {
     expect(turnOf(e.fen)).toBe('w')
     expect(legal(e.fen).length).toBeGreaterThan(0)
+    // Black, not to move, is not in check: that position could not be.
+    expect(isCheck(e.fen.replace(' w ', ' b '))).toBe(false)
   }
 })
 
@@ -70,7 +73,7 @@ test('a drill’s result: a win converts it for good, a draw or loss is a try; n
   r = recordDrill(r, 'kr', true)
   r = recordDrill(r, 'kr', false)
   expect(r).toEqual({ kr: 'converted' })
-  expect(drillOrder({ kq: 'converted', kp: 'tried' }).map(e => e.key)).toEqual(['kr', 'kp', 'lucena', 'kq'])
+  expect(drillOrder({ kq: 'converted', kp: 'tried' }).map(e => e.key)).toEqual(['kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr', 'kq'])
   expect(drillOf({ initialFen: ENDGAMES[3]!.fen } as Game)?.key).toBe('lucena')
   expect(drillOf({} as Game)).toBeUndefined()
 })

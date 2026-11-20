@@ -40,7 +40,7 @@ export const ru: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'офлайн-набор'),
   piece: p => PIECES[p] ?? 'фигурой',
   theme: key => THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'Король и ферзь против короля', kr: 'Король и ладья против короля', kp: 'Король и пешка: король впереди', lucena: 'Позиция Лусены: ладья и пешка' })[key],
+  endgame: key => ({ kq: 'Король и ферзь против короля', kr: 'Король и ладья против короля', kp: 'Король и пешка: король впереди', lucena: 'Позиция Лусены: ладья и пешка', kbb: 'Два слона против короля', kbn: 'Слон и конь против короля', kqkr: 'Ферзь против ладьи' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = solver === 'w' ? 'белых' : 'чёрных'

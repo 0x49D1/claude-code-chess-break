@@ -25,7 +25,7 @@ export const ka: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'ოფლაინ ნაკრები'),
   piece: p => PIECES[p] ?? 'ფიგურით',
   theme: key => THEMES[key] ?? EN_THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'მეფე და ლაზიერი მეფის წინააღმდეგ', kr: 'მეფე და ეტლი მეფის წინააღმდეგ', kp: 'მეფე და პაიკი: მეფე წინ', lucena: 'ლუსენას პოზიცია: ეტლი და პაიკი' })[key],
+  endgame: key => ({ kq: 'მეფე და ლაზიერი მეფის წინააღმდეგ', kr: 'მეფე და ეტლი მეფის წინააღმდეგ', kp: 'მეფე და პაიკი: მეფე წინ', lucena: 'ლუსენას პოზიცია: ეტლი და პაიკი', kbb: 'ორი კუ მეფის წინააღმდეგ', kbn: 'კუ და მხედარი მეფის წინააღმდეგ', kqkr: 'ლაზიერი ეტლის წინააღმდეგ' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const forMe = solver === 'w' ? 'თეთრებისთვის' : 'შავებისთვის'
