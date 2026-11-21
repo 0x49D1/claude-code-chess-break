@@ -17,8 +17,10 @@ The agreed feature list, in order. A daily run ships one version: code review an
   - [x] Slice 1, 0.15.0: four won positions (KQ v K, KR v K, KP v K with the king in front, Lucena) played against Stockfish level 8 from the position, as casual Lichess games; 🔄 replays one.
   - [x] Slice 2, 0.16.0: each drill's result kept (✅ converted, ⏳ tried), and the ones not yet converted listed first.
   - [x] Slice 3, 0.17.0: three more won positions: two bishops, bishop and knight, queen against rook.
-  - [ ] Left: drills to hold a draw (Philidor) or played as Black, which need a drill's goal and the review's mistake reader to count from Black. A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
+  - [ ] Left, waiting: drills to hold a draw (Philidor) or played as Black. They need a drill's goal (a draw counted as converted), the review's mistake reader counting from Black, and positions checked against a tablebase before they ship. A drill with Black to move first also needs the review's mistake reader (`readAnalysis`) to count plies from the start's side, not from White.
 - [ ] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
+  - [x] Slice 1, 0.18.0: last week's card on the week's first pane: puzzles played and solved cleanly, the day streak, best and weakest theme; shown once a week. Puzzle totals per day are kept from this version on.
+  - [ ] Left: each theme's accuracy for the week, compared with the week before; `/chess-break week` to see it again.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
 
 ## Done

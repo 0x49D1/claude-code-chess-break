@@ -7,6 +7,7 @@ import { closeOpenings } from './openings'
 import { cancelSignIn } from './account'
 import { backToPuzzles } from './actions'
 import { closeProgress } from './progress'
+import { closeSummary } from './summary'
 import { INITIAL_VIEW } from './state'
 import type { $ } from './state'
 
@@ -26,6 +27,7 @@ export async function stepBack($: $): Promise<boolean> {
     case 'about': await closeAbout($); return true
     case 'openings': await closeOpenings($); return true
     case 'endgames': await closeEndgames($); return true
+    case 'summary': await closeSummary($); return true
     case 'puzzle': return false
   }
 }

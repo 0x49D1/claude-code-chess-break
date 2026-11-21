@@ -28,6 +28,7 @@ import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
 import { endgamesPane } from './endgames'
+import { summaryPane } from './summary'
 import { openingsPane } from './openings'
 import { progressPane } from './progress'
 import { submitLabelOf, suggestionRow } from './suggestions'
@@ -158,6 +159,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'about') return aboutPane($, els, t)
     if (screen === 'openings') return openingsPane($, els, v, t)
     if (screen === 'endgames') return endgamesPane($, els, v, t)
+    if (screen === 'summary' && v.summary) return summaryPane($, els, v, v.summary, t, now)
 
     if (!a) {
       return (

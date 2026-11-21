@@ -89,6 +89,16 @@ export type Dashboard = { themes: Record<string, ThemeResult> } | { failed: stri
 /** A version in CHANGELOG.md: its number, its date, and what it added. */
 export type Release = { version: string; date?: string; changes: string[] }
 
+/** Last week in numbers, Monday to Sunday: puzzles played and solved, and the themes that went best and worst. */
+export type WeekSummary = {
+  from: string
+  to: string
+  played: number
+  solved: number
+  best?: { theme: string; accuracy: number }
+  weakest?: { theme: string; accuracy: number }
+}
+
 /** How an endgame drill went: won, or played and not yet won. */
 export type DrillResult = 'converted' | 'tried'
 
@@ -225,6 +235,8 @@ export type View = {
   isClaudeWorking: boolean
   /** The endgames to convert are listed. */
   isEndgamesShown?: boolean
+  /** Last week's summary, while its card is shown. */
+  summary?: WeekSummary
   /** Each endgame drill's result so far, by key. */
   drillResults: Record<string, DrillResult>
   /** The openings to drill are listed. */

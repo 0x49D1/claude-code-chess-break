@@ -3,7 +3,7 @@ import { lastDays } from './daily'
 import { skills } from './progress'
 
 /** Days kept: the 4 weeks shown, with room to show more later. */
-const KEPT_DAYS = 84
+export const KEPT_DAYS = 84
 const WEEKS = 4
 
 /**
