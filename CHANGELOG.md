@@ -16,6 +16,10 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+
+## 0.18.0 (2026-11-21)
+
+- 🗓 A weekly card: the first time the pane opens in a new week, last week's puzzles, clean solves, day streak, and best and weakest theme. Counted from this version on.
 ## 0.17.0 (2026-11-20)
 
 - 🏆 Three more endgame drills: two bishops against king, bishop and knight against king, and queen against rook.

@@ -34,6 +34,12 @@ export type Messages = {
     endgames: string
     endgamesHead: string
     endgamesMarks: string
+    summaryTitle: (from: string, to: string) => string
+    summaryPlayed: (played: number, solved: number, percent: number) => string
+    summaryStreak: (days: number, best: number) => string
+    summaryBest: (theme: string, percent: number) => string
+    summaryWeakest: (theme: string, percent: number) => string
+    gotIt: string
     allChanges: string
     times: (average: string, fastest: string) => string
     dueCount: (n: number) => string

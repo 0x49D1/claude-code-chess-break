@@ -74,6 +74,12 @@ export async function storedHistory($: $): Promise<History> {
   return history
 }
 
+/** Puzzles by local day, solved cleanly or not; a day that isn't a tally is left out. */
+export async function storedDays($: $): Promise<Record<string, Tally>> {
+  const x = (await $.store.get('days')) as Record<string, unknown> | undefined
+  return Object.fromEntries(Object.entries(typeof x === 'object' && x !== null ? x : {}).filter((e): e is [string, Tally] => isTally(e[1])))
+}
+
 /** Each endgame drill's result, by key; anything else in the store is left out. */
 export async function storedDrills($: $): Promise<Record<string, DrillResult>> {
   const x = (await $.store.get('drills')) as Record<string, unknown> | undefined

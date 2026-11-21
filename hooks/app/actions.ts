@@ -11,12 +11,14 @@ import { explainFailure, explainRequest } from '../training/explain'
 import { awaitsReply, isClean, reply, start } from '../training/attempt'
 import { awaiting, isOn } from '../training/game'
 import { recordDaily } from '../training/daily'
-import { recordHistory } from '../training/history'
+import { KEPT_DAYS, recordHistory } from '../training/history'
+import { recordDay } from '../training/summary'
+import { offerSummary } from './summary'
 import { recordProgress } from '../training/progress'
 import { recordSolved } from '../training/solved'
 import { recordTime } from '../training/timing'
 import { dueIds, recordReview } from '../training/review'
-import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedHistory, storedProgress, storedReview, storedSolved, storedTimes } from './state'
+import { INITIAL_VIEW, PANE, TITLE, settings, storedDaily, storedDays, storedHistory, storedProgress, storedReview, storedSolved, storedTimes } from './state'
 import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
@@ -114,6 +116,7 @@ async function record($: $, attempt: Attempt, isWin: boolean) {
   await $.store.set('daily', daily)
   const history = recordHistory(await storedHistory($), now, attempt.puzzle.themes, isWin)
   await $.store.set('history', history)
+  await $.store.set('days', recordDay(await storedDays($), now, isWin, KEPT_DAYS))
   const elapsedMs = attempt.startedAt === undefined ? undefined : now - attempt.startedAt
   const before = await storedTimes($)
   const times = isWin && elapsedMs !== undefined ? recordTime(before, attempt.puzzle.themes, elapsedMs) : before
@@ -193,6 +196,7 @@ export async function openPane($: $, focus = false) {
   if (v.game || v.seeking) return
   if ((!v.attempt || v.attempt.status !== 'playing') && !v.isLoading) await loadNext($)
   else await keepTicking($)
+  await offerSummary($)
 }
 
 /**
