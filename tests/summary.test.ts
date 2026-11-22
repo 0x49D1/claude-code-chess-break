@@ -32,8 +32,21 @@ test('last week in numbers, the best and weakest of the themes played enough', (
   expect(weekSummary(totals, history, noon(18))).toEqual({
     from: '2026-11-09', to: '2026-11-15', played: 8, solved: 5,
     best: { theme: 'fork', accuracy: 100 }, weakest: { theme: 'pin', accuracy: 25 },
+    themes: [{ theme: 'fork', accuracy: 100 }, { theme: 'pin', accuracy: 25 }, { theme: 'mate', accuracy: 100 }],
   })
   expect(weekSummary({ '2026-11-16': { solved: 1, failed: 0 } }, {}, noon(18))).toBeUndefined()
+})
+
+test('each theme is set against the week before, when it was played then', () => {
+  const totals = { '2026-11-03': { solved: 1, failed: 1 }, '2026-11-10': { solved: 2, failed: 1 } }
+  const history = {
+    '2026-11-03': { fork: { solved: 1, failed: 1 } },
+    '2026-11-10': { fork: { solved: 2, failed: 0 }, pin: { solved: 0, failed: 1 } },
+  }
+  expect(weekSummary(totals, history, noon(18))?.themes).toEqual([
+    { theme: 'fork', accuracy: 100, before: 50 },
+    { theme: 'pin', accuracy: 0 },
+  ])
 })
 
 /** Scholar's mate to find: Qxf7#. */
@@ -58,5 +71,22 @@ test('a week later, the card shows once; Got it closes it for the week', async (
   expect(await ui.find({ key: 'summary-close' })).toBeUndefined()
   await $.command.run(command(''))
   expect(await ui.find({ key: 'summary-close' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('/chess-break week shows the card again, or says there is none', async ($, on) => {
+  mock.store(on)
+  const clock = mock.clock(on)
+  lichess(on, { 'difficulty=normal': { status: 200, text: SCHOLAR } })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await $.command.run(command('week'))).text).toBe('No puzzles last week, so no card.')
+  await $.command.run(command(''))
+  await ui.input({ key: 'move-abc12', text: 'Qxf7#' })
+  await clock.advance(8 * 86_400_000)
+  await $.command.run(command(''))
+  await ui.press({ key: 'summary-close' })
+  expect((await $.command.run(command('week'))).text).toBe('Last week’s card is in the pane.')
+  expect(await ui.find({ key: 'summary-close' })).toBeDefined()
+  expect(await ui.find({ text: /^· Mate in 1: 100% · new$/ })).toBeDefined()
   await ui.unmount()
 })

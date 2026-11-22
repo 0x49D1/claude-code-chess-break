@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.19.0 (2026-11-22)
+
+- 🗓 The weekly card lists the week's most played themes, each with its accuracy against the week before (↑ ↓ =). `/chess-break week` shows the card again.
 ## 0.18.0 (2026-11-21)
 
 - 🗓 A weekly card: the first time the pane opens in a new week, last week's puzzles, clean solves, day streak, and best and weakest theme. Counted from this version on.

@@ -97,6 +97,8 @@ export type WeekSummary = {
   solved: number
   best?: { theme: string; accuracy: number }
   weakest?: { theme: string; accuracy: number }
+  /** The themes played most last week, with their accuracy then and the week before, when played. */
+  themes: { theme: string; accuracy: number; before?: number }[]
 }
 
 /** How an endgame drill went: won, or played and not yet won. */

@@ -39,6 +39,8 @@ export type Messages = {
     summaryStreak: (days: number, best: number) => string
     summaryBest: (theme: string, percent: number) => string
     summaryWeakest: (theme: string, percent: number) => string
+    /** A theme's accuracy last week, and the week before's when it was played then. */
+    summaryTheme: (theme: string, percent: number, before?: number) => string
     gotIt: string
     allChanges: string
     times: (average: string, fastest: string) => string
@@ -137,6 +139,8 @@ export type Messages = {
     noStats: string
     reviewDue: (due: string) => string
     reviewNone: string
+    weekNone: string
+    weekShown: string
     langSet: (lang: string) => string
     sourceSet: (name: string) => string
     noThemesOnChesscom: string
