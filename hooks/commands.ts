@@ -8,6 +8,7 @@ import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './
 import { refreshGames } from './app/games'
 import { drillSet, startOpening } from './app/openings'
 import { refreshDashboard } from './app/progress'
+import { offerSummary } from './app/summary'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
 import { LOCALES, asLocale, gameLine, messagesFor } from './i18n'
@@ -130,6 +131,11 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
             ...(weak ? [t.command.weakest(t.theme(weak.theme), weak.theme)] : []),
           ].join('\n'),
         }
+      }
+      case 'week': {
+        if (!(await offerSummary($, true))) return { text: t.command.weekNone }
+        await openPane($, true)
+        return { text: t.command.weekShown }
       }
       case 'review': {
         await refreshDue($)

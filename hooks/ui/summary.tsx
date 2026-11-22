@@ -6,7 +6,7 @@ import { closeSummary } from '../app/summary'
 import type { Messages } from '../i18n'
 import { todayOf } from '../training/daily'
 
-/** Last week's card: the puzzles, the day streak, the best and weakest theme; Got it closes it until next week. */
+/** Last week's card: the puzzles, the day streak, the best and weakest theme, each theme against the week before; Got it closes it until next week. */
 export function summaryPane($: $, els: Elements[keyof Elements], v: View, s: WeekSummary, t: Messages, now: number) {
   const { Box, Text, Button } = els
   const streak = todayOf(v.daily, now).streak
@@ -19,6 +19,11 @@ export function summaryPane($: $, els: Elements[keyof Elements], v: View, s: Wee
         {s.best && <Text>{`💪 ${t.pane.summaryBest(t.theme(s.best.theme), s.best.accuracy)}`}</Text>}
         {s.weakest && <Text>{`🎯 ${t.pane.summaryWeakest(t.theme(s.weakest.theme), s.weakest.accuracy)}`}</Text>}
       </Box>
+      {s.themes.length > 0 && (
+        <Box flexDirection="column">
+          {s.themes.map(row => <Text key={`summary-${row.theme}`}>{`· ${t.pane.summaryTheme(t.theme(row.theme), row.accuracy, row.before)}`}</Text>)}
+        </Box>
+      )}
       <Button key="summary-close" plain autoFocus onPress={() => void closeSummary($)}>{`✔ ${t.pane.gotIt}`}</Button>
     </Box>
   )

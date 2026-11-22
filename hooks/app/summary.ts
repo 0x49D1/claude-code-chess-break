@@ -6,12 +6,13 @@ import type { $ } from './state'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
-/** Last week's card, once a week: on the first pane of a week whose card was not seen, when last week had puzzles. */
-export async function offerSummary($: $) {
+/** Last week's card, when last week had puzzles: once a week on the first pane, or whenever asked; says whether it shows. */
+export async function offerSummary($: $, isAsked = false) {
   const now = await $.clock.now()
-  if ((await $.store.get('summarySeen')) === weekOf(now)) return
+  if (!isAsked && (await $.store.get('summarySeen')) === weekOf(now)) return false
   const summary = weekSummary(await storedDays($), await storedHistory($), now)
   if (summary) await update($, view, v => ({ ...v, summary }))
+  return summary !== undefined
 }
 
 /** Closes the card for the rest of the week. */
