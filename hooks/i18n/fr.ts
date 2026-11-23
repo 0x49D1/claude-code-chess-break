@@ -211,6 +211,7 @@ export const fr: Messages = {
     reviewNone: 'Rien à réviser. Les puzzles manqués reviennent ici le lendemain.',
     weekNone: 'Aucun problème la semaine dernière, donc pas de bilan.',
     weekShown: 'Le bilan de la semaine dernière est dans le panneau.',
+    weekAfterGame: 'Le bilan de la semaine dernière s’affiche quand tu quittes la partie.',
     langSet: lang => `Langue : ${lang}.`,
     sourceSet: name => `Puzzles : ${name}.`,
     noThemesOnChesscom: 'Les puzzles de Chess.com n’ont pas de thèmes : le thème vaut pour Lichess et les puzzles hors ligne.',

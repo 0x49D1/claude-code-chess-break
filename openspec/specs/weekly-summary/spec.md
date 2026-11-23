@@ -32,7 +32,7 @@ The card SHALL list last week's five most played themes, each with its accuracy 
 - **THEN** the card shows forks at 100%, up from 50%
 
 ### Requirement: The card on request
-`/chess-break week` SHALL show last week's card in the pane, even after it was closed this week, and SHALL say so; with no puzzles last week it SHALL say there is no card.
+`/chess-break week` SHALL show last week's card in the pane, even after it was closed this week, and SHALL say so; with no puzzles last week it SHALL say there is no card. Asked from Progress, About, the openings or the endgames, the card SHALL show in their place; while a game holds the pane, the answer SHALL say the card shows once the game is left.
 
 #### Scenario: Closed, then asked
 - **WHEN** the person closes the card and runs `/chess-break week`

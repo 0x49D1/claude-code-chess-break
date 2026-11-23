@@ -135,7 +135,8 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       case 'week': {
         if (!(await offerSummary($, true))) return { text: t.command.weekNone }
         await openPane($, true)
-        return { text: t.command.weekShown }
+        const { game } = await read($, view)
+        return { text: game ? t.command.weekAfterGame : t.command.weekShown }
       }
       case 'review': {
         await refreshDue($)
