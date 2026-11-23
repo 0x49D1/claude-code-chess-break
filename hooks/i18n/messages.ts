@@ -141,6 +141,7 @@ export type Messages = {
     reviewNone: string
     weekNone: string
     weekShown: string
+    weekAfterGame: string
     langSet: (lang: string) => string
     sourceSet: (name: string) => string
     noThemesOnChesscom: string

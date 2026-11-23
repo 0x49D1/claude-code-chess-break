@@ -212,6 +212,7 @@ export const en: Messages = {
     reviewNone: 'Nothing to review. Missed puzzles come back here a day later.',
     weekNone: 'No puzzles last week, so no card.',
     weekShown: 'Last week’s card is in the pane.',
+    weekAfterGame: 'Last week’s card shows once you leave the game.',
     langSet: lang => `Language: ${lang}.`,
     sourceSet: name => `Puzzles from ${name}.`,
     noThemesOnChesscom: 'Chess.com’s puzzles have no themes: the theme applies with Lichess or the offline set.',

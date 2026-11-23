@@ -11,7 +11,9 @@ export async function offerSummary($: $, isAsked = false) {
   const now = await $.clock.now()
   if (!isAsked && (await $.store.get('summarySeen')) === weekOf(now)) return false
   const summary = weekSummary(await storedDays($), await storedHistory($), now)
-  if (summary) await update($, view, v => ({ ...v, summary }))
+  // Asked for, the card comes before Progress, About, the openings and the endgames; a game still holds the pane.
+  const shown = isAsked ? { isProgressShown: undefined, isAboutShown: undefined, isOpeningsShown: undefined, isEndgamesShown: undefined } : {}
+  if (summary) await update($, view, v => ({ ...v, ...shown, summary }))
   return summary !== undefined
 }
 

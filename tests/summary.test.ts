@@ -85,6 +85,8 @@ test('/chess-break week shows the card again, or says there is none', async ($, 
   await clock.advance(8 * 86_400_000)
   await $.command.run(command(''))
   await ui.press({ key: 'summary-close' })
+  // Asked from Progress, the card comes before it.
+  await ui.press({ key: 'progress' })
   expect((await $.command.run(command('week'))).text).toBe('Last week’s card is in the pane.')
   expect(await ui.find({ key: 'summary-close' })).toBeDefined()
   expect(await ui.find({ text: /^· Mate in 1: 100% · new$/ })).toBeDefined()

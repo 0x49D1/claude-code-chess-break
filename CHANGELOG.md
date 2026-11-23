@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.19.1 (2026-11-23)
+
+- `/chess-break week` from Progress, About, the openings or the endgames shows the card instead of leaving it hidden behind them; during a game it says the card comes after.
 ## 0.19.0 (2026-11-22)
 
 - 🗓 The weekly card lists the week's most played themes, each with its accuracy against the week before (↑ ↓ =). `/chess-break week` shows the card again.
