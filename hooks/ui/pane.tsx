@@ -9,6 +9,7 @@ import { openAbout } from '../app/about'
 import { openEndgames } from '../app/endgames'
 import { openOpenings } from '../app/openings'
 import { openProgress } from '../app/progress'
+import { openStorm } from '../app/storm'
 import { INITIAL_VIEW, PANE, messagesOf, settings } from '../app/state'
 import type { $ } from '../app/state'
 import { completions } from '../chess/position'
@@ -28,6 +29,7 @@ import { board, glyphOf } from './board'
 import { gamePane } from './game'
 import { aboutPane } from './about'
 import { endgamesPane } from './endgames'
+import { stormPane } from './storm'
 import { summaryPane } from './summary'
 import { openingsPane } from './openings'
 import { progressPane } from './progress'
@@ -99,7 +101,10 @@ function sidebar($: $, els: Elements[keyof Elements], v: View, t: Messages, now:
       <Text>{`🔥 ${t.pane.streak(v.progress.streak, v.progress.best)}`}</Text>
       {settings.dailyGoal > 0 && <Text>{goalLine}</Text>}
       <Button key="progress" plain hotkey="p" onPress={() => void openProgress($)}>{`📊 ${t.pane.progress}`}</Button>
-      <Button key="openings" plain onPress={() => void openOpenings($)}>{`📖 ${t.pane.openings}`}</Button>
+      <Box flexDirection="row" gap={1}>
+        <Button key="openings" plain onPress={() => void openOpenings($)}>{`📖 ${t.pane.openings}`}</Button>
+        <Button key="storm" plain onPress={() => void openStorm($)}>{`⚡ ${t.pane.storm}`}</Button>
+      </Box>
       <Text>{`🔁 ${v.dueCount ? t.pane.dueCount(v.dueCount) : t.pane.noneDue}`}</Text>
       {themeLines(v.progress).slice(0, 3).map(line => (
         <Text key={`theme-${line.theme}`} dimColor>{`${bar(line.accuracy)} ${t.theme(line.theme)}`}</Text>
@@ -159,6 +164,7 @@ export const registerPane = (on: Parameters<Register>[0]) => {
     if (screen === 'about') return aboutPane($, els, t)
     if (screen === 'openings') return openingsPane($, els, v, t)
     if (screen === 'endgames') return endgamesPane($, els, v, t)
+    if (screen === 'storm' && v.storm) return stormPane($, els, v, v.storm, t, now)
     if (screen === 'summary' && v.summary) return summaryPane($, els, v, v.summary, t, now)
 
     if (!a) {

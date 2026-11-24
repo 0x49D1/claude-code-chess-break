@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.20.0 (2026-11-24)
+
+- ⚡ Puzzle Storm: solve as many puzzles as you can in 3 minutes, easy first and getting harder. A miss costs 10 s, and the clock starts with your first move. Your best run is kept. Open it from ⚡ Storm in the sidebar or with `/chess-break storm`.
 ## 0.19.1 (2026-11-23)
 
 - `/chess-break week` from Progress, About, the openings or the endgames shows the card instead of leaving it hidden behind them; during a game it says the card comes after.

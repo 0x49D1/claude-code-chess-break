@@ -247,6 +247,27 @@ export type View = {
   openingSet: string[]
   /** The About screen is open. */
   isAboutShown?: boolean
+  /** A Puzzle Storm run, while its screen is open. */
+  storm?: Storm
+}
+
+/** A timed run of puzzles getting harder: as many as can be solved in 3 minutes, a miss costing time. */
+export type Storm = {
+  attempt: Attempt
+  /** When the first move was tried: the run's clock starts then. */
+  startedAt?: number
+  /** Time taken off for misses. */
+  penaltyMs: number
+  solved: number
+  missed: number
+  /** The puzzles of the run so far, so none comes twice. */
+  seen: string[]
+  /** How the last puzzle went, said above the next one. */
+  last?: 'solved' | 'missed'
+  /** When the time ran out. */
+  endedAt?: number
+  /** The most solved in one run before this one. */
+  best: number
 }
 
 declare module 'claude-code' {

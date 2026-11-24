@@ -1,8 +1,8 @@
 import type { View } from '../../types'
 import { isOn } from './game'
 
-/** What the pane shows, in the order it checks: a sign-in, a game's setup, a game or seek, Progress, About, the openings, the endgames, last week's card, the puzzle. */
-export type Screen = 'signIn' | 'setup' | 'liveGame' | 'game' | 'progress' | 'about' | 'openings' | 'endgames' | 'summary' | 'puzzle'
+/** What the pane shows, in the order it checks: a sign-in, a game's setup, a game or seek, Progress, About, the openings, the endgames, a Puzzle Storm, last week's card, the puzzle. */
+export type Screen = 'signIn' | 'setup' | 'liveGame' | 'game' | 'progress' | 'about' | 'openings' | 'endgames' | 'storm' | 'summary' | 'puzzle'
 
 export function screenOf(v: View): Screen {
   const isLiveOn = (!!v.game && isOn(v.game) && !v.game.isCorrespondence) || !!v.seeking
@@ -14,6 +14,7 @@ export function screenOf(v: View): Screen {
   if (v.isAboutShown) return 'about'
   if (v.isOpeningsShown) return 'openings'
   if (v.isEndgamesShown) return 'endgames'
+  if (v.storm) return 'storm'
   if (v.summary) return 'summary'
   return 'puzzle'
 }

@@ -41,6 +41,15 @@ export type Messages = {
     summaryWeakest: (theme: string, percent: number) => string
     /** A theme's accuracy last week, and the week before's when it was played then. */
     summaryTheme: (theme: string, percent: number, before?: number) => string
+    storm: string
+    /** Before the first move: the run's time and what a miss costs. */
+    stormHead: (time: string, penalty: number) => string
+    stormSolved: string
+    stormMissed: (penalty: number) => string
+    stormOver: (solved: number, missed: number) => string
+    stormBest: (best: number) => string
+    stormNewBest: string
+    stormAgain: string
     gotIt: string
     allChanges: string
     times: (average: string, fastest: string) => string
@@ -142,6 +151,8 @@ export type Messages = {
     weekNone: string
     weekShown: string
     weekAfterGame: string
+    stormStarted: string
+    stormScore: (solved: number, missed: number) => string
     langSet: (lang: string) => string
     sourceSet: (name: string) => string
     noThemesOnChesscom: string

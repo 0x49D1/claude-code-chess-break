@@ -15,6 +15,7 @@ A [Claude Code](https://claude.com/claude-code) mod for **chess tactics training
 - **Play by clicking or typing:** click a piece to see its moves (dots) and captures (tinted squares). Or type the move (`Nf3`, `nf3`, `e2e4`, French `Cf3`); the legal moves that fit show as buttons as you type: ↓ from the field reaches them, ← → walk them, Enter or a click plays one. When one move is left, the field shows it (`▶ Qxf7#`) and Enter plays it. Nothing is played until you press Enter or click.
 - **A training card:** the board drawn like a printed diagram (one ink, white pieces outlined), with a sidebar for this session's results 🟩🟥, your streak 🔥, today's goal 🎯, 📊 Progress, reviews due 🔁, your top themes' accuracy, and the version.
 - **What's new:** the version shows at the bottom of the sidebar. Click it (or `i`) for ℹ About: what the latest versions added, from [CHANGELOG.md](CHANGELOG.md), and a link to this page.
+- **⚡ Puzzle Storm:** for a short wait, solve as many puzzles as you can in 3 minutes. They start easy and get harder. A miss costs 10 seconds, and the clock starts with your first move. The puzzles come from the offline set, so none waits on the network. Your best run is kept. Storm puzzles don't count toward progress or reviews. Open it from ⚡ Storm in the sidebar or with `/chess-break storm`.
 - **A weekly card:** the first time the pane opens in a new week, a card sums up last week (Monday to Sunday): puzzles played and solved cleanly, the day streak, the best and weakest theme, and the most played themes' accuracy against the week before (↑ ↓ =). ✔ Got it (or Esc) puts it away until next week; `/chess-break week` shows it again.
 - **A daily goal:** a few puzzles a day (5 by default), with today's count 🎯 and the days in a row you met it 📅.
 - **Drill openings:** 📖 Openings in the sidebar (or `/chess-break opening <name>`) plays an opening's main line as a puzzle: your side's moves, the other side's answered for you. Sixteen are built in, each main line with its most common deviation: Italian Game (and Two Knights), Ruy Lopez (and Berlin), Queen's Gambit Declined (and Accepted) and London System (and against a King's Indian setup) as White; Sicilian Najdorf (and Alapin), French Winawer (and Advance), Caro-Kann (and Advance) and King's Indian (and Fianchetto) as Black. A miss brings it back until learned. Mark a few with ☑ to make your set: ▶ Drill my set (or `/chess-break opening next`) plays them in turn.
@@ -127,6 +128,7 @@ Then, as a second command:
 | `/chess-break source lichess` / `chesscom` / `offline` | where puzzles come from |
 | `/chess-break stats` | progress per theme |
 | `/chess-break week` | last week's card again |
+| `/chess-break storm` | a Puzzle Storm run |
 | `/chess-break review` | play the puzzles due for review |
 | `/chess-break play stockfish …` / `play human …` | a Lichess game, see [Games](#games) |
 | `/chess-break resign` / `draw` / `draw no` / `abort` / `takeback` | during a game (`takeback` against Stockfish only) |
