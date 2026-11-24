@@ -102,3 +102,16 @@ test('a wrong first try starts the clock too, and it moves while the pane is sho
   await clock.advance(1_000)
   await ui.unmount()
 })
+
+test('a Puzzle Storm in between does not count in the puzzle’s time', async ($, on) => {
+  const clock = setup(on, DEFLECT)
+  const ui = await mount($)
+  await ui.press({ key: 'retry' })
+  await ui.input({ key: 'move-deflect', text: 'Nxe5' })
+  await clock.advance(5_000)
+  await ui.press({ key: 'storm' })
+  await clock.advance(60_000)
+  await ui.press({ key: 'storm-back' })
+  expect(await titleOf(ui)).toMatch(/  ·  ⏱ 0:05$/)
+  await ui.unmount()
+})

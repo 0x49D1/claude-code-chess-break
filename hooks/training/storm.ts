@@ -16,12 +16,28 @@ const RATING_STEP = 40
 /** The band a run's puzzle is picked from: easy first, harder with each one. */
 const bandOf = (index: number) => ({ from: FIRST_RATING + RATING_STEP * index, to: FIRST_RATING + RATING_STEP * index + 300 })
 
-/** The run's next puzzle, from the set shipped with the mod: no waiting on the network between puzzles. */
-export const stormPuzzle = (seen: string[], random = Math.random): Puzzle => offlinePuzzle(MIX, seen, random, bandOf(seen.length))
+/**
+ * The run's next puzzle, from the set shipped with the mod: no waiting on the network between
+ * puzzles. Once its band has none left unseen, a harder one, then any one not played in the run.
+ */
+export function stormPuzzle(seen: string[], random = Math.random): Puzzle {
+  const band = bandOf(seen.length)
+  for (const wider of [band, { from: band.from, to: Infinity }]) {
+    const puzzle = offlinePuzzle(MIX, seen, random, wider)
+    if (!seen.includes(puzzle.id)) return puzzle
+  }
+  return offlinePuzzle(MIX, seen, random)
+}
 
-export function startStorm(best: number, random = Math.random): Storm {
+export function startStorm(best: number, openedAt: number, random = Math.random): Storm {
   const puzzle = stormPuzzle([], random)
-  return { attempt: start(puzzle, false), penaltyMs: 0, solved: 0, missed: 0, seen: [puzzle.id], best }
+  return { attempt: start(puzzle, false), penaltyMs: 0, solved: 0, missed: 0, seen: [puzzle.id], best, openedAt }
+}
+
+/** The puzzle left for a storm, its clock moved on by the time away, so a storm's minutes don't count in its time. */
+export function resume(a: Attempt | undefined, s: Storm, now: number): Attempt | undefined {
+  if (!a || a.status !== 'playing' || a.startedAt === undefined) return a
+  return { ...a, startedAt: a.startedAt + now - s.openedAt }
 }
 
 /** Time left, the whole run's before the first move. */

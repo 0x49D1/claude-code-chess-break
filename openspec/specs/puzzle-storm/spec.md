@@ -7,7 +7,7 @@ A timed run of puzzles for short waits.
 ## Requirements
 
 ### Requirement: A run
-⚡ Storm and `/chess-break storm` SHALL start a run of puzzles from the offline set, the first rated under 1000 and each next one harder, with none repeated in a run. Its 3-minute clock SHALL start with the first move.
+⚡ Storm and `/chess-break storm` SHALL start a run of puzzles from the offline set, the first rated under 1000 and each next one harder, with none repeated in a run. Its 3-minute clock SHALL start with the first move. Once the band of ratings has no puzzle left unseen, the run SHALL take a harder one, then any one not yet played in it. While a sign-in, a game's setup or a game holds the pane, `/chess-break storm` SHALL start no run and SHALL say why. A puzzle left for a run SHALL not count the time spent in the storm.
 
 #### Scenario: Before the first move
 - **WHEN** a run starts

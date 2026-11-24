@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 
 import type { Attempt, Storm } from '../../types'
-import { endIfDue, startStorm, stormChange } from '../training/storm'
+import { endIfDue, resume, startStorm, stormChange } from '../training/storm'
 import { INITIAL_VIEW, PANE } from './state'
 import type { $ } from './state'
 
@@ -44,9 +44,11 @@ export async function openStorm($: $) {
   stopTick()
   const stored = await $.store.get('stormBest')
   const best = typeof stored === 'number' ? stored : 0
+  const now = await $.clock.now()
   await update($, view, v => ({
     ...v,
-    storm: startStorm(best),
+    // Again keeps the time the screen opened: the puzzle left behind waits from then.
+    storm: startStorm(best, v.storm?.openedAt ?? now),
     isProgressShown: undefined,
     isAboutShown: undefined,
     isOpeningsShown: undefined,
@@ -55,9 +57,11 @@ export async function openStorm($: $) {
   }))
 }
 
+/** Back to the puzzle left behind, its clock moved on by the time in the storm. */
 export async function closeStorm($: $) {
   stopTick()
-  await update($, view, v => ({ ...v, storm: undefined }))
+  const now = await $.clock.now()
+  await update($, view, v => (v.storm ? { ...v, storm: undefined, attempt: resume(v.attempt, v.storm, now) } : v))
 }
 
 /** A move or a click on the run's puzzle. */

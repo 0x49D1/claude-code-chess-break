@@ -90,5 +90,11 @@ test('/chess-break week shows the card again, or says there is none', async ($, 
   expect((await $.command.run(command('week'))).text).toBe('Last week’s card is in the pane.')
   expect(await ui.find({ key: 'summary-close' })).toBeDefined()
   expect(await ui.find({ text: /^· Mate in 1: 100% · new$/ })).toBeDefined()
+  // A game's setup holds the pane: the card waits behind it, and the answer says so.
+  await ui.press({ key: 'summary-close' })
+  await ui.press({ key: 'play-stockfish' })
+  expect((await $.command.run(command('week'))).text).toBe('Last week’s card shows once the game, its setup or the sign-in is closed.')
+  await ui.press({ key: 'setup-cancel' })
+  expect(await ui.find({ key: 'summary-close' })).toBeDefined()
   await ui.unmount()
 })

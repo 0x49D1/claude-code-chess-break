@@ -268,6 +268,8 @@ export type Storm = {
   endedAt?: number
   /** The most solved in one run before this one. */
   best: number
+  /** When the storm screen opened: the puzzle left behind has its clock held from then. */
+  openedAt: number
 }
 
 declare module 'claude-code' {

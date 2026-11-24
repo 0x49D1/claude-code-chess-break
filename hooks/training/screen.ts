@@ -4,6 +4,9 @@ import { isOn } from './game'
 /** What the pane shows, in the order it checks: a sign-in, a game's setup, a game or seek, Progress, About, the openings, the endgames, a Puzzle Storm, last week's card, the puzzle. */
 export type Screen = 'signIn' | 'setup' | 'liveGame' | 'game' | 'progress' | 'about' | 'openings' | 'endgames' | 'storm' | 'summary' | 'puzzle'
 
+/** A sign-in, a game's setup or a game: a command's screen waits behind them. */
+export const isHeld = (v: View) => ['signIn', 'setup', 'liveGame', 'game'].includes(screenOf(v))
+
 export function screenOf(v: View): Screen {
   const isLiveOn = (!!v.game && isOn(v.game) && !v.game.isCorrespondence) || !!v.seeking
   if (v.signIn) return 'signIn'
