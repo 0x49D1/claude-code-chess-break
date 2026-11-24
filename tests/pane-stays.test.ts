@@ -28,7 +28,7 @@ async function turnStarted($: Engine, on: On) {
   for (let i = 0; i < 50 && !(await ui.find({ key: 'move-abc12' })); i++) await clock.advance(1)
   await ui.unmount()
   const done = () => $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
-  return { pane, closed, toasts, done }
+  return { pane, closed, toasts, done, clock }
 }
 
 test('Claude done with the puzzle untouched: the pane closes', async ($, on) => {
@@ -113,4 +113,20 @@ test('Esc: the pane opens to close with it', async ($, on) => {
   on('command.register', async (_$, e) => ({ value: { command: e.name } }))
   await $.command.run({ command: 'chess-break', args: '', origin: { kind: 'composer' }, presentation: { isFullscreen: false, columns: 120 } })
   expect(opens).toContainEqual(expect.objectContaining({ id: 'chess-break', closeOnEscape: true }))
+})
+
+test('a Puzzle Storm under way holds the pane', async ($, on) => {
+  const { closed, toasts, done, clock } = await turnStarted($, on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'storm' })
+  // Anything typed starts the run's clock.
+  const key = (await ui.find({ type: 'Input' }))!.key!
+  await ui.input({ key, text: 'zz' })
+  await done()
+  expect(closed).toEqual([])
+  expect(toasts.length).toBe(1)
+  // The run's clock runs out, so nothing outlives the test.
+  await clock.advance(180_000)
+  expect(await ui.find({ key: 'storm-again' })).toBeDefined()
+  await ui.unmount()
 })

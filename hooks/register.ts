@@ -10,6 +10,7 @@ import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
 import { isStarted } from './training/attempt'
+import { isRunning } from './training/storm'
 import { isOn } from './training/game'
 import { registerHint } from './ui/hint'
 import { registerPane } from './ui/pane'
@@ -74,10 +75,11 @@ export const register: Register = (on, options) => {
     if (!pane) return result
     // A correspondence game has no clock to lose on: it never holds the pane.
     if ((v.game && isOn(v.game) && !v.game.isCorrespondence) || v.seeking) $.ui.toast(messagesOf(v).command.gameGoesOn)
+    else if (isRunning(v.storm, await $.clock.now())) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
     else if (!v.game?.isCorrespondence && (isStarted(v.attempt) || (v.attempt?.status === 'playing' && !!v.typed))) $.ui.toast(messagesOf(v).command.claudeDoneFinish)
-    // The keyboard in the pane holds it while something would be lost: a puzzle on, a sign-in or a
-    // game's setup. A finished puzzle with no next one asked for closes.
-    else if (!(pane.isFocused && (v.attempt?.status === 'playing' || v.signIn || v.setup))) await $.ui.close({ id: PANE })
+    // The keyboard in the pane holds it while something would be lost: a puzzle on, a sign-in, a
+    // game's setup or a storm's screen. A finished puzzle with no next one asked for closes.
+    else if (!(pane.isFocused && (v.attempt?.status === 'playing' || v.signIn || v.setup || v.storm))) await $.ui.close({ id: PANE })
     return result
   })
 

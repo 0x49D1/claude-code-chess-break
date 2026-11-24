@@ -8,6 +8,7 @@ import { abort, draw, gameMove, resign, showGame, startGame, takeback } from './
 import { refreshGames } from './app/games'
 import { drillSet, startOpening } from './app/openings'
 import { refreshDashboard } from './app/progress'
+import { openStorm, stormMove } from './app/storm'
 import { offerSummary } from './app/summary'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
@@ -132,6 +133,10 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
           ].join('\n'),
         }
       }
+      case 'storm':
+        await openPane($, true)
+        await openStorm($)
+        return { text: t.command.stormStarted }
       case 'week': {
         if (!(await offerSummary($, true))) return { text: t.command.weekNone }
         await openPane($, true)
@@ -220,7 +225,14 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       default: {
         // Anything else is a move: `/chess-break Qxf7`, `/chess-break e2e4`, `/chess-break cf3`.
         const typed = e.args.trim()
-        const { attempt, game: g } = await read($, view)
+        const { attempt, game: g, storm } = await read($, view)
+        if (storm && !storm.endedAt) {
+          const after = await stormMove($, a => {
+            const options = completions(a.fen, typed)
+            return play(a, options.length === 1 ? options[0]! : typed)
+          })
+          return { text: after ? t.command.stormScore(after.solved, after.missed) : t.command.noPuzzle }
+        }
         if (g && isOn(g)) {
           const note = await gameMove($, x => playTyped(x, typed))
           return { text: note ? t.game.note(note) : t.game.theirMove }
