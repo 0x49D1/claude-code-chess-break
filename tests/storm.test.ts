@@ -5,7 +5,9 @@ import type { Storm } from '../types'
 import { PUZZLES } from '../hooks/offline/puzzles'
 import { legal, uciOf, after, isMate } from '../hooks/chess/position'
 import { play } from '../hooks/training/attempt'
-import { PENALTY_MS, STORM_MS, endIfDue, isRunning, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
+import { PENALTY_MS, STORM_MS, endIfDue, isRunning, resume, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
+import { start } from '../hooks/training/attempt'
+import { offlinePuzzle } from '../hooks/offline'
 import { PANE, command, lichess } from './fixtures/fake'
 
 /** A fixed sequence of numbers, so the run's puzzles are the same each time. */
@@ -27,7 +29,7 @@ const wrongMove = (s: Storm) =>
   legal(s.attempt.fen).find(m => uciOf(m) !== s.attempt.puzzle.solution[s.attempt.ply] && !isMate(after(s.attempt.fen, m)))!.san
 
 test('a run starts easy, with the whole time, and its clock waits for the first move', () => {
-  const s = startStorm(4, seeded())
+  const s = startStorm(4, 0, seeded())
   expect(s.attempt.puzzle.rating).toBeLessThan(1000)
   expect(s.best).toBe(4)
   expect(timeLeft(s, 1_000_000)).toBe(STORM_MS)
@@ -36,7 +38,7 @@ test('a run starts easy, with the whole time, and its clock waits for the first 
 
 test('a solved puzzle counts and a harder one comes; a miss costs time', () => {
   const random = seeded()
-  let s = solve(startStorm(0, random), 1000, random)
+  let s = solve(startStorm(0, 0, random), 1000, random)
   expect(s.solved).toBe(1)
   expect(s.startedAt).toBe(1000)
   expect(s.last).toBe('solved')
@@ -53,15 +55,25 @@ test('a solved puzzle counts and a harder one comes; a miss costs time', () => {
 
 test('no puzzle comes twice in a run', () => {
   const random = seeded()
-  let s = startStorm(0, random)
-  for (let i = 0; i < 40; i++) s = solve(s, 1000 + i, random)
+  let s = startStorm(0, 0, random)
+  // Far past the hardest band, so each band runs out.
+  for (let i = 0; i < 200; i++) s = solve(s, 1000 + i, random)
   expect(new Set(s.seen).size).toBe(s.seen.length)
-  expect(s.solved).toBe(40)
+  expect(s.solved).toBe(200)
+})
+
+test('the puzzle left for a storm has its clock held while away', () => {
+  const left = { ...start(offlinePuzzle('mix', [], seeded()), false), startedAt: 10_000 }
+  const s = startStorm(0, 30_000, seeded())
+  expect(resume(left, s, 90_000)?.startedAt).toBe(70_000)
+  // A puzzle not started, or over, has no clock to hold.
+  expect(resume({ ...left, startedAt: undefined }, s, 90_000)?.startedAt).toBeUndefined()
+  expect(resume({ ...left, status: 'solved' }, s, 90_000)?.startedAt).toBe(10_000)
 })
 
 test('at the time the run ends, and nothing plays after', () => {
   const random = seeded()
-  const first = startStorm(0, random)
+  const first = startStorm(0, 0, random)
   const s = stormChange(first, a => play(a, wrongMove(first)), 0, random)
   const late = STORM_MS
   expect(endIfDue(s, late).endedAt).toBe(STORM_MS - PENALTY_MS)
@@ -108,6 +120,19 @@ test('the pane: ⚡ Storm starts a run, its clock runs out, and the best run is 
   await ui.press({ key: 'storm-again' })
   expect(await ui.find({ text: /🏅 1$/ })).toBeDefined()
   await ui.press({ key: 'storm-back' })
+  expect(await ui.find({ key: 'storm-back' })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('a game\'s setup holds the pane: /chess-break storm says so and starts nothing', async ($, on) => {
+  mock.store(on)
+  mock.clock(on)
+  lichess(on)
+  const ui = await mount($)
+  await $.command.run(command(''))
+  await ui.press({ key: 'play-stockfish' })
+  expect((await $.command.run(command('storm'))).text).toBe('Puzzle Storm can start once the game, its setup or the sign-in is closed.')
+  await ui.press({ key: 'setup-cancel' })
   expect(await ui.find({ key: 'storm-back' })).toBeUndefined()
   await ui.unmount()
 })

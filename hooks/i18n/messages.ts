@@ -150,7 +150,8 @@ export type Messages = {
     reviewNone: string
     weekNone: string
     weekShown: string
-    weekAfterGame: string
+    weekBehind: string
+    stormBehind: string
     stormStarted: string
     stormScore: (solved: number, missed: number) => string
     langSet: (lang: string) => string

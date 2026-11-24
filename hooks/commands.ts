@@ -23,6 +23,7 @@ import { themeLines, weakest } from './training/progress'
 import { dueIds } from './training/review'
 import { OPENINGS, findOpening } from './training/openings'
 import { THEME_GROUPS, findTheme } from './training/themes'
+import { isHeld } from './training/screen'
 
 const view = atom({ plugin: 'chess-break', key: 'view' } as const, INITIAL_VIEW)
 
@@ -135,13 +136,13 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
       }
       case 'storm':
         await openPane($, true)
+        if (isHeld(await read($, view))) return { text: t.command.stormBehind }
         await openStorm($)
         return { text: t.command.stormStarted }
       case 'week': {
         if (!(await offerSummary($, true))) return { text: t.command.weekNone }
         await openPane($, true)
-        const { game } = await read($, view)
-        return { text: game ? t.command.weekAfterGame : t.command.weekShown }
+        return { text: isHeld(await read($, view)) ? t.command.weekBehind : t.command.weekShown }
       }
       case 'review': {
         await refreshDue($)

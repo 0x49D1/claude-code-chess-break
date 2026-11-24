@@ -17,6 +17,11 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.20.1 (2026-11-24)
+
+- A puzzle left for a Puzzle Storm keeps its time: the minutes in the storm no longer count in it.
+- A long storm run no longer repeats puzzles once the hardest ones run out.
+- `/chess-break storm` and `/chess-break week` during a game, its setup or a sign-in say the screen waits behind it, instead of saying it is in the pane. Storm doesn't start then.
 ## 0.20.0 (2026-11-24)
 
 - ⚡ Puzzle Storm: solve as many puzzles as you can in 3 minutes, easy first and getting harder. A miss costs 10 s, and the clock starts with your first move. Your best run is kept. Open it from ⚡ Storm in the sidebar or with `/chess-break storm`.
