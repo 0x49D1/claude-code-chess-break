@@ -258,6 +258,13 @@ export type Storm = {
   startedAt?: number
   /** Time taken off for misses. */
   penaltyMs: number
+  /** Time won back on runs of solves. */
+  bonusMs: number
+  /** Solves in a row since the last miss, and the most in this run. */
+  combo: number
+  bestCombo: number
+  /** Time the last solve won back, said above the next puzzle. */
+  gainedMs?: number
   solved: number
   missed: number
   /** The puzzles of the run so far, so none comes twice. */

@@ -41,6 +41,7 @@ export function stormPane($: $, els: Elements[keyof Elements], v: View, s: Storm
           {back('storm-back-top')}
         </Box>
         <Text>{`⏱ ${t.pane.stormOver(s.solved, s.missed)}`}</Text>
+        {s.bestCombo > 1 && <Text>{`🔥 ${t.pane.stormLongest(s.bestCombo)}`}</Text>}
         <Text>{s.solved > s.best ? `🏅 ${t.pane.stormNewBest}` : `🏅 ${t.pane.stormBest(s.best)}`}</Text>
         <Box flexDirection="row" gap={2}>
           <Button key="storm-again" plain autoFocus onPress={() => void openStorm($)}>{`🔄 ${t.pane.stormAgain}`}</Button>
@@ -63,8 +64,11 @@ export function stormPane($: $, els: Elements[keyof Elements], v: View, s: Storm
           <Text>{t.pane.toPlay(solverOf(a))}</Text>
           {a.puzzle.rating !== undefined && <Text dimColor>{`⭐ ${a.puzzle.rating}`}</Text>}
           {s.last === 'solved' && <Text color="success">{`✅ ${t.pane.stormSolved}`}</Text>}
+          {s.combo > 1 && <Text>{`🔥 ${t.pane.stormCombo(s.combo)}`}</Text>}
+          {s.gainedMs !== undefined && <Text color="success">{`⏫ ${t.pane.stormGained(s.gainedMs / 1000)}`}</Text>}
           {s.last === 'missed' && <Text color="error">{`❌ ${t.pane.stormMissed(PENALTY_SECONDS)}`}</Text>}
           {s.startedAt === undefined && <Text dimColor>{t.pane.stormHead(formatTime(STORM_MS), PENALTY_SECONDS)}</Text>}
+          {s.startedAt === undefined && <Text dimColor>{t.pane.stormComboHead}</Text>}
         </Box>
       </Box>
       {a.feedback.kind === 'illegal' && <Text color="error">{`🚫 ${t.feedback(a.feedback, solverOf(a))}`}</Text>}

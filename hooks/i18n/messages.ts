@@ -45,6 +45,12 @@ export type Messages = {
     /** Before the first move: the run's time and what a miss costs. */
     stormHead: (time: string, penalty: number) => string
     stormSolved: string
+    /** Solves in a row so far. */
+    stormCombo: (combo: number) => string
+    /** Seconds a combo just won back. */
+    stormGained: (seconds: number) => string
+    stormComboHead: string
+    stormLongest: (combo: number) => string
     stormMissed: (penalty: number) => string
     stormOver: (solved: number, missed: number) => string
     stormBest: (best: number) => string

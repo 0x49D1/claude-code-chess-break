@@ -20,6 +20,13 @@ A solved puzzle SHALL count and bring the next one at once, the opponent's answe
 - **WHEN** a wrong move is played 4 seconds into a run
 - **THEN** the next puzzle shows and 2:46 is left
 
+### Requirement: Combos
+Each solve SHALL add one to the run's combo, and a miss SHALL set it back to zero. A combo of 5 SHALL win 3 s back, 12 win 5 s, 20 win 7 s, 30 win 10 s, and every 10 after 30 another 10 s; the time won SHALL be said above the next puzzle. The end of a run SHALL show its longest combo.
+
+#### Scenario: Five in a row
+- **WHEN** the fifth puzzle in a row is solved
+- **THEN** the run has 3 s more and the pane says +3 s
+
 ### Requirement: The end of a run
 When the time runs out, no move SHALL play. The pane SHALL show the run's solves and misses, and whether it beat the best run, which SHALL be kept across sessions. 🔄 Again SHALL start a new run, and ← Back or Esc SHALL return to the puzzle.
 
