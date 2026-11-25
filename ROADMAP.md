@@ -23,7 +23,8 @@ The agreed feature list, in order. A daily run ships one version: code review an
   - [x] Slice 2, 0.19.0: the five most played themes' accuracy against the week before, and `/chess-break week` to see the card again.
 - [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
   - [x] Slice 1, 0.20.0: ⚡ Storm and `/chess-break storm`. A run uses puzzles from the offline set, easy first and getting harder. A miss costs 10 s, the clock starts with the first move, and the best run is kept.
-  - [ ] Left: time won back on a run of solves, as Lichess's storm does; and the runs in 📊 Progress (the last few, the best by week).
+  - [x] Slice 2, 0.21.0: solves in a row win time back: 3 s at 5, 5 s at 12, 7 s at 20, 10 s at 30 and every 10 more. A miss ends the combo, and a run's end shows its longest one.
+  - [ ] Left: the runs in 📊 Progress (the last few, the best by week).
 
 ## Done
 

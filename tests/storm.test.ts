@@ -5,7 +5,7 @@ import type { Storm } from '../types'
 import { PUZZLES } from '../hooks/offline/puzzles'
 import { legal, uciOf, after, isMate } from '../hooks/chess/position'
 import { play } from '../hooks/training/attempt'
-import { PENALTY_MS, STORM_MS, endIfDue, isRunning, resume, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
+import { PENALTY_MS, STORM_MS, bonusAt, endIfDue, isRunning, resume, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
 import { start } from '../hooks/training/attempt'
 import { offlinePuzzle } from '../hooks/offline'
 import { PANE, command, lichess } from './fixtures/fake'
@@ -51,6 +51,26 @@ test('a solved puzzle counts and a harder one comes; a miss costs time', () => {
   expect(s.attempt.puzzle.id).not.toBe(before)
   expect(timeLeft(s, 5000)).toBe(STORM_MS - PENALTY_MS - 4000)
   expect(isRunning(s, 5000)).toBe(true)
+})
+
+test('solves in a row win time back; a miss ends the run of solves', () => {
+  expect([1, 4, 5, 12, 20, 30, 31, 40, 50].map(bonusAt)).toEqual([0, 0, 3_000, 5_000, 7_000, 10_000, 0, 10_000, 10_000])
+  const random = seeded()
+  let s = startStorm(0, 0, random)
+  for (let i = 0; i < 5; i++) s = solve(s, 1000, random)
+  expect(s.combo).toBe(5)
+  expect(s.gainedMs).toBe(3_000)
+  expect(timeLeft(s, 1000)).toBe(STORM_MS + 3_000)
+  s = solve(s, 1000, random)
+  expect(s.gainedMs).toBeUndefined()
+  s = stormChange(s, a => play(a, wrongMove(s)), 1000, random)
+  expect(s.combo).toBe(0)
+  expect(s.bestCombo).toBe(6)
+  expect(timeLeft(s, 1000)).toBe(STORM_MS + 3_000 - PENALTY_MS)
+  // The time won back moves the end too.
+  const end = 1000 + STORM_MS + 3_000 - PENALTY_MS
+  expect(endIfDue(s, end - 1).endedAt).toBeUndefined()
+  expect(endIfDue(s, end + 5_000).endedAt).toBe(end)
 })
 
 test('no puzzle comes twice in a run', () => {

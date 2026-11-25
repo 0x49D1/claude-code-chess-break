@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.21.0 (2026-11-25)
+
+- ⚡ Puzzle Storm combos: solves in a row win time back, 3 s at 5 in a row, 5 s at 12, 7 s at 20, then 10 s at 30 and every 10 more. A miss ends the combo, and the end of a run shows its longest combo.
 ## 0.20.1 (2026-11-24)
 
 - A puzzle left for a Puzzle Storm keeps its time: the minutes in the storm no longer count in it.
