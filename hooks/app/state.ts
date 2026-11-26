@@ -1,6 +1,6 @@
 import type { EngineInterface } from 'claude-code'
 
-import type { Daily, DrillResult, History, Progress, Review, Source, Tally, Times, Timing, View } from '../../types'
+import type { Daily, DrillResult, History, Progress, Review, Source, StormRun, Tally, Times, Timing, View } from '../../types'
 import { asLocale, messagesFor, pickLocale } from '../i18n'
 import type { Difficulty } from '../lichess/client'
 import { NO_DAILY } from '../training/daily'
@@ -25,6 +25,8 @@ export const INITIAL_VIEW: View = {
   daily: NO_DAILY,
   history: {},
   times: NO_TIMES,
+  stormRuns: [],
+  stormBest: 0,
   openingSet: [],
   drillResults: {},
   session: [],
@@ -119,6 +121,24 @@ export async function storedTimes($: $): Promise<Times> {
     if (timing) themes[theme] = timing
   }
   return { all: asTiming(x?.all) ?? NO_TIMES.all, themes }
+}
+
+/** The most solved in one Puzzle Storm run. */
+export async function storedBest($: $): Promise<number> {
+  const x = await $.store.get('stormBest')
+  return typeof x === 'number' ? x : 0
+}
+
+/** Puzzle Storm runs, each field checked; a broken one is left out. */
+export async function storedRuns($: $): Promise<StormRun[]> {
+  const x = await $.store.get('stormRuns')
+  if (!Array.isArray(x)) return []
+  return x.flatMap((r: unknown) => {
+    const run = r as Partial<Record<keyof StormRun, unknown>> | undefined
+    return typeof run?.at === 'number' && typeof run.solved === 'number' && typeof run.missed === 'number' && typeof run.combo === 'number'
+      ? [{ at: run.at, solved: run.solved, missed: run.missed, combo: run.combo }]
+      : []
+  })
 }
 
 /** /chess-break source, else the setting. */

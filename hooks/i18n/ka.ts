@@ -81,6 +81,7 @@ export const ka: Messages = {
     storm: 'შტორმი',
     stormHead: (time, penalty) => `რაც შეიძლება მეტი ${time}-ში, ჯერ მარტივები. შეცდომა ${penalty} წმ ღირს. საათი პირველი სვლით ირთვება.`,
     stormSolved: 'ამოხსნილია',
+    stormRuns: (best, week, last) => `შტორმი: რეკორდი ${best}${week === undefined ? '' : ` · ამ კვირას ${week}`} · ბოლო ${last}`,
     stormCombo: combo => `${combo} ზედიზედ`,
     stormGained: seconds => `+${seconds} წმ`,
     stormComboHead: 'ზედიზედ ამოხსნილი ამოცანები დროს აბრუნებს: 5 — 3 წმ, შემდეგ მეტი.',

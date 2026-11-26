@@ -96,6 +96,7 @@ export const ru: Messages = {
     storm: 'Шторм',
     stormHead: (time, penalty) => `Решай сколько успеешь за ${time}, сначала лёгкие. Ошибка стоит ${penalty} с. Часы пойдут с первым ходом.`,
     stormSolved: 'Решено',
+    stormRuns: (best, week, last) => `Шторм: рекорд ${best}${week === undefined ? '' : ` · на этой неделе ${week}`} · последние ${last}`,
     stormCombo: combo => `${combo} подряд`,
     stormGained: seconds => `+${seconds} с`,
     stormComboHead: 'Решённые подряд задачи возвращают время: за 5 — 3 с, дальше больше.',

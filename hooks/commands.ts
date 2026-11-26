@@ -12,7 +12,7 @@ import { openStorm, stormMove } from './app/storm'
 import { offerSummary } from './app/summary'
 import { INITIAL_VIEW, SOURCES, asSource, messagesOf, resolveLocale, storedHistory, storedProgress, storedReview, storedTimes } from './app/state'
 import { completions } from './chess/position'
-import { LOCALES, asLocale, gameLine, messagesFor } from './i18n'
+import { LOCALES, asLocale, gameLine, messagesFor, stormLine } from './i18n'
 import { AI_CLOCKS, DAYS, SEEK_CLOCKS } from './lichess/game'
 import { hint, play, reveal, solverOf } from './training/attempt'
 import { awaiting, isOn, playTyped, readSettings } from './training/game'
@@ -112,6 +112,7 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
         const now = await $.clock.now()
         const due = dueIds(await storedReview($), now).length
         const weak = weakest(progress)
+        const storm = await read($, view)
         // The last 4 weeks' bars, and Lichess's rating when signed in, after each all-time line.
         const rows = new Map(progressRows(await storedHistory($), now, await refreshDashboard($)).map(r => [r.theme, r]))
         // And each theme's average time for a clean solve.
@@ -129,6 +130,7 @@ export const registerCommands = (on: Parameters<Register>[0]) => {
           text: [
             t.command.statsHead(progress.streak, progress.best, due ? t.pane.dueCount(due) : t.pane.noneDue),
             ...(times.all.count ? [`⏱ ${t.pane.times(formatTime(averageMs(times.all)), formatTime(times.all.fastestMs))}`] : []),
+            ...(storm.stormRuns.length ? [`⚡ ${stormLine(t, storm.stormRuns, storm.stormBest, now)}`] : []),
             ...lines.map(l => `${t.theme(l.theme)}: ${l.solved} ✓ ${l.failed} ✗ (${l.accuracy}%)${trend(l.theme)}`),
             ...(weak ? [t.command.weakest(t.theme(weak.theme), weak.theme)] : []),
           ].join('\n'),

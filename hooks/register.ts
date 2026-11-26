@@ -5,7 +5,7 @@ import { restoreAccount } from './app/account'
 import { openForTurn, refreshDue } from './app/actions'
 import { stepBack } from './app/back'
 import { startRefresh } from './app/games'
-import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedDaily, storedHistory, storedProgress, storedDrills, storedOpeningSet, storedSource, storedTimes, storedTheme } from './app/state'
+import { INITIAL_VIEW, PANE, asSource, messagesOf, resolveLocale, settings, storedDaily, storedHistory, storedProgress, storedDrills, storedOpeningSet, storedSource, storedBest, storedRuns, storedTimes, storedTheme } from './app/state'
 import { COMMAND, registerCommands } from './commands'
 import { messagesFor } from './i18n'
 import type { Difficulty } from './lichess/client'
@@ -40,9 +40,11 @@ export const register: Register = (on, options) => {
     const daily = await storedDaily($)
     const history = await storedHistory($)
     const times = await storedTimes($)
+    const stormRuns = await storedRuns($)
+    const stormBest = await storedBest($)
     const openingSet = await storedOpeningSet($)
     const drillResults = await storedDrills($)
-    await update($, view, v => ({ ...v, locale, progress, daily, history, times, openingSet, drillResults, theme, source, isRated: settings.ratedPuzzles }))
+    await update($, view, v => ({ ...v, locale, progress, daily, history, times, stormRuns, stormBest, openingSet, drillResults, theme, source, isRated: settings.ratedPuzzles }))
     await refreshDue($)
     await restoreAccount($)
     // The account's games come back, a live one on the pane; the session does not wait for them.

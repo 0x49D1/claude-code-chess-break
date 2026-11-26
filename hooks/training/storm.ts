@@ -1,6 +1,8 @@
-import type { Attempt, Puzzle, Storm } from '../../types'
+import type { Attempt, Puzzle, Storm, StormRun } from '../../types'
 import { offlinePuzzle } from '../offline'
 import { awaitsReply, reply, start } from './attempt'
+import { dayOf } from './daily'
+import { weekOf } from './summary'
 import { MIX } from './themes'
 
 /** A run's time. */
@@ -96,4 +98,25 @@ export function stormChange(s: Storm, fn: (a: Attempt) => Attempt, now: number, 
     return advance(solved, 'solved', random)
   }
   return { ...run, attempt: awaitsReply(a) ? reply(a) : a }
+}
+
+/** Runs kept, the latest; and those shown as the last ones. */
+const KEPT_RUNS = 50
+const SHOWN_RUNS = 5
+
+/** An ended run kept with the others, the oldest dropped past the kept ones. */
+export function recordRun(runs: StormRun[], s: Storm): StormRun[] {
+  if (s.endedAt === undefined) return runs
+  return [...runs, { at: s.endedAt, solved: s.solved, missed: s.missed, combo: s.bestCombo }].slice(-KEPT_RUNS)
+}
+
+/** The runs in numbers: the best ever, this week's best (from Monday), and the last few's solves, the latest last. */
+export function runsSummary(runs: StormRun[], best: number, now: number) {
+  const monday = weekOf(now)
+  const week = runs.filter(r => dayOf(r.at) >= monday)
+  return {
+    best: Math.max(best, ...runs.map(r => r.solved)),
+    ...(week.length ? { week: Math.max(...week.map(r => r.solved)) } : {}),
+    last: runs.slice(-SHOWN_RUNS).map(r => r.solved),
+  }
 }

@@ -88,6 +88,7 @@ export const en: Messages = {
     storm: 'Storm',
     stormHead: (time, penalty) => `As many as you can in ${time}, easy first. A miss costs ${penalty} s. The clock starts with your first move.`,
     stormSolved: 'Solved',
+    stormRuns: (best, week, last) => `Storm: best ${best}${week === undefined ? '' : ` · this week ${week}`} · last runs ${last}`,
     stormCombo: combo => `${combo} in a row`,
     stormGained: seconds => `+${seconds} s`,
     stormComboHead: 'Solves in a row win time back: 5 win 3 s, then more.',

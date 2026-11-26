@@ -34,6 +34,13 @@ When the time runs out, no move SHALL play. The pane SHALL show the run's solves
 - **WHEN** a run ends with 1 solved and the best was 0
 - **THEN** the pane says it is a new best and 1 is kept
 
+### Requirement: Runs kept
+Each ended run SHALL be kept with its solves, misses and longest combo, the latest 50. 📊 Progress and `/chess-break stats` SHALL show the best run, this week's best (from Monday) when there is one, and the last five runs' solves.
+
+#### Scenario: After a run
+- **WHEN** a run ends with 1 solved and Progress is opened
+- **THEN** it shows `⚡ Storm: best 1 · this week 1 · last runs 1`
+
 ### Requirement: The pane during a run
 While a run is on, Claude finishing SHALL NOT close the pane. A move typed with `/chess-break <move>` SHALL go to the run.
 

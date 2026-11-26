@@ -215,6 +215,10 @@ export type View = {
   daily: Daily
   history: History
   times: Times
+  /** Puzzle Storm runs, the latest last. */
+  stormRuns: StormRun[]
+  /** The most solved in one Puzzle Storm run. */
+  stormBest: number
   /** The progress screen is open. */
   isProgressShown?: boolean
   dashboard?: Dashboard
@@ -250,6 +254,9 @@ export type View = {
   /** A Puzzle Storm run, while its screen is open. */
   storm?: Storm
 }
+
+/** A finished Puzzle Storm run, as kept. */
+export type StormRun = { at: number; solved: number; missed: number; combo: number }
 
 /** A timed run of puzzles getting harder: as many as can be solved in 3 minutes, a miss costing time. */
 export type Storm = {
