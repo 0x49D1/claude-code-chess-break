@@ -1,5 +1,6 @@
-import type { GameSummary, Locale, Player } from '../../types'
+import type { GameSummary, Locale, Player, StormRun } from '../../types'
 import { formatClock } from '../training/game'
+import { runsSummary } from '../training/storm'
 import { en } from './en'
 import { fr } from './fr'
 import { ka } from './ka'
@@ -34,6 +35,12 @@ export function pickLocale(hints: (string | undefined)[]): Locale {
 
 /** A player by name: Stockfish by its level, a person by name. */
 export const playerName = (t: Messages, p: Player) => (p.aiLevel ? t.game.stockfish(p.aiLevel) : p.name ?? t.game.anonymous)
+
+/** Puzzle Storm runs on one line: the best, this week's best, the last few's solves. */
+export function stormLine(t: Messages, runs: StormRun[], best: number, now: number) {
+  const r = runsSummary(runs, best, now)
+  return t.pane.stormRuns(r.best, r.week, r.last.join(' · '))
+}
 
 /** A game of the list in one line: whose move, the opponent, the time left or `live`. */
 export const gameLine = (t: Messages, g: GameSummary) =>

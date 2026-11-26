@@ -21,10 +21,10 @@ The agreed feature list, in order. A daily run ships one version: code review an
 - [x] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
   - [x] Slice 1, 0.18.0: last week's card on the week's first pane: puzzles played and solved cleanly, the day streak, best and weakest theme; shown once a week. Puzzle totals per day are kept from this version on.
   - [x] Slice 2, 0.19.0: the five most played themes' accuracy against the week before, and `/chess-break week` to see the card again.
-- [ ] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
+- [x] **Puzzle Storm mode:** a 3-minute timed run of easy puzzles for short waits.
   - [x] Slice 1, 0.20.0: ⚡ Storm and `/chess-break storm`. A run uses puzzles from the offline set, easy first and getting harder. A miss costs 10 s, the clock starts with the first move, and the best run is kept.
   - [x] Slice 2, 0.21.0: solves in a row win time back: 3 s at 5, 5 s at 12, 7 s at 20, 10 s at 30 and every 10 more. A miss ends the combo, and a run's end shows its longest one.
-  - [ ] Left: the runs in 📊 Progress (the last few, the best by week).
+  - [x] Slice 3, 0.22.0: the runs kept, with the best, this week's best and the last five in 📊 Progress and `/chess-break stats`.
 
 ## Done
 

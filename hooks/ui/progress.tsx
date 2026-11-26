@@ -3,6 +3,7 @@ import type { Elements } from 'claude-code'
 import type { View } from '../../types'
 import { closeProgress } from '../app/progress'
 import type { $ } from '../app/state'
+import { stormLine } from '../i18n'
 import type { Messages } from '../i18n'
 import { progressRows, spark } from '../training/history'
 import { averageMs, formatTime } from '../training/timing'
@@ -32,6 +33,7 @@ export function progressPane($: $, els: Elements[keyof Elements], v: View, t: Me
       </Box>
       <Text dimColor>{t.pane.progressHead}</Text>
       {v.times.all.count > 0 && <Text>{`⏱ ${t.pane.times(formatTime(averageMs(v.times.all)), formatTime(v.times.all.fastestMs))}`}</Text>}
+      {v.stormRuns.length > 0 && <Text>{`⚡ ${stormLine(t, v.stormRuns, v.stormBest, now)}`}</Text>}
       {dashboard && 'themes' in dashboard && <Text dimColor>{`⭐ ${t.pane.lichessHead}`}</Text>}
       {dashboard && 'failed' in dashboard && <Text color="error">{t.pane.dashboardFailed(dashboard.failed)}</Text>}
       {rows.length ? rows.slice(0, SHOWN_ROWS).map(row => <Text key={`row-${row.theme}`}>{rowLine(row, t)}</Text>) : <Text>{t.pane.noRecent}</Text>}

@@ -1,11 +1,11 @@
 import { expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 
-import type { Storm } from '../types'
+import type { Storm, StormRun } from '../types'
 import { PUZZLES } from '../hooks/offline/puzzles'
 import { legal, uciOf, after, isMate } from '../hooks/chess/position'
 import { play } from '../hooks/training/attempt'
-import { PENALTY_MS, STORM_MS, bonusAt, endIfDue, isRunning, resume, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
+import { PENALTY_MS, STORM_MS, bonusAt, endIfDue, recordRun, runsSummary, isRunning, resume, startStorm, stormChange, timeLeft } from '../hooks/training/storm'
 import { start } from '../hooks/training/attempt'
 import { offlinePuzzle } from '../hooks/offline'
 import { PANE, command, lichess } from './fixtures/fake'
@@ -71,6 +71,19 @@ test('solves in a row win time back; a miss ends the run of solves', () => {
   const end = 1000 + STORM_MS + 3_000 - PENALTY_MS
   expect(endIfDue(s, end - 1).endedAt).toBeUndefined()
   expect(endIfDue(s, end + 5_000).endedAt).toBe(end)
+})
+
+test('ended runs are kept, the latest 50; the best, this week\'s best and the last five', () => {
+  const ended = { ...startStorm(0, 0, seeded()), solved: 7, missed: 2, bestCombo: 4, startedAt: 0, endedAt: 1000 }
+  expect(recordRun([], { ...ended, endedAt: undefined })).toEqual([])
+  expect(recordRun([], ended)).toEqual([{ at: 1000, solved: 7, missed: 2, combo: 4 }])
+  const many = Array.from({ length: 60 }, (_, i) => ({ at: i, solved: i, missed: 0, combo: 0 }))
+  expect(recordRun(many, ended).length).toBe(50)
+  // Wednesday 18 November 2026: this week starts on Monday the 16th.
+  const day = (date: number) => new Date(2026, 10, date, 12).getTime()
+  const runs = [{ at: day(13), solved: 15, missed: 0, combo: 9 }, { at: day(16), solved: 9, missed: 1, combo: 5 }, { at: day(18), solved: 11, missed: 2, combo: 6 }]
+  expect(runsSummary(runs, 12, day(18))).toEqual({ best: 15, week: 11, last: [15, 9, 11] })
+  expect(runsSummary(runs.slice(0, 1), 20, day(18))).toEqual({ best: 20, last: [15] })
 })
 
 test('no puzzle comes twice in a run', () => {
@@ -141,6 +154,10 @@ test('the pane: ⚡ Storm starts a run, its clock runs out, and the best run is 
   expect(await ui.find({ text: /🏅 1$/ })).toBeDefined()
   await ui.press({ key: 'storm-back' })
   expect(await ui.find({ key: 'storm-back' })).toBeUndefined()
+  // The run is kept, and Progress shows it.
+  expect((store.stormRuns as StormRun[]).map(r => [r.solved, r.missed, r.combo])).toEqual([[1, 1, 1]])
+  await ui.press({ key: 'progress' })
+  expect(await ui.find({ text: '⚡ Storm: best 1 · this week 1 · last runs 1' })).toBeDefined()
   await ui.unmount()
 })
 

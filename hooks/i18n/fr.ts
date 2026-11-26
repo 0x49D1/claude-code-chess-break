@@ -87,6 +87,7 @@ export const fr: Messages = {
     storm: 'Storm',
     stormHead: (time, penalty) => `Le plus possible en ${time}, les faciles d’abord. Une erreur coûte ${penalty} s. Le chrono part à ton premier coup.`,
     stormSolved: 'Résolu',
+    stormRuns: (best, week, last) => `Storm : record ${best}${week === undefined ? '' : ` · cette semaine ${week}`} · dernières séries ${last}`,
     stormCombo: combo => `${combo} d’affilée`,
     stormGained: seconds => `+${seconds} s`,
     stormComboHead: 'Les problèmes résolus d’affilée rendent du temps : 5 rendent 3 s, puis davantage.',
