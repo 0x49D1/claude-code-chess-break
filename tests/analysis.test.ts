@@ -22,21 +22,39 @@ const FOOLS_MATE = {
 }
 
 test('the person’s judged moves, the costliest first', () => {
-  expect(readAnalysis(ok(FOOLS_MATE), 'w')).toEqual([
+  expect(readAnalysis(ok(FOOLS_MATE), { side: 'w' })).toEqual([
     { ply: 2, san: 'g4', judgment: 'Blunder', best: 'Nc3', loss: 960 },
     { ply: 0, san: 'f3', judgment: 'Inaccuracy', best: 'e4', loss: 70 },
   ])
   // Black's moves were not judged.
-  expect(readAnalysis(ok(FOOLS_MATE), 'b')).toEqual([])
-  expect(readAnalysis(ok(FOOLS_MATE), 'w', 1)?.map(m => m.san)).toEqual(['g4'])
+  expect(readAnalysis(ok(FOOLS_MATE), { side: 'b' })).toEqual([])
+  expect(readAnalysis(ok(FOOLS_MATE), { side: 'w' }, 1)?.map(m => m.san)).toEqual(['g4'])
+})
+
+test('a game from a position with Black to move: moves counted from Black, the first not measured', () => {
+  // Black to move first: Black's moves are plies 0 and 2, White's 1.
+  const game = { side: 'b' as const, initialFen: '4k3/8/8/8/8/8/4P3/4K3 b - - 0 1' }
+  const body = {
+    moves: 'Kd7 e4 Ke6',
+    analysis: [
+      { eval: 0, best: 'e8d8', judgment: { name: 'Inaccuracy' } },
+      { eval: 0 },
+      { eval: 300, best: 'd7e7', variation: 'Ke7 e5', judgment: { name: 'Blunder' } },
+    ],
+  }
+  expect(readAnalysis(ok(body), game)).toEqual([
+    { ply: 2, san: 'Ke6', judgment: 'Blunder', best: 'Ke7', loss: 300 },
+    { ply: 0, san: 'Kd7', judgment: 'Inaccuracy', best: 'e8d8', loss: 0 },
+  ])
+  expect(readAnalysis(ok(body), { ...game, side: 'w' })).toEqual([])
 })
 
 test('no analysis yet, the better move from best, and errors', () => {
-  expect(readAnalysis(ok({ id: 'g4m3', moves: 'e4 e5' }), 'w')).toBeUndefined()
+  expect(readAnalysis(ok({ id: 'g4m3', moves: 'e4 e5' }), { side: 'w' })).toBeUndefined()
   const bare = { moves: 'e4 e5 Qh5', analysis: [{ eval: 20 }, { eval: 30 }, { eval: -2000, best: 'g1f3', judgment: { name: 'Mistake' } }] }
   // Capped at 10 pawns: 30 down to -1000.
-  expect(readAnalysis(ok(bare), 'w')).toEqual([{ ply: 2, san: 'Qh5', judgment: 'Mistake', best: 'g1f3', loss: 1030 }])
-  expect(() => readAnalysis({ ok: false, status: 404, text: '' }, 'w')).toThrow('HTTP 404')
+  expect(readAnalysis(ok(bare), { side: 'w' })).toEqual([{ ply: 2, san: 'Qh5', judgment: 'Mistake', best: 'g1f3', loss: 1030 }])
+  expect(() => readAnalysis({ ok: false, status: 404, text: '' }, { side: 'w' })).toThrow('HTTP 404')
 })
 
 /** A game against Stockfish, played as white to the given end; resolves the answers Lichess gives, to change. */
@@ -125,7 +143,7 @@ test('an aborted game offers no review', async ($, on) => {
 
 test('the person’s mistakes as puzzles: the position before, the better move, the move before it', () => {
   const game = { id: 'g4m3', side: 'w', moves: ['f2f3', 'e7e5', 'g2g4', 'd8h4'] } as unknown as Game
-  const mistakes = readAnalysis(ok(FOOLS_MATE), 'w') ?? []
+  const mistakes = readAnalysis(ok(FOOLS_MATE), { side: 'w' }) ?? []
   expect(mistakePuzzles(game, mistakes, 'Your game against Stockfish level 3')).toEqual([
     {
       id: 'game-g4m3-2', source: 'game', url: 'https://lichess.org/g4m3#2', title: 'Your game against Stockfish level 3',
@@ -139,6 +157,9 @@ test('the person’s mistakes as puzzles: the position before, the better move, 
   ])
   // A better move that is not legal there is left out.
   expect(mistakePuzzles(game, [{ ply: 2, san: 'g4', judgment: 'Blunder', best: 'Qh5', loss: 900 }], 'x')).toEqual([])
+  // From a position with Black to move at move 30, Lichess's link counts from there.
+  const drill = { id: 'e9d', side: 'b', initialFen: '4k3/8/8/8/8/8/4P3/4K3 b - - 0 30', moves: ['e8d7', 'e2e4'] } as unknown as Game
+  expect(mistakePuzzles(drill, [{ ply: 0, san: 'Kd7', judgment: 'Inaccuracy', best: 'e8d8', loss: 0 }], 'x')[0]?.url).toBe('https://lichess.org/e9d#59')
 })
 
 test('the reviewed mistakes come back the next day as puzzles of the game', async ($, on) => {
