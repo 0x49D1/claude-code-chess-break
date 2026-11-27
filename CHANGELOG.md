@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.22.1 (2026-11-27)
+
+- 🔍 The review of a game from a position counts moves from the side to move there. A game started with Black to move no longer reads White's moves as yours, and the first move isn't measured against the usual start. Its puzzles' Lichess links point at the right move.
 ## 0.22.0 (2026-11-26)
 
 - ⚡ Puzzle Storm runs are kept: 📊 Progress and `/chess-break stats` show the best run, this week's best and the last five.

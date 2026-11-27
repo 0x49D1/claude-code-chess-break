@@ -15,6 +15,12 @@ export const canAbort = (g: Game) => isOn(g) && g.moves.length < 2
 /** The position a game started from: its own, or the initial one. */
 export const startOf = (g: { initialFen?: string }) => g.initialFen ?? START
 
+/** The plies before the game's start by its position's move number, as Lichess numbers a game's moves: 0 from the usual start. */
+export function startPly(g: { initialFen?: string }): number {
+  const [, turn, , , , full] = startOf(g).split(' ')
+  return Math.max(0, (Number(full) || 1) - 1) * 2 + (turn === 'b' ? 1 : 0)
+}
+
 /** Whose move it is after the game's moves, counted from the side to move at its start. */
 export const toMove = (g: { initialFen?: string; moves: string[] }): 'w' | 'b' =>
   (g.moves.length % 2 === 0) === (turnOf(startOf(g)) === 'w') ? 'w' : 'b'

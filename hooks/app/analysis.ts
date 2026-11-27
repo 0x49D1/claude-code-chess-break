@@ -42,7 +42,7 @@ export async function checkAnalysis($: $, id: string): Promise<boolean> {
   const { game } = await read($, view)
   if (game?.id !== id) return true
   try {
-    const mistakes = readAnalysis(await $.http.fetch(exportUrl(id), { method: 'GET', headers: { Accept: 'application/json' } }), game.side)
+    const mistakes = readAnalysis(await $.http.fetch(exportUrl(id), { method: 'GET', headers: { Accept: 'application/json' } }), game)
     if (!mistakes) return false
     if (settings.gamePuzzles) await queueMistakes($, game, mistakes)
     await update($, view, v => (v.game?.id === id ? { ...v, analysis: { gameId: id, state: 'ready' as const, mistakes } } : v))

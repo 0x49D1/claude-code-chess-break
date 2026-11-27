@@ -1,4 +1,5 @@
 import type { Judgment, Mistake } from '../../types'
+import { turnOf } from '../chess/position'
 
 const LICHESS = 'https://lichess.org'
 
@@ -10,7 +11,7 @@ const JUDGMENTS: Judgment[] = ['Inaccuracy', 'Mistake', 'Blunder']
 /** Evaluations past 10 pawns, and mates, count as 10 pawns: a missed mate does not dwarf the rest. */
 const CAP = 1000
 
-/** Lichess's evaluation of the start, before the first move. */
+/** Lichess's evaluation of the usual start, before the first move. */
 const START_EVAL = 15
 
 type Entry = { eval?: unknown; mate?: unknown; best?: unknown; variation?: unknown; judgment?: { name?: unknown } }
@@ -24,9 +25,17 @@ function scoreOf(entry: Entry | undefined): number | undefined {
 
 /**
  * The person's moves Lichess judged, the most lost first, at most `limit`; undefined while the game
- * has no analysis yet.
+ * has no analysis yet. Moves are counted from the side to move at the game's start, which may be
+ * Black's in a game from a position; that start has no evaluation to measure the first move by.
  */
-export function readAnalysis(res: { ok: boolean; status: number; text: string }, side: 'w' | 'b', limit = 3): Mistake[] | undefined {
+export function readAnalysis(
+  res: { ok: boolean; status: number; text: string },
+  game: { side: 'w' | 'b'; initialFen?: string },
+  limit = 3,
+): Mistake[] | undefined {
+  const { side } = game
+  const first = game.initialFen ? turnOf(game.initialFen) : 'w'
+  const startEval = game.initialFen ? undefined : START_EVAL
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const body = JSON.parse(res.text) as { moves?: unknown; analysis?: unknown }
   if (!Array.isArray(body.analysis)) return undefined
@@ -36,8 +45,9 @@ export function readAnalysis(res: { ok: boolean; status: number; text: string },
   analysis.forEach((entry, ply) => {
     const judgment = JUDGMENTS.find(j => j === entry?.judgment?.name)
     const san = sans[ply]
-    if (!judgment || !san || (ply % 2 === 0 ? 'w' : 'b') !== side) return
-    const before = ply === 0 ? START_EVAL : scoreOf(analysis[ply - 1])
+    const mover = (ply % 2 === 0) === (first === 'w') ? 'w' : 'b'
+    if (!judgment || !san || mover !== side) return
+    const before = ply === 0 ? startEval : scoreOf(analysis[ply - 1])
     const after = scoreOf(entry)
     const lost = before === undefined || after === undefined ? 0 : side === 'w' ? before - after : after - before
     const better = typeof entry?.variation === 'string' ? entry.variation.split(' ')[0] : undefined

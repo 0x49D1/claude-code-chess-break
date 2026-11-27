@@ -1,7 +1,7 @@
 import type { Game, Mistake, Puzzle } from '../../types'
 import { line, readMove, uciOf } from '../chess/position'
 import { gameUrl } from '../lichess/game'
-import { startOf } from './game'
+import { startOf, startPly } from './game'
 
 /**
  * The person's mistakes in a game, as puzzles: from the position before each, the better move
@@ -19,7 +19,8 @@ export function mistakePuzzles(game: Game, mistakes: Mistake[], title: string): 
     return [{
       id: `game-${game.id}-${m.ply}`,
       source: 'game' as const,
-      url: `${gameUrl(game.id)}#${m.ply}`,
+      // Lichess numbers a game from a position from that position's move number.
+      url: `${gameUrl(game.id)}#${startPly(game) + m.ply}`,
       title,
       fen: played.before,
       solution: [uciOf(better)],
