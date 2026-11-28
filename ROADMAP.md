@@ -13,11 +13,11 @@ The agreed feature list, in order. A daily run ships one version: code review an
   - [x] Slice 2, 0.13.0: a set marked with ☑, drilled in turn (▶ Drill my set, `/chess-break opening next`); Explain asks about an opening's plans.
   - [x] Slice 3, 0.14.0: each main line's most common deviation, sixteen openings in all.
   - [x] Done for now: accepting transpositions is left out. A drill's line fixes the other side's replies, so another move order has no reply in it to play: that needs a tree of moves per opening, a change of its own if wanted.
-- [ ] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
+- [x] **Endgame drills:** short practice positions (king and pawn, rook endgames) played against Stockfish until converted.
   - [x] Slice 1, 0.15.0: four won positions (KQ v K, KR v K, KP v K with the king in front, Lucena) played against Stockfish level 8 from the position, as casual Lichess games; 🔄 replays one.
   - [x] Slice 2, 0.16.0: each drill's result kept (✅ converted, ⏳ tried), and the ones not yet converted listed first.
   - [x] Slice 3, 0.17.0: three more won positions: two bishops, bishop and knight, queen against rook.
-  - [ ] Left, waiting: drills to hold a draw (Philidor) or played as Black. They need a drill's goal (a draw counted as converted), the review's mistake reader counting from Black, and positions checked against a tablebase before they ship. The review's mistake reader counts from the start's side since 0.22.1.
+  - [x] Slice 4, 0.23.0: three drawn positions to hold as Black (🛡 Philidor, king against king and pawn, rook pawn on the seventh against a queen), each checked against Lichess's tablebase; a draw counts as held. The review counts moves from the start's side since 0.22.1.
 - [x] **Weekly summary:** a card each Monday with puzzles solved, accuracy per theme, streak, best and weakest theme.
   - [x] Slice 1, 0.18.0: last week's card on the week's first pane: puzzles played and solved cleanly, the day streak, best and weakest theme; shown once a week. Puzzle totals per day are kept from this version on.
   - [x] Slice 2, 0.19.0: the five most played themes' accuracy against the week before, and `/chess-break week` to see the card again.

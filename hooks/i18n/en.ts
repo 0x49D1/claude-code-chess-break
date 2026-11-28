@@ -32,7 +32,7 @@ export const en: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'the offline set'),
   piece: p => PIECES[p] ?? 'the piece',
   theme: key => EN_THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'King and queen against king', kr: 'King and rook against king', kp: 'King and pawn: the king in front', lucena: 'Lucena position: rook and pawn', kbb: 'Two bishops against king', kbn: 'Bishop and knight against king', kqkr: 'Queen against rook' })[key],
+  endgame: key => ({ kq: 'King and queen against king', kr: 'King and rook against king', kp: 'King and pawn: the king in front', lucena: 'Lucena position: rook and pawn', kbb: 'Two bishops against king', kbn: 'Bishop and knight against king', kqkr: 'Queen against rook', philidor: '🛡 Philidor position: hold the rook ending', kpdraw: '🛡 King against king and pawn: hold the opposition', qpawn: '🛡 Rook pawn on the seventh against a queen' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = en.side(solver)
@@ -77,8 +77,8 @@ export const en: Messages = {
     setHead: '☑ puts an opening in your set; ▶ drills the set in turn.',
     drillSet: n => `Drill my set (${n})`,
     endgames: 'Endgames',
-    endgamesHead: 'Convert it against Stockfish at its strongest: a casual Lichess game from the position, as White. Needs the sign-in.',
-    endgamesMarks: '✅ converted · ⏳ tried, not yet won: those come first.',
+    endgamesHead: 'Against Stockfish at its strongest, in a casual Lichess game from the position: win it as White, or hold the draw as Black (🛡). Needs the sign-in.',
+    endgamesMarks: '✅ won or held · ⏳ tried, not yet: those come first.',
     summaryTitle: (from, to) => `Last week, ${from} to ${to}`,
     summaryPlayed: (played, solved, percent) => `${plural(played, 'puzzle', 'puzzles')}, ${solved} solved cleanly (${percent}%)`,
     summaryStreak: (days, best) => `Day streak ${days} · best ${best}`,

@@ -5,7 +5,7 @@ import { line } from '../chess/position'
 import { playerName } from '../i18n'
 import { AI_URL, EVENT_URL, SEEK_URL, actionUrl, drawUrl, gameForm, moveUrl, readGameEvent, streamUrl, takebackUrl } from '../lichess/game'
 import { beep } from '../training/beep'
-import { drillOf, recordDrill } from '../training/endgames'
+import { drillOf, isConverted, recordDrill } from '../training/endgames'
 import { GAME_DEFAULTS, applyState, canAbort, clockLeft, endingOf, fromFull, isCorrespondence, isMyTurn, isOn, outcomeOf, rollBack, startOf, toMove } from '../training/game'
 import { storedAccount, storedToken } from './account'
 import { hasCurl, stop, streamLines } from './curl'
@@ -67,11 +67,11 @@ function sound($: $, frequency: number) {
   return $.audio.play({ base64: beep(frequency, 150), mime: 'audio/wav' }).catch(() => undefined)
 }
 
-/** A drill's end kept: won, it is converted; drawn or lost, tried. An aborted one is not counted. */
+/** A drill's end kept: its goal reached (a win, or a draw for one to hold), converted; else tried. An aborted one is not counted. */
 async function recordDrillEnd($: $, game: Game) {
   const drill = drillOf(game)
   if (!drill || endingOf(game.status) === 'aborted') return
-  const drillResults = recordDrill(await storedDrills($), drill.key, outcomeOf(game) === 'win')
+  const drillResults = recordDrill(await storedDrills($), drill.key, isConverted(drill, outcomeOf(game)))
   await $.store.set('drills', drillResults)
   await update($, view, v => ({ ...v, drillResults }))
 }

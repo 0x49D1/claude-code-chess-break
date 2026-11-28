@@ -2,19 +2,30 @@ import { expect, test } from 'claude-code/testing'
 
 import { isCheck, legal, turnOf } from '../hooks/chess/position'
 import { gameForm, readGameEvent } from '../hooks/lichess/game'
-import { ENDGAMES, drillOf, drillOrder, drillSettings, recordDrill } from '../hooks/training/endgames'
+import { ENDGAMES, drillOf, drillOrder, drillSettings, isConverted, recordDrill } from '../hooks/training/endgames'
 import type { Game } from '../types'
 import { toMove } from '../hooks/training/game'
 import { AI, PANE, lichess, signedIn } from './fixtures/fake'
 
-test('every drill is a legal position, White to move, with the game still on', () => {
-  expect(ENDGAMES.map(e => e.key)).toEqual(['kq', 'kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr'])
+test('every drill is a legal position with the game still on; those to win have White to move', () => {
+  expect(ENDGAMES.map(e => e.key)).toEqual(['kq', 'kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr', 'philidor', 'kpdraw', 'qpawn'])
   for (const e of ENDGAMES) {
-    expect(turnOf(e.fen)).toBe('w')
+    if (!e.isHeld) expect(turnOf(e.fen)).toBe('w')
     expect(legal(e.fen).length).toBeGreaterThan(0)
-    // Black, not to move, is not in check: that position could not be.
-    expect(isCheck(e.fen.replace(' w ', ' b '))).toBe(false)
+    // The side not to move is not in check: that position could not be.
+    const other = turnOf(e.fen) === 'w' ? e.fen.replace(' w ', ' b ') : e.fen.replace(' b ', ' w ')
+    expect(isCheck(other)).toBe(false)
   }
+})
+
+test('a drill to hold is played as Black, and a draw holds it', () => {
+  const philidor = ENDGAMES.find(e => e.key === 'philidor')!
+  expect(new URLSearchParams(gameForm(drillSettings(philidor))).get('color')).toBe('black')
+  expect(isConverted(philidor, 'draw')).toBe(true)
+  expect(isConverted(philidor, 'loss')).toBe(false)
+  const kq = ENDGAMES[0]!
+  expect(isConverted(kq, 'draw')).toBe(false)
+  expect(isConverted(kq, 'win')).toBe(true)
 })
 
 test('the challenge carries the position, against Stockfish at its strongest', () => {
@@ -73,7 +84,7 @@ test('a drill’s result: a win converts it for good, a draw or loss is a try; n
   r = recordDrill(r, 'kr', true)
   r = recordDrill(r, 'kr', false)
   expect(r).toEqual({ kr: 'converted' })
-  expect(drillOrder({ kq: 'converted', kp: 'tried' }).map(e => e.key)).toEqual(['kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr', 'kq'])
+  expect(drillOrder({ kq: 'converted', kp: 'tried' }).map(e => e.key)).toEqual(['kr', 'kp', 'lucena', 'kbb', 'kbn', 'kqkr', 'philidor', 'kpdraw', 'qpawn', 'kq'])
   expect(drillOf({ initialFen: ENDGAMES[3]!.fen } as Game)?.key).toBe('lucena')
   expect(drillOf({} as Game)).toBeUndefined()
 })
@@ -131,6 +142,35 @@ test('a drill that ended while the stream was down is kept when the whole game c
   curl.feed.end()
   await settle(() => false, 1)
   expect(store.drills).toEqual({ kq: 'tried' })
+  await ui.unmount()
+  fake.endAll()
+  await settle(() => false, 1)
+})
+
+test('a drill to hold: played as Black from the position, and a draw counts as held', async ($, on) => {
+  const store: Record<string, unknown> = {}
+  const settle = signedIn(on, 'lip_good', store)
+  const fake = lichess(on, AI)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'play-endgame' })
+  await ui.press({ key: 'endgame-qpawn' })
+  await settle(() => fake.streams('/stream/g4m3').length > 0)
+  const form = fake.calls.find(c => c.url.endsWith('/api/challenge/ai'))?.body
+  expect(new URLSearchParams(form).get('color')).toBe('black')
+  const qpawn = ENDGAMES.find(e => e.key === 'qpawn')!
+  const curl = fake.streams('/stream/g4m3')[0]!
+  const full = (state: object) => JSON.stringify({
+    type: 'gameFull', id: 'g4m3', rated: false, initialFen: qpawn.fen,
+    white: { aiLevel: 8 }, black: { id: 'magnus', name: 'magnus', rating: 1500 },
+    clock: { initial: 900000, increment: 10000 },
+    state: { type: 'gameState', wtime: 900000, btime: 900000, ...state },
+  })
+  curl.feed.line(full({ moves: '', status: 'started' }))
+  await settle(() => false, 1)
+  curl.feed.line(full({ moves: 'g7g1 b1b2', status: 'draw' }))
+  curl.feed.end()
+  await settle(() => false, 1)
+  expect(store.drills).toEqual({ qpawn: 'converted' })
   await ui.unmount()
   fake.endAll()
   await settle(() => false, 1)

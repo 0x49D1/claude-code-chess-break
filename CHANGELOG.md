@@ -17,6 +17,9 @@ What each version added. The pane shows the latest ones under ℹ About.
 
 
 
+## 0.23.0 (2026-11-28)
+
+- 🏆 Three endgame drills to hold a draw as Black (🛡): the Philidor rook ending, king against king and pawn, and a rook pawn on the seventh against a queen. A draw counts as held. Each position was checked against Lichess's tablebase.
 ## 0.22.1 (2026-11-27)
 
 - 🔍 The review of a game from a position counts moves from the side to move there. A game started with Black to move no longer reads White's moves as yours, and the first move isn't measured against the usual start. Its puzzles' Lichess links point at the right move.
