@@ -31,7 +31,7 @@ export const fr: Messages = {
   source: s => (s === 'lichess' ? 'Lichess' : s === 'chesscom' ? 'Chess.com' : 'les puzzles hors ligne'),
   piece: p => PIECES[p] ?? 'la pièce',
   theme: key => THEMES[key] ?? humanize(key),
-  endgame: key => ({ kq: 'Roi et dame contre roi', kr: 'Roi et tour contre roi', kp: 'Roi et pion : le roi devant', lucena: 'Position de Lucena : tour et pion', kbb: 'Deux fous contre roi', kbn: 'Fou et cavalier contre roi', kqkr: 'Dame contre tour' })[key],
+  endgame: key => ({ kq: 'Roi et dame contre roi', kr: 'Roi et tour contre roi', kp: 'Roi et pion : le roi devant', lucena: 'Position de Lucena : tour et pion', kbb: 'Deux fous contre roi', kbn: 'Fou et cavalier contre roi', kqkr: 'Dame contre tour', philidor: '🛡 Position de Philidor : tenir la finale de tours', kpdraw: '🛡 Roi contre roi et pion : garder l’opposition', qpawn: '🛡 Pion de tour en septième contre une dame' })[key],
   group: key => GROUPS[key] ?? humanize(key),
   feedback(f, solver) {
     const me = fr.side(solver)
@@ -76,8 +76,8 @@ export const fr: Messages = {
     setHead: '☑ ajoute une ouverture à ta sélection ; ▶ les révise à tour de rôle.',
     drillSet: n => `Réviser ma sélection (${n})`,
     endgames: 'Finales',
-    endgamesHead: 'Gagne-la contre Stockfish à sa force maximale : une partie amicale sur Lichess depuis la position, avec les Blancs. Il faut être connecté.',
-    endgamesMarks: '✅ gagnée · ⏳ essayée, pas encore gagnée : celles-ci d’abord.',
+    endgamesHead: 'Contre Stockfish à sa force maximale, dans une partie amicale sur Lichess depuis la position : gagne avec les Blancs, ou tiens la nulle avec les Noirs (🛡). Il faut être connecté.',
+    endgamesMarks: '✅ gagnée ou tenue · ⏳ essayée, pas encore : celles-ci d’abord.',
     summaryTitle: (from, to) => `La semaine dernière, du ${from} au ${to}`,
     summaryPlayed: (played, solved, percent) => `${played} ${played === 1 ? 'problème' : 'problèmes'}, ${solved} sans faute (${percent} %)`,
     summaryStreak: (days, best) => `Jours d’affilée ${days} · record ${best}`,

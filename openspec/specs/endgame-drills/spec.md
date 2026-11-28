@@ -13,6 +13,13 @@ Lets the person practise converting won endgames against Stockfish, from the pos
 - **WHEN** a signed-in person presses King and rook against king
 - **THEN** Lichess is asked for a game against Stockfish level 8 with that position, and the board shows it, White to move
 
+### Requirement: Drills to hold
+Some drills SHALL be drawn positions to hold as Black, checked against Lichess's tablebase before they ship: the Philidor position, king against king and pawn with the opposition, and a rook pawn on the seventh against a queen. They SHALL be played as Black, and a draw SHALL count as held, like a win.
+
+#### Scenario: A held drill
+- **WHEN** a 🛡 drill's game ends in a draw
+- **THEN** the drill is marked ✅
+
 ### Requirement: Results kept
 When a drill's game ends, its result SHALL be kept across sessions: converted when won, tried when drawn or lost, and converted stays converted. An aborted game SHALL NOT count. 🏆 Endgames SHALL mark each drill ✅ converted or ⏳ tried, and list the ones not yet converted first.
 
